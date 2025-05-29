@@ -1,0 +1,83 @@
+/* App.css - Contains global styles and theme variables */
+
+/* Importing Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Light theme variables (default) */
+:root {
+  --background-color : #ffff;
+  --text-color: #2C3E50;
+  --p-color: #708492;
+  --theme-color: #bc4037;
+  --background-shadow: rgba(17, 12, 46, 0.15);
+  --dashboard-color:#f7f6f6;
+  --dashboard-bg:#fff;
+  --invert-color:  rgb(17, 12, 46);
+  --hover-dark-color: #f47061;
+  --hover-color: #bd5c55;
+  --background-light: rgb(255, 255, 255);
+  --background-gradient-light: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(154, 52, 45, 0.095) 100%);
+}
+
+/* Dark theme variables */
+.dark-mode{
+  --background-color : #1e1c1c;
+  --text-color: #e0e0e0;
+  --p-color: #E5E3E6;
+  --theme-color: #9a342d;
+  --background-shadow: rgba(117, 117, 121, 0.15);
+  --dashboard-color:#1b16168f;
+  --dashboard-bg:#0000007c;
+  --invert-color:white;
+  --hover-color: #f47061;
+  --hover-dark-color: #773e3a;
+  --background-light: #1e1c1c;
+  --background-gradient-light: linear-gradient(0deg, rgba(30, 28, 28, 1) 0%, rgba(154, 52, 45, 0.095) 100%);
+}
+
+body {
+  font-family: 'Roboto', 'Poppins', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Common transition for hover effects */
+a, button, .transition-effect {
+  transition: all 0.3s ease;
+}
+
+/* Placeholder for images that haven't loaded yet */
+img {
+  background-color: var(--dashboard-color);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hover-color);
+}

@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Avatar,
   Box,
   Button,
   Checkbox,
+  CircularProgress,
   Container,
   Divider,
   FormControl,
@@ -41,6 +42,8 @@ import {
   Email,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import OTPVerificationPage from '../../components/OTPVerificationPage/OTPVerificationPage'
+import authService from '../../services/authService';
 
 // Current date and user info from global state
 const CURRENT_DATE_TIME = "2025-05-30 04:04:53";
@@ -52,6 +55,7 @@ const MotionPaper = motion(Paper);
 
 const SignupPage = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const isDark = theme.palette.mode === 'dark';
@@ -77,6 +81,9 @@ const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [signupStatus, setSignupStatus] = useState({ show: false, type: '', message: '' });
+  
+  // New state for handling API calls
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Canvas animation for background
   useEffect(() => {
@@ -269,7 +276,7 @@ const SignupPage = () => {
   };
   
   // Handle next step
-  const handleNext = () => {
+  const handleNext = async () => {
     let isValid = false;
     
     // Validate current step
@@ -281,17 +288,41 @@ const SignupPage = () => {
     
     if (isValid) {
       if (activeStep === steps.length - 2) {
-        // This would be an API call in a real application
-        console.log('Signup data:', formData);
-        
-        // Simulate signup success
-        setSignupStatus({
-          show: true,
-          type: 'success',
-          message: 'Your account has been created successfully!',
-        });
+        // Final step - submit data to API
+        try {
+          setIsSubmitting(true);
+          
+          const userData = {
+            studentEmail: formData.email,
+            studentFirstName: formData.firstName,
+            studentLastName: formData.lastName,
+            studentPassword: formData.password,
+          };
+          
+          // Request signup OTP from API
+          const response = await authService.requestSignupOTP(userData);
+          
+          setSignupStatus({
+            show: true,
+            type: 'success',
+            message: 'Verification code sent to your email. Please check your inbox.',
+          });
+          
+          // Navigate to OTP verification page with email in the URL
+          navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}&type=signup`);
+        } catch (error) {
+          setSignupStatus({
+            show: true,
+            type: 'error',
+            message: error.message || 'Failed to create account. Please try again.',
+          });
+        } finally {
+          setIsSubmitting(false);
+        }
+      } else {
+        // Just move to next step for initial steps
+        setActiveStep((prevStep) => prevStep + 1);
       }
-      setActiveStep((prevStep) => prevStep + 1);
     } else {
       setSignupStatus({
         show: true,
@@ -534,10 +565,10 @@ const SignupPage = () => {
               <Check sx={{ fontSize: 80, color: 'white' }} />
             </MotionBox>
             <Typography variant="h4" gutterBottom sx={{ fontWeight: 800 }}>
-              Account Created!
+              Verification Email Sent!
             </Typography>
             <Typography variant="body1" paragraph sx={{ mb: 4 }}>
-              Your account has been created successfully. Please check your email to verify your account.
+              We've sent a verification code to your email. Please check your inbox and enter the code to complete your registration.
             </Typography>
             <Button
               variant="contained"
@@ -798,7 +829,8 @@ const SignupPage = () => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                endIcon={activeStep === steps.length - 2 ? <HowToReg /> : <ArrowForward />}
+                disabled={isSubmitting}
+                endIcon={activeStep === steps.length - 2 ? (isSubmitting ? null : <HowToReg />) : <ArrowForward />}
                 sx={{ 
                   borderRadius: '12px',
                   py: 1.2,
@@ -807,7 +839,18 @@ const SignupPage = () => {
                   fontWeight: 700,
                 }}
               >
-                {activeStep === steps.length - 2 ? 'Complete Signup' : 'Continue'}
+                {activeStep === steps.length - 2 ? (
+                  isSubmitting ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <CircularProgress size={24} sx={{ color: 'white', mr: 1 }} />
+                      Sending OTP...
+                    </Box>
+                  ) : (
+                    'Complete Signup'
+                  )
+                ) : (
+                  'Continue'
+                )}
               </Button>
             </Box>
           )}

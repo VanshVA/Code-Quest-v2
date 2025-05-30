@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Avatar,
@@ -20,6 +20,7 @@ import {
   Stack,
   TextField,
   Typography,
+  CircularProgress,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -34,11 +35,11 @@ import {
   ArrowForward,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-// import Logo from '../components/common/Logo';
+import authService from '../../services/authService';
 
 // Current date and user info from global state - updated as specified
-const CURRENT_DATE_TIME = "2025-05-30 04:52:59";
-const CURRENT_USER = "Anuj-prajapati-SDE";
+const CURRENT_DATE_TIME = "2025-05-30 06:01:54";
+const CURRENT_USER = "VanshSharmaSDEimport";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -46,6 +47,7 @@ const MotionTypography = motion(Typography);
 const MotionPaper = motion(Paper);
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -63,6 +65,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loginStatus, setLoginStatus] = useState({ show: false, type: '', message: '' });
+  const [isLoading, setIsLoading] = useState(false);
   
   // Enhanced Canvas animation for background
   useEffect(() => {
@@ -227,8 +230,6 @@ const LoginPage = () => {
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
     }
     
     setErrors(newErrors);
@@ -258,24 +259,43 @@ const LoginPage = () => {
   };
   
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // This would be an API call in a real application
-      console.log('Login attempt:', formData);
-      
-      // Simulate login success (in a real app, this would be based on API response)
-      setLoginStatus({
-        show: true,
-        type: 'success',
-        message: 'Login successful! Redirecting to dashboard...',
-      });
-      
-      // Simulate redirect after login
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1500);
+      try {
+        setIsLoading(true);
+        
+        // Call login API with email and password
+        const response = await authService.login(formData.email, formData.password);
+        
+        // Handle successful login
+        setLoginStatus({
+          show: true,
+          type: 'success',
+          message: 'Login successful! Redirecting to dashboard...',
+        });
+        
+        // If "remember me" is checked, store this preference
+        if (formData.rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        } else {
+          localStorage.removeItem('rememberMe');
+        }
+        
+        // Redirect after login
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      } catch (error) {
+        setLoginStatus({
+          show: true,
+          type: 'error',
+          message: error.message || 'Invalid email or password. Please try again.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       setLoginStatus({
         show: true,
@@ -283,6 +303,15 @@ const LoginPage = () => {
         message: 'Please correct the errors in the form.',
       });
     }
+  };
+  
+  // Handle social login
+  const handleSocialLogin = (provider) => {
+    setLoginStatus({
+      show: true,
+      type: 'info',
+      message: `${provider} login is not implemented yet.`,
+    });
   };
   
   // Close status alert
@@ -574,6 +603,7 @@ const LoginPage = () => {
                 variant="contained"
                 fullWidth
                 size="large"
+                disabled={isLoading}
                 sx={{ 
                   mt: 2,
                   borderRadius: '12px',
@@ -601,9 +631,13 @@ const LoginPage = () => {
                     }
                   },
                 }}
-                endIcon={<LoginOutlined />}
+                endIcon={!isLoading && <LoginOutlined />}
               >
-                Sign In
+                {isLoading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Sign In'
+                )}
               </Button>
               
               {/* Social Login Options */}
@@ -632,6 +666,7 @@ const LoginPage = () => {
                   fullWidth
                   variant="outlined"
                   startIcon={<Google />}
+                  onClick={() => handleSocialLogin('Google')}
                   sx={{ 
                     py: 1.5, 
                     borderRadius: '12px',
@@ -648,6 +683,7 @@ const LoginPage = () => {
                   fullWidth
                   variant="outlined"
                   startIcon={<GitHub />}
+                  onClick={() => handleSocialLogin('GitHub')}
                   sx={{ 
                     py: 1.5, 
                     borderRadius: '12px',
@@ -664,6 +700,7 @@ const LoginPage = () => {
                   fullWidth
                   variant="outlined"
                   startIcon={<Apple />}
+                  onClick={() => handleSocialLogin('Apple')}
                   sx={{ 
                     py: 1.5, 
                     borderRadius: '12px',

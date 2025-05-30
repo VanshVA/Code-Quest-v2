@@ -367,7 +367,7 @@ const Navbar = ({ isAuthenticated = false }) => {
             fullWidth
             variant="outlined"
             component={RouterLink}
-            to="/register"
+            to="/signup"
           >
             Sign Up
           </Button>
@@ -886,13 +886,13 @@ const Navbar = ({ isAuthenticated = false }) => {
                       
                       <MotionBox
                         component={RouterLink}
-                        to="/register"
+                        to="/signup"
                         variants={buttonVariants}
                         initial="initial"
                         animate="animate"
                         whileHover="hover"
                         whileTap="tap"
-                        transition={{ duration: 0.2, delay: 0.1 }}
+                        transition={{ duration: 0.2, ditserelay: 0.1 }}
                         sx={{
                           py: 1,
                           px: 3,

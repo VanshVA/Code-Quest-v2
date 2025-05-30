@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -33,10 +33,11 @@ import {
   LoginOutlined,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import authService from '../../services/authService';
 
 // Current date and user info from global state
-const CURRENT_DATE_TIME = "2025-05-30 04:14:17";
-const CURRENT_USER = "Anuj-prajapati-SDE";
+const CURRENT_DATE_TIME = "2025-05-30 06:08:07";
+const CURRENT_USER = "VanshSharmaSDEimport";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -44,6 +45,8 @@ const MotionTypography = motion(Typography);
 const MotionPaper = motion(Paper);
 
 const ResetPasswordPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -51,8 +54,10 @@ const ResetPasswordPage = () => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   
-  // Get token from URL
-  const { token } = useParams();
+  // Get email from URL parameters and reset token from localStorage
+  const searchParams = new URLSearchParams(location.search);
+  const email = searchParams.get('email') || '';
+  const resetToken = localStorage.getItem('resetToken') || '';
   
   // State
   const [formData, setFormData] = useState({
@@ -64,6 +69,7 @@ const ResetPasswordPage = () => {
   const [errors, setErrors] = useState({});
   const [isValidatingToken, setIsValidatingToken] = useState(true);
   const [isTokenValid, setIsTokenValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [statusAlert, setStatusAlert] = useState({ show: false, type: '', message: '' });
   
@@ -217,31 +223,36 @@ const ResetPasswordPage = () => {
     };
   }, [isMobile, isDark]);
   
-  // Simulate token validation
+  // Validate token and email
   useEffect(() => {
-    const validateToken = async () => {
-      // In a real app, this would be an API call to validate the token
-      // Simulating API call
-      setTimeout(() => {
-        // For demo, assume token is valid if it exists and has some length
-        const isValid = token && token.length > 10;
-        setIsTokenValid(isValid);
+    const validateResetSession = async () => {
+      // Check if we have both email and reset token
+      if (!email || !resetToken) {
+        setIsTokenValid(false);
         setIsValidatingToken(false);
         
-        if (!isValid) {
-          setStatusAlert({
-            show: true,
-            type: 'error',
-            message: 'Invalid or expired password reset token. Please request a new password reset link.',
-          });
-        }
-      }, 1500);
+        setStatusAlert({
+          show: true,
+          type: 'error',
+          message: 'Invalid or expired password reset session. Please request a new password reset.',
+        });
+        
+        return;
+      }
+      
+      // If we have both, consider the token valid
+      // In a real app, you might want to validate the token with the backend
+      setIsTokenValid(true);
+      setIsValidatingToken(false);
     };
     
-    validateToken();
-  }, [token]);
+    // Short delay to simulate validation
+    setTimeout(() => {
+      validateResetSession();
+    }, 1000);
+  }, [email, resetToken]);
   
-  // Update password strength
+  // Update password strength based on requirements met
   useEffect(() => {
     // Calculate how many requirements are met
     const metRequirements = passwordRequirements.filter(req => req.validator(formData.newPassword)).length;
@@ -294,20 +305,45 @@ const ResetPasswordPage = () => {
   };
   
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // In a real app, this would be an API call to reset the password
-      console.log('Password reset:', formData);
-      
-      // Simulate success
-      setStatusAlert({
-        show: true,
-        type: 'success',
-        message: 'Your password has been reset successfully!',
-      });
-      setIsSubmitted(true);
+      try {
+        setIsSubmitting(true);
+        
+        // Call API to reset password
+        await authService.resetPassword(
+          email,
+          formData.newPassword,
+          resetToken
+        );
+        
+        // Clear reset token from localStorage
+        localStorage.removeItem('resetToken');
+        
+        // Show success message
+        setStatusAlert({
+          show: true,
+          type: 'success',
+          message: 'Your password has been reset successfully!',
+        });
+        
+        setIsSubmitted(true);
+        
+        // Redirect to login after delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } catch (error) {
+        setStatusAlert({
+          show: true,
+          type: 'error',
+          message: error.message || 'Failed to reset password. Please try again.',
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setStatusAlert({
         show: true,
@@ -331,7 +367,7 @@ const ResetPasswordPage = () => {
   
   // Handle redirect to login
   const handleGoToLogin = () => {
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   return (
@@ -535,7 +571,16 @@ const ResetPasswordPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                  Create a new, strong password for your account
+                  Create a new, strong password for
+                </MotionTypography>
+                <MotionTypography
+                  variant="body1"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.45 }}
+                  sx={{ fontWeight: 600 }}
+                >
+                  {email}
                 </MotionTypography>
               </Box>
               
@@ -655,6 +700,7 @@ const ResetPasswordPage = () => {
                     variant="contained"
                     fullWidth
                     size="large"
+                    disabled={isSubmitting}
                     sx={{ 
                       mt: 2,
                       borderRadius: '12px',
@@ -683,7 +729,11 @@ const ResetPasswordPage = () => {
                       },
                     }}
                   >
-                    Reset Password
+                    {isSubmitting ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      'Reset Password'
+                    )}
                   </Button>
                 </Stack>
               </form>
@@ -718,26 +768,9 @@ const ResetPasswordPage = () => {
                 Password Reset Successful
               </Typography>
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                Your password has been reset successfully. You can now log in with your new password.
+                Your password has been reset successfully. You will be redirected to the login page shortly.
               </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={handleGoToLogin}
-                endIcon={<LoginOutlined />}
-                sx={{ 
-                  borderRadius: '12px',
-                  py: 1.8,
-                  px: 4,
-                  background: theme.palette.gradients.primary,
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                }}
-              >
-                Go to Login
-              </Button>
+              <CircularProgress size={24} color="primary" />
             </Box>
           ) : (
             // Invalid Token Message
@@ -769,7 +802,7 @@ const ResetPasswordPage = () => {
                 Invalid or Expired Link
               </Typography>
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                This password reset link is invalid or has expired. Please request a new password reset link.
+                This password reset session is invalid or has expired. Please request a new password reset.
               </Typography>
               <Button
                 component={RouterLink}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -29,6 +29,7 @@ import {
   LockOpen,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import authService from '../../services/authService';
 
 // Current date and user info from global state
 const CURRENT_DATE_TIME = "2025-05-30 04:25:46";
@@ -41,16 +42,18 @@ const MotionPaper = motion(Paper);
 
 const OTPVerificationPage = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const isDark = theme.palette.mode === 'dark';
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   
-  // Search params to get email
+  // Get email and verification type from URL
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const email = searchParams.get('email') || 'your.email@example.com';
+  const verificationType = searchParams.get('type') || 'signup'; // 'signup' or 'reset'
   
   // State
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
@@ -237,30 +240,53 @@ const OTPVerificationPage = () => {
     }
   };
   
-  // Resend OTP
-  const handleResendOtp = () => {
-    // Reset OTP fields
-    setOtpDigits(['', '', '', '', '', '']);
-    
-    // Reset error
-    setError('');
-    
-    // Reset timer
-    setRemainingTime(120);
-    
-    // Show success alert
-    setStatusAlert({
-      show: true,
-      type: 'success',
-      message: 'A new verification code has been sent to your email.',
-    });
-    
-    // Focus on first input
-    inputRefs.current[0].focus();
+  // Resend OTP - updated with API integration
+  const handleResendOtp = async () => {
+    try {
+      setStatusAlert({
+        show: true,
+        type: 'info',
+        message: 'Sending new verification code...',
+      });
+      
+      // API call to resend OTP
+      if (verificationType === 'signup') {
+        await authService.resendSignupOTP(email);
+      } else {
+        await authService.requestPasswordResetOTP(email);
+      }
+      
+      // Reset OTP fields
+      setOtpDigits(['', '', '', '', '', '']);
+      
+      // Reset error
+      setError('');
+      
+      // Reset timer
+      setRemainingTime(120);
+      
+      // Show success alert
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: 'A new verification code has been sent to your email.',
+      });
+      
+      // Focus on first input
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
+    } catch (error) {
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Failed to resend verification code. Please try again.',
+      });
+    }
   };
   
-  // Verify OTP
-  const handleVerifyOtp = () => {
+  // Verify OTP - updated with API integration
+  const handleVerifyOtp = async () => {
     // Check if all digits are entered
     if (otpDigits.some(digit => digit === '')) {
       setError('Please enter all digits of the verification code');
@@ -270,40 +296,63 @@ const OTPVerificationPage = () => {
     // Start verification process
     setIsVerifying(true);
     
-    // Simulate API call to verify OTP
-    setTimeout(() => {
-      // For demo, assume OTP is valid if it's '123456'
+    try {
       const enteredOtp = otpDigits.join('');
-      const isValid = enteredOtp === '123456';
       
-      setIsVerifying(false);
-      
-      if (isValid) {
-        setIsVerified(true);
-        setStatusAlert({
-          show: true,
-          type: 'success',
-          message: 'Your account has been verified successfully!',
-        });
-        
-        // In a real app, this would redirect to the next step or dashboard
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 2000);
+      let response;
+      if (verificationType === 'signup') {
+        // Call signup OTP verification
+        response = await authService.verifySignupOTP(email, enteredOtp);
       } else {
-        setError('Invalid verification code. Please try again.');
-        setStatusAlert({
-          show: true,
-          type: 'error',
-          message: 'Invalid verification code. Please check and try again.',
-        });
+        // Call password reset OTP verification
+        response = await authService.verifyPasswordResetOTP(email, enteredOtp);
       }
-    }, 1500);
+      
+      setIsVerified(true);
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: verificationType === 'signup' 
+          ? 'Your account has been verified successfully!' 
+          : 'Verification successful! You can now reset your password.',
+      });
+      
+      // Redirect based on verification type
+      setTimeout(() => {
+        if (verificationType === 'signup') {
+          // For signup, redirect to dashboard or login
+          navigate('/dashboard');
+        } else {
+          // For password reset, redirect to reset password page
+          navigate(`/reset-password?email=${encodeURIComponent(email)}`);
+        }
+      }, 2000);
+    } catch (error) {
+      setError('Invalid verification code. Please try again.');
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Invalid verification code. Please check and try again.',
+      });
+    } finally {
+      setIsVerifying(false);
+    }
   };
   
   // Handle alert close
   const handleCloseAlert = () => {
     setStatusAlert({ ...statusAlert, show: false });
+  };
+  
+  // Update headings based on verification type
+  const getPageTitle = () => {
+    return verificationType === 'signup' ? 'Account Verification' : 'Reset Password';
+  };
+
+  const getVerificationMessage = () => {
+    return verificationType === 'signup' 
+      ? 'Verify your account to get started' 
+      : 'Enter the code to reset your password';
   };
   
   // Auto focus first input on load
@@ -495,7 +544,7 @@ const OTPVerificationPage = () => {
                     mb: 1,
                   }}
                 >
-                  Verification Code
+                  {getPageTitle()}
                 </MotionTypography>
                 <MotionTypography
                   variant="body1"
@@ -505,7 +554,7 @@ const OTPVerificationPage = () => {
                   transition={{ duration: 0.5, delay: 0.4 }}
                   sx={{ mb: 1 }}
                 >
-                  Enter the 6-digit code sent to
+                  {getVerificationMessage()}
                 </MotionTypography>
                 <MotionTypography
                   variant="body1"
@@ -635,9 +684,24 @@ const OTPVerificationPage = () => {
                   </Button>
                 )}
               </Box>
+              
+              {/* Back Link */}
+              <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Button
+                  component={RouterLink}
+                  to={verificationType === 'signup' ? '/signup' : '/forgot-password'}
+                  startIcon={<ArrowBack />}
+                  sx={{ 
+                    textTransform: 'none',
+                    fontWeight: 600,
+                  }}
+                >
+                  {verificationType === 'signup' ? 'Back to Signup' : 'Back to Forgot Password'}
+                </Button>
+              </Box>
             </>
           ) : (
-            // Success Message
+            // Success Message - updated for different verification types
             <Box sx={{ textAlign: 'center', py: 2 }}>
               <MotionBox
                 initial={{ scale: 0 }}
@@ -666,26 +730,13 @@ const OTPVerificationPage = () => {
                 Verification Successful
               </Typography>
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                Your account has been verified successfully. You will be redirected to the dashboard shortly.
+                {verificationType === 'signup' 
+                  ? 'Your account has been verified successfully. You will be redirected to the dashboard shortly.' 
+                  : 'Your identity has been verified. You will be redirected to reset your password.'}
               </Typography>
               <CircularProgress size={30} color="primary" />
             </Box>
           )}
-          
-          {/* Back Link */}
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Button
-              component={RouterLink}
-              to="/login"
-              startIcon={<ArrowBack />}
-              sx={{ 
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Back to Login
-            </Button>
-          </Box>
         </MotionPaper>
         
         {/* Footer */}

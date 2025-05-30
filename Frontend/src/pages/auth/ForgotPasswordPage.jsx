@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Container,
   Divider,
   FormControl,
@@ -25,9 +26,10 @@ import {
   CheckCircleOutline,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import authService from '../../services/authService';
 
 // Current date and user info from global state
-const CURRENT_DATE_TIME = "2025-05-30 04:14:17";
+const CURRENT_DATE_TIME = "2025-05-30 06:08:07";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -35,6 +37,7 @@ const MotionTypography = motion(Typography);
 const MotionPaper = motion(Paper);
 
 const ForgotPasswordPage = () => {
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -45,6 +48,7 @@ const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [statusAlert, setStatusAlert] = useState({ show: false, type: '', message: '' });
   
   // Canvas animation for background
@@ -173,7 +177,7 @@ const ForgotPasswordPage = () => {
   };
   
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!email) {
@@ -186,16 +190,40 @@ const ForgotPasswordPage = () => {
       return;
     }
     
-    // This would be an API call in a real application
-    console.log('Password reset request for:', email);
-    
-    // Simulate successful submission
-    setStatusAlert({
-      show: true,
-      type: 'success',
-      message: 'Reset link sent! Please check your email inbox.',
-    });
-    setSubmitted(true);
+    try {
+      setIsLoading(true);
+      
+      // Call API to request password reset OTP
+      await authService.requestPasswordResetOTP(email);
+      
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: 'Verification code sent! Please check your email inbox.',
+      });
+      
+      setSubmitted(true);
+      
+      // After a short delay, navigate to OTP verification page
+      setTimeout(() => {
+        navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=reset`);
+      }, 3000);
+      
+    } catch (error) {
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Failed to send verification code. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Try another email
+  const handleTryAnotherEmail = () => {
+    setSubmitted(false);
+    setEmail('');
   };
   
   // Handle alert close
@@ -394,7 +422,7 @@ const ForgotPasswordPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                  Enter your email address below to receive a password reset link
+                  Enter your email address to receive a verification code
                 </MotionTypography>
               </Box>
               
@@ -409,6 +437,7 @@ const ForgotPasswordPage = () => {
                     variant="outlined"
                     placeholder="your.email@example.com"
                     error={!!error}
+                    disabled={isLoading}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -427,6 +456,7 @@ const ForgotPasswordPage = () => {
                   variant="contained"
                   fullWidth
                   size="large"
+                  disabled={isLoading}
                   sx={{ 
                     mt: 1,
                     borderRadius: '12px',
@@ -455,7 +485,11 @@ const ForgotPasswordPage = () => {
                     },
                   }}
                 >
-                  Send Reset Link
+                  {isLoading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Send Verification Code'
+                  )}
                 </Button>
               </form>
             </>
@@ -489,24 +523,12 @@ const ForgotPasswordPage = () => {
                 Check Your Email
               </Typography>
               <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and follow the instructions.
+                We've sent a verification code to <strong>{email}</strong>. Please check your inbox.
               </Typography>
               <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                Didn't receive the email? Check your spam folder or try again.
+                Redirecting to verification page...
               </Typography>
-              <Button
-                variant="outlined"
-                onClick={() => setSubmitted(false)}
-                sx={{ 
-                  borderRadius: '12px',
-                  py: 1,
-                  px: 3,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                }}
-              >
-                Try Another Email
-              </Button>
+              <CircularProgress size={24} sx={{ color: 'var(--theme-color)' }} />
             </Box>
           )}
           

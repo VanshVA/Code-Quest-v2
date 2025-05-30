@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const studentAuthRoutes = require('./routes/studentAuthRoutes');
 const teacherAuthRoutes = require('./routes/teacherAuthRoutes');
 const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
 const createDefaultAdmin = require('./utilities/createDefaultAdmin');
 
 // Connect to MongoDB
@@ -24,6 +25,7 @@ app.use(cors());
 app.use('/api/students/auth', studentAuthRoutes);
 app.use('/api/teachers/auth', teacherAuthRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin/dashboard', require('./routes/adminDashboardRoutes'));
 
 // Default route
 app.get('/', (req, res) => {

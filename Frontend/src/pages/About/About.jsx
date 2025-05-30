@@ -1142,6 +1142,7 @@ const AboutPage = () => {
             <Tabs 
               value={tabValue}
               onChange={handleTabChange}
+              
               variant={isMobile ? "scrollable" : "fullWidth"}
               scrollButtons="auto"
               sx={{
@@ -1149,9 +1150,9 @@ const AboutPage = () => {
                   display: 'none',
                 },
                 '& .MuiTab-root': {
-                  minWidth: 'auto',
+                  minWidth: '200px',
                   minHeight: 'auto',
-                  py: 1.5,
+                  py: 3,
                   px: 3,
                   borderRadius: '50px',
                   fontWeight: 600,

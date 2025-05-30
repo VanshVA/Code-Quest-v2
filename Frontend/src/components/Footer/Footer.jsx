@@ -368,7 +368,7 @@ const Footer = ({ isAuthenticated = false }) => {
             {!isSmall && (
               <>
                 {footerLinks.map((section, index) => (
-                  <Grid item xs={6} md={2} key={section.title}>
+                  <Grid item xs={6} md={2} key={section.title} >
                     <Typography
                       variant="subtitle1"
                       gutterBottom
@@ -473,92 +473,6 @@ const Footer = ({ isAuthenticated = false }) => {
             )}
           </Grid>
           
-          <Divider sx={{ my: 4 }} />
-          
-          {/* Bottom section with user info, time, copyright */}
-          <Grid 
-            container 
-            spacing={2}
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ py: 2 }}
-          >
-            <Grid item xs={12} sm={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {isAuthenticated && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-                    <Avatar 
-                      alt="Anuj Prajapati" 
-                      src="/assets/user-avatar.jpg"
-                      sx={{ 
-                        width: 32, 
-                        height: 32, 
-                        mr: 1,
-                        border: `2px solid ${theme.palette.primary.main}`,
-                      }}
-                    />
-                    <Box>
-                      <Typography variant="body2" fontWeight={600}>
-                        Anuj-prajapati-SDE
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Active Session
-                      </Typography>
-                    </Box>
-                  </Box>
-                )}
-                
-                <Box 
-                  sx={{ 
-                    ml: isAuthenticated ? 2 : 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    px: 1.5,
-                    py: 0.7,
-                    borderRadius: '8px',
-                    bgcolor: theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.05)'
-                      : 'rgba(0,0,0,0.02)',
-                  }}
-                >
-                  <Typography variant="caption" color="text.secondary" fontFamily="monospace">
-                    UTC {currentDateTime}
-                  </Typography>
-                </Box>
-                
-                <IconButton 
-                  onClick={toggleColorMode} 
-                  size="small" 
-                  sx={{ ml: 1 }}
-                  color="primary"
-                >
-                  {theme.palette.mode === 'dark' ? <LightMode fontSize="small" /> : <DarkMode fontSize="small" />}
-                </IconButton>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  justifyContent: { xs: 'center', sm: 'flex-end' },
-                  alignItems: 'center', 
-                  flexWrap: 'wrap',
-                  gap: 2,
-                }}
-              >
-                <Typography variant="caption" color="text.secondary">
-                  © {new Date().getFullYear()} Code-Quest. All rights reserved.
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Made with ❤️ by{' '}
-                  <Link href="#" color="inherit" sx={{ fontWeight: 600 }}>
-                    Anuj Prajapati
-                  </Link>
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
         </Container>
       </Box>
       

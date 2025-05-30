@@ -78,7 +78,7 @@ const Logo = () => {
           height: 40,
           borderRadius: '12px',
           background: 'linear-gradient(135deg, #f47061 0%, #bc4037 100%)',
-          boxShadow: '0 4px 12px rgba(188, 64, 55, 0.3)',
+          // boxShadow: '0 4px 12px rgba(188, 64, 55, 0.3)',
           mr: 1.5,
           overflow: 'hidden',
           position: 'relative',
@@ -313,7 +313,7 @@ const Navbar = ({ isAuthenticated = false }) => {
               height: 36,
               borderRadius: '10px',
               background: 'linear-gradient(135deg, #f47061 0%, #bc4037 100%)',
-              boxShadow: '0 4px 8px rgba(188, 64, 55, 0.3)',
+              // boxShadow: '0 4px 8px rgba(188, 64, 55, 0.3)',
               mr: 1.5,
             }}
           >
@@ -692,20 +692,7 @@ const Navbar = ({ isAuthenticated = false }) => {
             >
               {!isSmall && (
                 <>
-                  <Tooltip title="Search">
-                    <IconButton 
-                      color="inherit" 
-                      sx={{ 
-                        mr: 1,
-                        backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
-                        '&:hover': {
-                          backgroundColor: scrolled ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.2)',
-                        }
-                      }}
-                    >
-                      <Search />
-                    </IconButton>
-                  </Tooltip>
+              
                   
                   <IconButton 
                     onClick={toggleColorMode} 
@@ -898,7 +885,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                           display: 'flex',
                           alignItems: 'center',
                           // FIX 3: Reduced box-shadow for Sign Up button
-                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                          // boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                         }}
                       >
                         Sign Up

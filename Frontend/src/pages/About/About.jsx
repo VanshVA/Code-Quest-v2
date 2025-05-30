@@ -820,7 +820,7 @@ const AboutPage = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8, mb: 6 }}>
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8, mb: 6, textAlign: 'center' }}>
         Since our founding in 2022, Code-Quest has grown rapidly through continuous innovation and a commitment to educational excellence. 
         Our journey has been marked by significant milestones as we've expanded our platform capabilities and global reach.
       </Typography>
@@ -856,10 +856,10 @@ const AboutPage = () => {
                 item 
                 xs={12} sm={6}
                 sx={{ 
-                  textAlign: { xs: 'left', sm: index % 2 === 0 ? 'right' : 'left' },
-                  pr: { xs: 0, sm: index % 2 === 0 ? 4 : 0 },
-                  pl: { xs: 5, sm: index % 2 === 0 ? 0 : 4 },
-                  order: { xs: 2, sm: index % 2 === 0 ? 1 : 2 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: { xs: 'center', sm: 'flex-start' },
+                  order: { xs: 2, sm: 1 },
                 }}
               >
                 <Box sx={{ position: 'relative' }}>
@@ -895,9 +895,11 @@ const AboutPage = () => {
                 xs={12} sm={6}
                 sx={{ 
                   display: 'flex',
-                  justifyContent: { xs: 'flex-start', sm: index % 2 === 0 ? 'flex-start' : 'flex-end' },
                   alignItems: 'center',
-                  order: { xs: 1, sm: index % 2 === 0 ? 2 : 1 },
+                  justifyContent: { xs: 'center', sm: 'flex-end' },
+                  order: { xs: 1, sm: 2 },
+                  position: 'relative',
+                  
                 }}
               >
                 <Box sx={{ 

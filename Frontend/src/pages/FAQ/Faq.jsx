@@ -413,9 +413,13 @@ const FAQPage = () => {
         }}
       >
         <Container maxWidth="lg" style={{minWidth: '100%'}}>
-          <Grid container spacing={4} style={{ display: 'flex', flexDirection: 'row', flexWrap: "nowrap" }}>
+          <Grid container spacing={4}  sx={{
+  display: { md: 'flex' },
+  flexDirection: { md: 'row' },
+  flexWrap: { md: 'nowrap' }
+}}>
             {/* Sidebar */}
-            <Grid item xs={12} md={4} lg={3} style={{minWidth: '300px'}}>
+            <Grid item xs={12} md={4} lg={3} sx={{ minWidth: { md: '300px' } }}>
               <MotionBox
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}

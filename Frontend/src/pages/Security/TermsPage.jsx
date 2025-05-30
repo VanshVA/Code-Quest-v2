@@ -461,10 +461,14 @@ const TermsPage = () => {
 
         }}
       >
-        <Container  style={{ minWidth: '100%' }} >
-          <Grid container spacing={4}  style={{ display: 'flex', flexDirection: 'row', flexWrap: "nowrap" }}>
+        <Container sx={{ minWidth: { md: '100%' } }} >
+          <Grid container spacing={4}  sx={{
+  display: { md: 'flex' },
+  flexDirection: { md: 'row' },
+  flexWrap: { md: 'nowrap' }
+}}>
             {/* Table of Contents Sidebar */}
-            <Grid item xs={12} md={3}  style={{minWidth: '300px'}}>
+            <Grid item xs={12} md={3}  sx={{ minWidth: { md: '300px' } }}>
               <MotionBox
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}

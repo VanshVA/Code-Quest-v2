@@ -376,7 +376,9 @@ const Footer = ({ isAuthenticated = false }) => {
                     >
                       {section.title}
                     </Typography>
-                    <Box component="ul" sx={{ pl: 0, listStyle: 'none' }}>
+                    <Box component="ul" 
+                  
+                    sx={{ pl: 0, listStyle: 'none'}}>
                       {section.links.map((link, linkIndex) => (
                         <Box 
                           component="li" 
@@ -499,7 +501,7 @@ const Footer = ({ isAuthenticated = false }) => {
               spacing={{ xs: 2, sm: 4 }} 
               alignItems="center"
             >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent :"center"}}>
                 <LocationOn 
                   fontSize="small" 
                   sx={{ color: theme.palette.primary.main, mr: 0.5 }} 

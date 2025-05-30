@@ -47,6 +47,7 @@ import {
   Settings,
   Help,
   Logout,
+  QuestionAnswer,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useColorMode } from '../../context/ThemeContext';
@@ -163,48 +164,54 @@ const navItems = [
     icon: <Info />,
     megaMenu: false
   },
+  // { 
+  //   name: 'Features', 
+  //   path: '/features', 
+  //   icon: <Code />,
+  //   megaMenu: true,
+  //   items: [
+  //     {
+  //       title: 'Coding Environment',
+  //       options: [
+  //         { name: 'Code Editor', path: '/features/code-editor', description: 'Multi-language editor with real-time execution' },
+  //         { name: 'Challenges', path: '/features/challenges', description: 'Algorithmic problems with difficulty levels' },
+  //         { name: 'Sandbox', path: '/features/sandbox', description: 'Experimental coding space for testing' },
+  //       ]
+  //     },
+  //     {
+  //       title: 'Assessment Tools',
+  //       options: [
+  //         { name: 'MCQ Tests', path: '/features/mcq', description: 'Multiple-choice testing system' },
+  //         { name: 'Performance Analytics', path: '/features/analytics', description: 'Detailed reports and insights' },
+  //         { name: 'Proctoring', path: '/features/proctoring', description: 'Secure test monitoring features' },
+  //       ]
+  //     },
+  //     {
+  //       title: 'Collaboration',
+  //       options: [
+  //         { name: 'Team Projects', path: '/features/teams', description: 'Collaborative coding environments' },
+  //         { name: 'Discussion Forums', path: '/features/forums', description: 'Community interaction space' },
+  //         { name: 'Code Reviews', path: '/features/reviews', description: 'Peer feedback system' },
+  //       ]
+  //     },
+  //   ]
+  // },
+  // { 
+  //   name: 'Competitions', 
+  //   path: '/competitions', 
+  //   icon: <EmojiEvents />,
+  //   megaMenu: false
+  // },
+  // { 
+  //   name: 'Leaderboard', 
+  //   path: '/leaderboard', 
+  //   icon: <Leaderboard />,
+  //   megaMenu: false
+  // },
   { 
-    name: 'Features', 
-    path: '/features', 
-    icon: <Code />,
-    megaMenu: true,
-    items: [
-      {
-        title: 'Coding Environment',
-        options: [
-          { name: 'Code Editor', path: '/features/code-editor', description: 'Multi-language editor with real-time execution' },
-          { name: 'Challenges', path: '/features/challenges', description: 'Algorithmic problems with difficulty levels' },
-          { name: 'Sandbox', path: '/features/sandbox', description: 'Experimental coding space for testing' },
-        ]
-      },
-      {
-        title: 'Assessment Tools',
-        options: [
-          { name: 'MCQ Tests', path: '/features/mcq', description: 'Multiple-choice testing system' },
-          { name: 'Performance Analytics', path: '/features/analytics', description: 'Detailed reports and insights' },
-          { name: 'Proctoring', path: '/features/proctoring', description: 'Secure test monitoring features' },
-        ]
-      },
-      {
-        title: 'Collaboration',
-        options: [
-          { name: 'Team Projects', path: '/features/teams', description: 'Collaborative coding environments' },
-          { name: 'Discussion Forums', path: '/features/forums', description: 'Community interaction space' },
-          { name: 'Code Reviews', path: '/features/reviews', description: 'Peer feedback system' },
-        ]
-      },
-    ]
-  },
-  { 
-    name: 'Competitions', 
-    path: '/competitions', 
-    icon: <EmojiEvents />,
-    megaMenu: false
-  },
-  { 
-    name: 'Leaderboard', 
-    path: '/leaderboard', 
-    icon: <Leaderboard />,
+    name: 'Faqs', 
+    path: '/faq', 
+    icon: <QuestionAnswer />,
     megaMenu: false
   },
  
@@ -228,11 +235,7 @@ const Navbar = ({ isAuthenticated = false }) => {
   const [scrolled, setScrolled] = useState(false);
   const [megaMenuTimeout, setMegaMenuTimeout] = useState(null);
   
-  // Scrolling effect
-  const trigger = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 50,
-  });
+ 
 
   useEffect(() => {
     const handleScroll = () => {
@@ -375,7 +378,7 @@ const Navbar = ({ isAuthenticated = false }) => {
             fullWidth
             variant="outlined"
             component={RouterLink}
-            to="/register"
+            to="/signup"
           >
             Sign Up
           </Button>
@@ -393,12 +396,12 @@ const Navbar = ({ isAuthenticated = false }) => {
                 <ListItem disablePadding>
                   <ListItemButton
                     onClick={() => setActiveMenu(activeMenu === index ? null : index)}
-                    sx={{
-                      backgroundColor: activeMenu === index ? 'rgba(188, 64, 55, 0.08)' : 'transparent',
-                      '&:hover': {
-                        backgroundColor: 'rgba(188, 64, 55, 0.04)',
-                      },
-                    }}
+                    // sx={{
+                    //   backgroundColor: activeMenu === index ? 'rgba(188, 64, 55, 0.08)' : 'transparent',
+                    //   '&:hover': {
+                    //     backgroundColor: 'rgba(188, 64, 55, 0.04)',
+                    //   },
+                    // }}
                   >
                     <ListItemIcon sx={{ color: activeMenu === index ? theme.palette.primary.main : 'inherit' }}>
                       {item.icon}
@@ -560,7 +563,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                           left: '50%',
                           width: (location.pathname === item.path || activeMenu === index) ? '50%' : '0%',
                           height: '3px',
-                          bgcolor: scrolled ? theme.palette.primary.main : 'white',
+                          // bgcolor: scrolled ? '#546E7A' : 'white',
                           transform: 'translateX(-50%)',
                           transition: 'width 0.3s ease',
                           borderRadius: '2px',
@@ -866,7 +869,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                       
                       <MotionBox
                         component={RouterLink}
-                        to="/register"
+                        to="/signup"
                         variants={buttonVariants}
                         initial="initial"
                         animate="animate"

@@ -9,6 +9,9 @@ import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import authService from './services/authService';
 import Leaderboard from './pages/Leaderboard/Leaderboard';
+import SupportPage from './pages/Security/SupportPage';
+import CookiePolicy from './pages/Security/CookiePolicy';
+import SecurityPage from './pages/Security/SecurityPage';
 // import Error404Page from './pages/Error404/Error404Page';
 
 // PageLoader component for suspense fallback
@@ -141,9 +144,14 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/feedback" element={<Feedback />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/security" element={<SecurityPage />} />
+
               
               {/* Catch-all route */}
               <Route path="*" element={<Navigate to="/" replace />} />

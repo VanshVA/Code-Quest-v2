@@ -1,263 +1,953 @@
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
+import React, { useState, useRef, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import {
+  Avatar,
   Accordion,
-  AccordionSummary,
   AccordionDetails,
-  TextField,
+  AccordionSummary,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  Divider,
+  Grid,
   InputAdornment,
   Paper,
-  Grid,
-  Button,
-  Link
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SearchIcon from '@mui/icons-material/Search';
-import HelpIcon from '@mui/icons-material/Help';
-import EmailIcon from '@mui/icons-material/Email';
+import {
+  Add,
+  ContactSupport,
+  ExpandMore,
+  FilterList,
+  Payment,
+  QuestionAnswer,
+  School,
+  Search,
+  Settings,
+  Verified,
+  ThumbUp,
+  ThumbDown,
+} from '@mui/icons-material';
+import { motion } from 'framer-motion';
 
-const FAQ = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expanded, setExpanded] = useState(false);
+
+// Current date and user info from global state
+const CURRENT_DATE_TIME = "2025-05-29 21:58:16";
+const CURRENT_USER = "Anuj-prajapati-SDE";
+
+// Motion components
+const MotionBox = motion(Box);
+const MotionTypography = motion(Typography);
+const MotionPaper = motion(Paper);
+
+const FAQPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
   
-  const faqItems = [
-    {
-      question: "What is Code-Quest?",
-      answer: "Code-Quest is an online assessment tool designed for KITPS (Kothiwal Institute of Technology & Professional Studies) to conduct coding competitions and assessments. It features role-based access control for students, teachers, and administrators, allowing for a comprehensive educational experience in programming."
-    },
-    {
-      question: "How do I create an account on Code-Quest?",
-      answer: "To create an account, click on the 'Register' button on the homepage. You'll need to provide your name, email address, and create a password. You'll also need to select your role (student, teacher, or administrator). Note that administrator accounts require approval from existing administrators."
-    },
-    {
-      question: "How do students participate in coding competitions?",
-      answer: "Students can view all upcoming and ongoing competitions from their dashboard. To participate, simply click on the competition tile, read the instructions and problem statements, and submit your code within the specified time limit. Your submission will be automatically evaluated, and results will be available on your dashboard."
-    },
-    {
-      question: "How do teachers create coding assessments?",
-      answer: "Teachers can create assessments by logging into their accounts and navigating to the 'Create Assessment' section. There, they can add problem statements, test cases, time limits, and other parameters. They can also specify which students or classes should have access to the assessment."
-    },
-    {
-      question: "What programming languages are supported?",
-      answer: "Code-Quest currently supports several popular programming languages, including Java, Python, C++, JavaScript, and Ruby. More languages may be added in future updates based on user needs and feedback."
-    },
-    {
-      question: "How are coding submissions evaluated?",
-      answer: "Submissions are evaluated automatically through our evaluation engine. The code is run against a series of test cases defined by the assessment creator. It checks for correctness, efficiency, and adherence to any specified constraints. Results are usually available immediately after submission."
-    },
-    {
-      question: "Can I practice before participating in competitions?",
-      answer: "Yes! Code-Quest offers a 'Practice' section where students can solve problems from previous competitions or specially curated practice sets. This is an excellent way to prepare for upcoming competitions and improve your coding skills."
-    },
-    {
-      question: "How secure is the platform?",
-      answer: "Code-Quest employs industry-standard security measures to ensure user data protection. All passwords are encrypted, and our evaluation engine runs code in isolated containers to prevent security breaches. Additionally, plagiarism detection mechanisms are in place to maintain the integrity of assessments."
-    },
-    {
-      question: "Is there a leaderboard for competitions?",
-      answer: "Yes, each competition has its own leaderboard showing participants ranked by their performance. Criteria typically include correctness of solutions, time taken, and efficiency of the code. Leaderboards can be accessed during and after competitions."
-    },
-    {
-      question: "What if I face technical issues during a competition?",
-      answer: "If you encounter technical issues during a competition, you can use the 'Report Issue' feature available on the competition page. The system administrators will be notified immediately, and appropriate measures will be taken. Depending on the severity of the issue, time extensions may be granted."
+  const [categoryValue, setCategoryValue] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedPanel, setExpandedPanel] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState({});
+  
+  // Canvas animation for background
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resizeCanvas = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight * 2;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+    };
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // Premium gradient orbs class with improved rendering
+    class GradientOrb {
+      constructor() {
+        this.reset();
+      }
+      
+      reset() {
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.opacity = Math.random() * 0.12 + 0.04;
+        
+        // Premium color combinations
+        const colorSets = [
+          { start: '#bc4037', end: '#f47061' }, // Primary red
+          { start: '#9a342d', end: '#bd5c55' }, // Dark red
+          { start: '#2C3E50', end: '#4A6572' }, // Dark blue
+          { start: '#3a47d5', end: '#00d2ff' }, // Blue
+        ];
+        
+        this.colors = colorSets[Math.floor(Math.random() * colorSets.length)];
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        // Bounce effect at edges
+        if (this.x < -this.size) this.x = width + this.size;
+        if (this.x > width + this.size) this.x = -this.size;
+        if (this.y < -this.size) this.y = height + this.size;
+        if (this.y > height + this.size) this.y = -this.size;
+      }
+      
+      draw() {
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.size
+        );
+        
+        const startColor = this.hexToRgba(this.colors.start, this.opacity);
+        const endColor = this.hexToRgba(this.colors.end, 0);
+        
+        gradient.addColorStop(0, startColor);
+        gradient.addColorStop(1, endColor);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+      
+      hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
     }
+    
+    // Create optimal number of orbs based on screen size
+    const orbCount = isMobile ? 6 : 10;
+    const orbs = Array(orbCount).fill().map(() => new GradientOrb());
+    
+    // Animation loop with performance optimization
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      
+      orbs.forEach((orb) => {
+        orb.update();
+        orb.draw();
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => {
+      cancelAnimationFrame(animationRef.current);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, [isMobile, isDark]);
+
+  // Tabs for different FAQ categories
+  const faqCategories = [
+    { label: "All FAQs", value: 0, icon: <FilterList /> },
+    { label: "Getting Started", value: 1, icon: <School /> },
+    { label: "Account & Settings", value: 2, icon: <Settings /> },
+    { label: "Billing & Payments", value: 3, icon: <Payment /> },
+    { label: "Technical Support", value: 4, icon: <ContactSupport /> },
   ];
   
-  const handleChange = (panel) => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false);
+  // FAQ data
+  const faqData = [
+    {
+      category: 1,
+      question: "How do I get started with Code-Quest?",
+      answer: "To get started with Code-Quest, simply create an account by clicking the 'Sign Up' button on our homepage. Once registered, you'll have access to our free tier which includes basic coding challenges and assessments. You can upgrade to premium plans anytime to unlock all features."
+    },
+    {
+      category: 1,
+      question: "What programming languages does Code-Quest support?",
+      answer: "Code-Quest currently supports over 30 programming languages, including JavaScript, Python, Java, C++, Ruby, Go, TypeScript, Swift, PHP, Kotlin, Rust, C#, and more. Our compiler infrastructure is regularly updated to support the latest language versions and features."
+    },
+    {
+      category: 1,
+      question: "Are there beginner-friendly resources available?",
+      answer: "Yes! We offer specialized tracks for beginners that include tutorials, guided challenges, and step-by-step learning paths. Our beginner resources cover fundamentals of programming, data structures, algorithms, and language-specific features."
+    },
+    {
+      category: 2,
+      question: "How do I reset my password?",
+      answer: "To reset your password, click on the 'Forgot Password' link on the login page. You'll receive an email with instructions to create a new password. For security reasons, password reset links expire after 24 hours."
+    },
+    {
+      category: 2,
+      question: "Can I change my username?",
+      answer: "Username changes are allowed once every 30 days. To change your username, go to Account Settings > Profile Information and click on the 'Edit Username' option. Note that if you change your username, your profile URL will also change."
+    },
+    {
+      category: 2,
+      question: "How do I enable two-factor authentication?",
+      answer: "We highly recommend enabling two-factor authentication (2FA) for additional account security. Navigate to Account Settings > Security, and click 'Enable 2FA'. You can choose between app-based authentication (like Google Authenticator) or SMS verification."
+    },
+    {
+      category: 3,
+      question: "What payment methods do you accept?",
+      answer: "We accept all major credit and debit cards (Visa, Mastercard, American Express), PayPal, and bank transfers for annual subscriptions. For enterprise customers, we also offer invoice-based payment options with net-30 terms."
+    },
+    {
+      category: 3,
+      question: "How do I upgrade my subscription?",
+      answer: "To upgrade your subscription, go to Account Settings > Subscription and select 'Upgrade Plan'. You'll see all available plans and their features. Your new plan will be effective immediately, and we'll prorate any charges based on your current subscription."
+    },
+    {
+      category: 3,
+      question: "Do you offer educational discounts?",
+      answer: "Yes, we offer significant discounts for educational institutions and students. Educational institutions can receive up to 50% off on bulk licenses, while students with a valid .edu email address qualify for a 30% discount on Premium plans."
+    },
+    {
+      category: 4,
+      question: "My code isn't executing properly. What should I do?",
+      answer: "If your code isn't running as expected, first check for syntax errors and ensure you're using the correct language version. Our system logs provide detailed error messages. If problems persist, try clearing your browser cache or using a different browser. For further assistance, contact our technical support team."
+    },
+    {
+      category: 4,
+      question: "How do I report a bug in the platform?",
+      answer: "To report a bug, go to Help > Report a Bug. Please provide as much detail as possible including steps to reproduce the issue, expected vs. actual behavior, your browser and operating system, and screenshots if relevant. Our development team reviews all bug reports and prioritizes fixes accordingly."
+    },
+    {
+      category: 4,
+      question: "What browser do you recommend for the best experience?",
+      answer: "Code-Quest is optimized for modern browsers. We recommend using the latest versions of Chrome, Firefox, Safari, or Edge for the best experience. Our code editor and interactive features rely on modern web technologies that may not be fully supported in older browsers."
+    },
+  ];
+  
+  // Handle tab change
+  const handleCategoryChange = (event, newValue) => {
+    setCategoryValue(newValue);
   };
   
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+  // Handle accordion expansion
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setExpandedPanel(isExpanded ? panel : false);
   };
   
-  const filteredFAQs = faqItems.filter(item => 
-    item.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    item.answer.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Handle search input change
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+  
+  // Handle feedback
+  const handleFeedback = (questionId, isHelpful) => {
+    setFeedbackGiven({
+      ...feedbackGiven,
+      [questionId]: isHelpful ? 'helpful' : 'not-helpful',
+    });
+  };
+  
+  // Filter FAQs based on category and search query
+  const filteredFaqs = faqData.filter((faq) => {
+    // Category filter
+    if (categoryValue !== 0 && faq.category !== categoryValue) {
+      return false;
+    }
+    
+    // Search filter
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      return (
+        faq.question.toLowerCase().includes(query) ||
+        faq.answer.toLowerCase().includes(query)
+      );
+    }
+    
+    return true;
+  });
   
   return (
-    <Box sx={{ 
-      bgcolor: 'var(--background-color)', 
-      color: 'var(--text-color)',
-      minHeight: '100vh',
-      pb: 8
-    }}>
-      {/* Hero Section */}
+    <>
+      
+      
+      {/* Canvas Background for Premium Gradient Animation */}
       <Box sx={{ 
-        py: 10, 
-        background: 'var(--background-gradient-light)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+        overflow: 'hidden',
       }}>
+        <canvas 
+          ref={canvasRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        />
+        {/* Overlay for better text contrast */}
+        <Box 
+          sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(30px)',
+          }} 
+        />
+      </Box>
+      
+      {/* Hero Section */}
+      <Box 
+        component="section" 
+        sx={{ 
+          position: 'relative',
+          pt: { xs: '100px', sm: '120px', md: '140px' },
+          pb: { xs: '60px', sm: '80px', md: '100px' },
+          overflow: 'hidden',
+        }}
+      >
         <Container maxWidth="lg">
-          <Typography 
-            variant="h2" 
-            component="h1" 
-            fontWeight="bold"
-            align="center"
-            sx={{ mb: 2 }}
+          {/* Current Time Display */}
+          <MotionBox
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            sx={{
+              position: 'absolute',
+              top: { xs: 65, sm: 80, md: 100 },
+              right: { xs: '50%', md: 24 },
+              transform: { xs: 'translateX(50%)', md: 'none' },
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              px: 2.5,
+              py: 1,
+              borderRadius: '100px',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+              boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+            }}
           >
-            Frequently Asked <span style={{color: 'var(--theme-color)'}}>Questions</span>
-          </Typography>
-          <Typography 
-            variant="h6" 
-            component="p" 
-            align="center"
-            sx={{ mb: 5, color: 'var(--p-color)', maxWidth: '800px', mx: 'auto' }}
-          >
-            Find answers to common questions about Code-Quest
-          </Typography>
-          
-          <Box sx={{ maxWidth: '600px', mx: 'auto' }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search for answers..."
-              value={searchTerm}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: 'var(--p-color)' }} />
-                  </InputAdornment>
-                ),
-              }}
+            <Typography
+              variant="body2" 
               sx={{
-                bgcolor: 'var(--dashboard-bg)',
-                borderRadius: 1,
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'transparent',
+                fontFamily: 'monospace',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                color: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.7)',
+              }}
+            >
+              UTC: {CURRENT_DATE_TIME}
+              <Box 
+                component="span"
+                sx={{
+                  display: 'inline-block',
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.success.main,
+                  ml: 1.5,
+                  animation: 'pulse 2s infinite',
+                  '@keyframes pulse': {
+                    '0%': { opacity: 0.6, transform: 'scale(0.9)' },
+                    '50%': { opacity: 1, transform: 'scale(1.1)' },
+                    '100%': { opacity: 0.6, transform: 'scale(0.9)' },
                   },
-                  '&:hover fieldset': {
-                    borderColor: 'var(--theme-color)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'var(--theme-color)',
-                  },
-                },
-                '& .MuiInputBase-input': {
-                  color: 'var(--text-color)',
-                },
+                }}
+              />
+            </Typography>
+          </MotionBox>
+          
+          {/* User Badge */}
+          <MotionBox
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            sx={{
+              position: 'absolute',
+              top: { xs: 110, sm: 80, md: 100 },
+              left: { xs: '50%', md: 24 },
+              transform: { xs: 'translateX(-50%)', md: 'none' },
+              zIndex: 10,
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              px: 2.5,
+              py: 1,
+              borderRadius: '100px',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+              boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Avatar
+              alt={CURRENT_USER}
+              src="/assets/images/avatar.jpg"
+              sx={{ 
+                width: 32, 
+                height: 32, 
+                border: `2px solid ${theme.palette.primary.main}`,
+                boxShadow: '0 4px 8px rgba(188, 64, 55, 0.2)',
+                mr: 1.5
               }}
             />
-          </Box>
+            <Box>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontWeight: 600,
+                  color: isDark ? 'white' : 'text.primary',
+                  lineHeight: 1.2,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {CURRENT_USER}
+                <Verified 
+                  sx={{ 
+                    fontSize: '0.9rem', 
+                    color: theme.palette.primary.main,
+                    ml: 0.7,
+                  }} 
+                />
+              </Typography>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <Box 
+                  sx={{ 
+                    width: 6, 
+                    height: 6, 
+                    borderRadius: '50%',
+                    bgcolor: theme.palette.success.main,
+                    mr: 0.8,
+                    display: 'inline-block',
+                  }}
+                />
+                Premium Member
+              </Typography>
+            </Box>
+          </MotionBox>
+          
+          <Grid 
+            container 
+            spacing={{ xs: 4, md: 8 }}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+              <MotionBox>
+                {/* Page Title */}
+                <MotionTypography
+                  variant="h1"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  sx={{ 
+                    fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                    fontWeight: 800,
+                    lineHeight: 1.1,
+                    mb: { xs: 3, md: 4 },
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Frequently Asked
+                  <Box 
+                    component="span" 
+                    sx={{
+                      display: 'block',
+                      background: theme.palette.gradients.primary,
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textFillColor: 'transparent',
+                    }}
+                  >
+                    Questions
+                  </Box>
+                </MotionTypography>
+                
+                {/* Subheadline */}
+                <MotionTypography
+                  variant="h5"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  color="textSecondary"
+                  sx={{ 
+                    mb: 5,
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    fontSize: { xs: '1.1rem', md: '1.3rem' },
+                    maxWidth: '800px',
+                    mx: 'auto',
+                  }}
+                >
+                  Find answers to our most commonly asked questions about Code-Quest platform
+                  features, billing, and technical support.
+                </MotionTypography>
+              </MotionBox>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
       
-      <Container maxWidth="lg">
-        <Box sx={{ py: 6 }}>
-          {filteredFAQs.length > 0 ? (
-            filteredFAQs.map((faq, index) => (
-              <Accordion 
-                key={index}
-                expanded={expanded === `panel${index}`}
-                onChange={handleChange(`panel${index}`)}
-                sx={{ 
-                  mb: 2,
-                  bgcolor: 'var(--dashboard-bg)',
-                  color: 'var(--text-color)',
-                  border: 'none',
-                  boxShadow: '0 2px 8px var(--background-shadow)',
-                  '&:before': {
-                    display: 'none',
-                  }
-                }}
+      {/* FAQ Section */}
+      <Box 
+        component="section"
+        sx={{ 
+          pb: { xs: 10, md: 15 },
+          position: 'relative',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {/* Sidebar */}
+            <Grid item xs={12} md={4} lg={3}>
+              <MotionBox
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon sx={{ color: 'var(--theme-color)' }} />}
-                  aria-controls={`panel${index}bh-content`}
-                  id={`panel${index}bh-header`}
+                {/* Search */}
+                <Paper
                   sx={{ 
-                    borderLeft: expanded === `panel${index}` ? `4px solid var(--theme-color)` : '4px solid transparent',
-                    transition: 'all 0.3s ease'
+                    p: 3,
+                    mb: 3,
+                    borderRadius: '24px',
+                    backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(16px)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                    boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
                   }}
                 >
-                  <Typography variant="h6" sx={{ fontWeight: 500 }}>
-                    {faq.question}
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 700,
+                      mb: 2,
+                    }}
+                  >
+                    Search FAQs
                   </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography variant="body1" sx={{ color: 'var(--p-color)' }}>
-                    {faq.answer}
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))
-          ) : (
-            <Box sx={{ 
-              textAlign: 'center',
-              py: 6
-            }}>
-              <HelpIcon sx={{ fontSize: 60, color: 'var(--p-color)', mb: 2, opacity: 0.6 }} />
-              <Typography variant="h5" gutterBottom>
-                No results found
-              </Typography>
-              <Typography variant="body1" sx={{ color: 'var(--p-color)' }}>
-                We couldn't find any FAQ matching "{searchTerm}"
-              </Typography>
-            </Box>
-          )}
-        </Box>
-        
-        {/* Additional Help Section */}
-        <Box sx={{ py: 6, mb: 4 }}>
-          <Typography variant="h4" component="h2" align="center" gutterBottom>
-            Still Have Questions?
-          </Typography>
-          <Typography variant="body1" align="center" sx={{ mb: 6, color: 'var(--p-color)' }}>
-            If you couldn't find the answer you were looking for, please reach out to us
-          </Typography>
-          
-          <Grid container spacing={4} justifyContent="center">
-            <Grid item xs={12} sm={6} md={5}>
-              <Paper sx={{ 
-                p: 4, 
-                height: '100%', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center',
-                bgcolor: 'var(--dashboard-bg)',
-                boxShadow: '0 5px 15px var(--background-shadow)'
-              }}>
-                <Box sx={{ 
-                  width: 80, 
-                  height: 80, 
-                  borderRadius: '50%', 
-                  bgcolor: 'rgba(188, 64, 55, 0.1)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  mb: 3
-                }}>
-                  <EmailIcon sx={{ fontSize: 40, color: 'var(--theme-color)' }} />
-                </Box>
-                <Typography variant="h6" component="h3" gutterBottom>
-                  Contact Support
-                </Typography>
-                <Typography variant="body2" align="center" sx={{ color: 'var(--p-color)', mb: 3 }}>
-                  Our support team is always ready to assist you with any questions or issues
-                </Typography>
-                <Button 
-                  variant="contained" 
-                  component={Link} 
-                  to="/contact"
+                  <TextField
+                    fullWidth
+                    placeholder="Enter keywords..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search />
+                        </InputAdornment>
+                      ),
+                      sx: { borderRadius: '50px' }
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '50px',
+                      }
+                    }}
+                  />
+                </Paper>
+                
+                {/* Categories */}
+                <Paper
                   sx={{ 
-                    bgcolor: 'var(--theme-color)', 
-                    '&:hover': { bgcolor: 'var(--hover-color)' },
-                    mt: 'auto'
+                    p: 3, 
+                    borderRadius: '24px',
+                    backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(16px)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                    boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
                   }}
                 >
-                  Contact Us
-                </Button>
-              </Paper>
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 700,
+                      mb: 2,
+                    }}
+                  >
+                    Categories
+                  </Typography>
+                  
+                  <Stack spacing={1}>
+                    {faqCategories.map((category, index) => (
+                      <Button
+                        key={index}
+                        variant={categoryValue === category.value ? "contained" : "outlined"}
+                        color="primary"
+                        onClick={(e) => handleCategoryChange(e, category.value)}
+                        startIcon={category.icon}
+                        sx={{
+                          justifyContent: 'flex-start',
+                          px: 2,
+                          py: 1,
+                          borderRadius: '50px',
+                          textTransform: 'none',
+                          backgroundColor: categoryValue === category.value 
+                            ? theme.palette.primary.main 
+                            : 'transparent',
+                          '&:hover': {
+                            backgroundColor: categoryValue === category.value 
+                              ? theme.palette.primary.dark 
+                              : 'rgba(188, 64, 55, 0.04)',
+                          },
+                          color: categoryValue === category.value 
+                            ? 'white' 
+                            : theme.palette.text.primary,
+                          borderColor: theme.palette.primary.main,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {category.label}
+                      </Button>
+                    ))}
+                  </Stack>
+                  
+                  {/* Contact Support Box */}
+                  <Box
+                    sx={{
+                      mt: 4,
+                      p: 3,
+                      borderRadius: '16px',
+                      backgroundColor: isDark ? 'rgba(20, 20, 20, 0.4)' : 'rgba(245, 245, 245, 0.7)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <QuestionAnswer 
+                      color="primary" 
+                      sx={{ 
+                        fontSize: '2.5rem',
+                        mb: 1,
+                      }}
+                    />
+                    <Typography 
+                      variant="h6" 
+                      gutterBottom
+                      sx={{ fontWeight: 700 }}
+                    >
+                      Still have questions?
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="textSecondary"
+                      paragraph
+                    >
+                      Can't find what you're looking for? Contact our support team for assistance.
+                    </Typography>
+                    <Button
+                      component={RouterLink}
+                      to="/contact"
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      fullWidth
+                      sx={{ 
+                        borderRadius: '50px',
+                        py: 1.2,
+                        background: theme.palette.gradients.primary,
+                      }}
+                    >
+                      Contact Support
+                    </Button>
+                  </Box>
+                </Paper>
+              </MotionBox>
+            </Grid>
+            
+            {/* FAQs */}
+            <Grid item xs={12} md={8} lg={9}>
+              <MotionBox
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {/* FAQs Header */}
+                <Paper
+                  sx={{ 
+                    p: 3, 
+                    mb: 3,
+                    borderRadius: '24px',
+                    backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(16px)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                    boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 700,
+                    }}
+                  >
+                    {categoryValue === 0
+                      ? "All Frequently Asked Questions"
+                      : `${faqCategories.find(c => c.value === categoryValue)?.label} FAQs`}
+                  </Typography>
+                  <Chip 
+                    label={`${filteredFaqs.length} Questions`}
+                    color="primary"
+                    size="small"
+                  />
+                </Paper>
+                
+                {/* FAQ Accordions */}
+                <Stack spacing={2}>
+                  {filteredFaqs.map((faq, index) => (
+                    <MotionPaper
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      sx={{ 
+                        borderRadius: '24px',
+                        backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                        backdropFilter: 'blur(16px)',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                        boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.15)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Accordion
+                        expanded={expandedPanel === `panel${index}`}
+                        onChange={handleAccordionChange(`panel${index}`)}
+                        disableGutters
+                        elevation={0}
+                        sx={{ 
+                          backgroundColor: 'transparent',
+                          '&:before': {
+                            display: 'none',
+                          }
+                        }}
+                      >
+                        <AccordionSummary
+                          expandIcon={<ExpandMore />}
+                          sx={{ 
+                            px: 3,
+                            py: 2,
+                          }}
+                        >
+                          <Typography 
+                            variant="subtitle1"
+                            sx={{ 
+                              fontWeight: 600,
+                              pr: 2,
+                            }}
+                          >
+                            {faq.question}
+                          </Typography>
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
+                          <Typography 
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ 
+                              mb: 3,
+                              lineHeight: 1.7,
+                            }}
+                          >
+                            {faq.answer}
+                          </Typography>
+                          
+                          {/* Was this helpful? */}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              pt: 2,
+                              borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              Was this answer helpful?
+                            </Typography>
+                            <Box>
+                              <Tooltip title="Yes, this was helpful">
+                                <IconButton 
+                                  size="small"
+                                  color={feedbackGiven[`panel${index}`] === 'helpful' ? 'success' : 'default'}
+                                  disabled={feedbackGiven[`panel${index}`] === 'not-helpful'}
+                                  onClick={() => handleFeedback(`panel${index}`, true)}
+                                >
+                                  <ThumbUp fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="No, this wasn't helpful">
+                                <IconButton
+                                  size="small"
+                                  color={feedbackGiven[`panel${index}`] === 'not-helpful' ? 'error' : 'default'}
+                                  disabled={feedbackGiven[`panel${index}`] === 'helpful'}
+                                  onClick={() => handleFeedback(`panel${index}`, false)}
+                                  sx={{ ml: 1 }}
+                                >
+                                  <ThumbDown fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </Box>
+                        </AccordionDetails>
+                      </Accordion>
+                    </MotionPaper>
+                  ))}
+                </Stack>
+                
+                {filteredFaqs.length === 0 && (
+                  <Paper
+                    sx={{
+                      p: 4,
+                      borderRadius: '24px',
+                      backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                      backdropFilter: 'blur(16px)',
+                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                      boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom>
+                      No results found
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      We couldn't find any FAQs matching your criteria. Try adjusting your search or category filter.
+                    </Typography>
+                  </Paper>
+                )}
+                
+                {/* Submit a Question Box */}
+                <MotionPaper
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  sx={{ 
+                    p: 4, 
+                    mt: 5,
+                    borderRadius: '24px',
+                    backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                    backdropFilter: 'blur(16px)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                    boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography 
+                    variant="h5" 
+                    gutterBottom
+                    sx={{ fontWeight: 700 }}
+                  >
+                    Can't find what you're looking for?
+                  </Typography>
+                  <Typography 
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ 
+                      mb: 4,
+                      maxWidth: '600px',
+                      mx: 'auto',
+                    }}
+                  >
+                    If you couldn't find an answer to your question in our FAQs, you can submit your question
+                    or contact our support team for assistance.
+                  </Typography>
+                  <Grid container spacing={2} justifyContent="center">
+                    <Grid item xs={12} sm={6} md={5}>
+                      <Button
+                        component={RouterLink}
+                        to="/contact"
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        fullWidth
+                        startIcon={<Add />}
+                        sx={{ 
+                          py: 1.5,
+                          borderRadius: '50px',
+                          background: theme.palette.gradients.primary,
+                          fontWeight: 600,
+                          textTransform: 'none',
+                        }}
+                      >
+                        Ask a Question
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={5}>
+                      <Button
+                        component={RouterLink}
+                        to="/feedback"
+                        variant="outlined"
+                        size="large"
+                        fullWidth
+                        sx={{ 
+                          py: 1.5,
+                          borderRadius: '50px',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                        }}
+                      >
+                        Give Feedback
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </MotionPaper>
+              </MotionBox>
             </Grid>
           </Grid>
-        </Box>
-      </Container>
-    </Box>
+        </Container>
+      </Box>
+      
+    
+    </>
   );
 };
 
-export default FAQ;
+export default FAQPage;

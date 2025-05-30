@@ -1,53 +1,142 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Link,
-  IconButton,
-  Divider,
-  Button,
-  TextField,
-  InputAdornment,
-  Tooltip,
-  Zoom,
-  Fab,
-  Snackbar,
-  Alert,
-} from '@mui/material';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import TwitterIcon from '@mui/icons-material/Twitter';
-import SendIcon from '@mui/icons-material/Send';
-import CodeIcon from '@mui/icons-material/Code';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import {
+  Avatar,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  InputAdornment,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import {
+  Facebook,
+  Twitter,
+  LinkedIn,
+  YouTube,
+  GitHub,
+  ArrowUpward,
+  Send,
+  LocationOn,
+  Email,
+  Phone,
+  ArrowForward,
+  DarkMode,
+  LightMode,
+} from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useColorMode } from '../../context/ThemeContext';
 
-const Footer = () => {
+const MotionBox = motion(Box);
+const MotionPaper = motion(Paper);
+const MotionTypography = motion(Typography);
+const MotionIconButton = motion(IconButton);
+
+const socialLinks = [
+  { name: 'Facebook', icon: <Facebook />, url: 'https://facebook.com' },
+  { name: 'Twitter', icon: <Twitter />, url: 'https://twitter.com' },
+  { name: 'LinkedIn', icon: <LinkedIn />, url: 'https://linkedin.com' },
+  { name: 'YouTube', icon: <YouTube />, url: 'https://youtube.com' },
+  { name: 'GitHub', icon: <GitHub />, url: 'https://github.com' },
+];
+
+const footerLinks = [
+  {
+    title: 'Platform',
+    links: [
+      { name: 'Features', path: '/features' },
+      { name: 'Competitions', path: '/competitions' },
+      { name: 'Leaderboard', path: '/leaderboard' },
+      { name: 'Pricing', path: '/pricing' },
+      { name: 'Roadmap', path: '/roadmap' },
+    ]
+  },
+  {
+    title: 'Resources',
+    links: [
+      { name: 'Documentation', path: '/docs' },
+      { name: 'Tutorials', path: '/tutorials' },
+      { name: 'FAQ', path: '/faq' },
+      { name: 'Support', path: '/support' },
+      { name: 'API Access', path: '/api' },
+    ]
+  },
+  {
+    title: 'Company',
+    links: [
+      { name: 'About Us', path: '/about' },
+      { name: 'Contact', path: '/contact' },
+      { name: 'Careers', path: '/careers' },
+      { name: 'Blog', path: '/blog' },
+      { name: 'Press Kit', path: '/press' },
+    ]
+  },
+  {
+    title: 'Legal',
+    links: [
+      { name: 'Terms of Service', path: '/terms' },
+      { name: 'Privacy Policy', path: '/privacy' },
+      { name: 'Cookie Policy', path: '/cookies' },
+      { name: 'Security', path: '/security' },
+      { name: 'Accessibility', path: '/accessibility' },
+    ]
+  },
+];
+
+const Footer = ({ isAuthenticated = false }) => {
+  const theme = useTheme();
+  const { toggleColorMode } = useColorMode();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState('');
   const [email, setEmail] = useState('');
-  const [showSnackbar, setShowSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    // Add your subscription logic here
-    if (email && /\S+@\S+\.\S+/.test(email)) {
-      setSnackbarMessage('Thank you for subscribing!');
-      setSnackbarSeverity('success');
-      setShowSnackbar(true);
-      setEmail('');
-    } else {
-      setSnackbarMessage('Please enter a valid email address');
-      setSnackbarSeverity('error');
-      setShowSnackbar(true);
-    }
-  };
+  // Get formatted current date and time
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      };
+      setCurrentDateTime(now.toLocaleString('en-US', options).replace(',', ''));
+    };
 
-  const handleCloseSnackbar = () => {
-    setShowSnackbar(false);
-  };
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Show/hide scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 500) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({
@@ -56,532 +145,577 @@ const Footer = () => {
     });
   };
 
-  // Create animated links with consistent styling
-  const FooterLink = ({ to, children }) => (
-    <Link 
-      component={RouterLink} 
-      to={to} 
-      sx={{ 
-        color: 'var(--p-color)', 
-        mb: 1.5, 
-        textDecoration: 'none',
-        position: 'relative',
-        display: 'inline-block',
-        transition: 'all 0.3s ease',
-        '&:hover': { 
-          color: 'var(--theme-color)',
-          transform: 'translateX(5px)'
-        },
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          width: '0',
-          height: '1px',
-          bottom: 0,
-          left: 0,
-          background: 'var(--theme-color)',
-          transition: 'width 0.3s ease',
-        },
-        '&:hover::after': {
-          width: '100%',
-        }
-      }}
-    >
-      {children}
-    </Link>
-  );
-
-  const SocialButton = ({ icon, label, href }) => (
-    <Tooltip title={label} placement="top" TransitionComponent={Zoom} arrow>
-      <IconButton 
-        aria-label={label} 
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{ 
-          mr: 1.5, 
-          color: 'var(--text-color)', 
-          bgcolor: 'rgba(var(--theme-color-rgb), 0.08)',
-          transition: 'all 0.3s ease',
-          '&:hover': { 
-            color: 'var(--theme-color)',
-            bgcolor: 'rgba(var(--theme-color-rgb), 0.15)',
-            transform: 'translateY(-3px)'
-          },
-          width: 40,
-          height: 40,
-        }}
-      >
-        {icon}
-      </IconButton>
-    </Tooltip>
-  );
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (email) {
+      // Here you would handle the actual subscription
+      console.log('Subscribing email:', email);
+      setSubscribed(true);
+      setTimeout(() => {
+        setEmail('');
+        setSubscribed(false);
+      }, 3000);
+    }
+  };
 
   return (
-    <Box
-      sx={{
-        bgcolor: 'var(--background-color)',
-        color: 'var(--text-color)',
-        mt: 'auto',
-        position: 'relative',
-        boxShadow: '0 -5px 20px var(--background-shadow)',
-      }}
-    >
-      {/* Newsletter Section */}
-      <Box 
-        sx={{ 
-          background: 'linear-gradient(to right, rgba(var(--theme-color-rgb), 0.05), rgba(var(--theme-color-rgb), 0.1))',
-          py: { xs: 6, md: 8 },
-          position: 'relative',
+    <Box component="footer">
+      {/* Premium footer with gradient background */}
+      <Box
+        sx={{
+          bgcolor: theme.palette.mode === 'dark' 
+            ? 'rgba(20, 20, 20, 0.95)'
+            : 'rgba(250, 250, 250, 0.98)',
           overflow: 'hidden',
+          position: 'relative',
+          pt: { xs: 8, md: 10 },
+          pb: { xs: 6, md: 4 },
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
-        {/* Decorative background elements */}
-        <Box sx={{
-          position: 'absolute',
-          width: '300px',
-          height: '300px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(var(--theme-color-rgb), 0.1) 0%, rgba(0,0,0,0) 70%)',
-          top: '-150px',
-          right: '10%',
-          zIndex: 0,
-        }} />
+        {/* Subtle background pattern */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.03,
+            backgroundImage: `radial-gradient(${theme.palette.primary.main} 1px, transparent 1px)`,
+            backgroundSize: '20px 20px',
+            pointerEvents: 'none',
+          }}
+        />
         
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <Grid container spacing={5} alignItems="center" justifyContent="center">
-            <Grid item xs={12} md={6} sx={{ 
-              animation: 'fadeInLeft 1s ease-out',
-              '@keyframes fadeInLeft': {
-                '0%': { opacity: 0, transform: 'translateX(-20px)' },
-                '100%': { opacity: 1, transform: 'translateX(0)' }
-              }
-            }}>
-              <Typography 
-                variant="h3" 
-                component="h2" 
-                gutterBottom
-                sx={{ 
-                  fontWeight: 700,
-                  background: 'linear-gradient(45deg, var(--theme-color), #ff7366)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mb: 2
-                }}
-              >
-                Stay Updated
-              </Typography>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'var(--p-color)', 
-                  mb: 3, 
-                  fontSize: '1.1rem',
-                  lineHeight: 1.6,
-                  maxWidth: '90%'
-                }}
-              >
-                Subscribe to our newsletter to get the latest updates on competitions, features, tutorials, and more delivered straight to your inbox.
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={6} sx={{ 
-              animation: 'fadeInRight 1s ease-out',
-              '@keyframes fadeInRight': {
-                '0%': { opacity: 0, transform: 'translateX(20px)' },
-                '100%': { opacity: 1, transform: 'translateX(0)' }
-              }
-            }}>
+        {/* Gradient accent */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: theme.palette.gradients.primary,
+          }}
+        />
+
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {/* Brand section */}
+            <Grid item xs={12} md={4}>
+              <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Box 
+                    component="span"
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #f47061 0%, #bc4037 100%)',
+                      boxShadow: '0 4px 10px rgba(188, 64, 55, 0.3)',
+                      mr: 1.5,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: '1.8rem',
+                        fontWeight: 'bold',
+                        color: 'white',
+                      }}
+                    >
+                      C
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+                      CODE-QUEST
+                    </Typography>
+                    <Typography 
+                      variant="caption"
+                      sx={{ 
+                        color: theme.palette.text.secondary,
+                        fontWeight: 500,
+                        letterSpacing: 1,
+                      }}
+                    >
+                      CODING PLATFORM
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <MotionTypography
+                  variant="body2"
+                  color="text.secondary"
+                  paragraph
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                >
+                  The ultimate platform for coding competitions and programming skill assessment.
+                  Perfect for educational institutions, programming enthusiasts, and aspiring developers.
+                </MotionTypography>
+                
+                {/* Social links */}
+                <Stack 
+                  direction="row" 
+                  spacing={1}
+                  component={motion.div}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  {socialLinks.map((social, index) => (
+                    <MotionIconButton
+                      key={social.name}
+                      color="primary"
+                      aria-label={social.name}
+                      component="a"
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 260, 
+                        damping: 20, 
+                        delay: 0.1 + index * 0.05 
+                      }}
+                      viewport={{ once: true }}
+                      whileHover={{ 
+                        scale: 1.1,
+                        backgroundColor: theme.palette.primary.main,
+                        color: '#fff',
+                      }}
+                      sx={{ 
+                        backgroundColor: theme.palette.mode === 'dark' 
+                          ? 'rgba(255,255,255,0.05)'
+                          : 'rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      {social.icon}
+                    </MotionIconButton>
+                  ))}
+                </Stack>
+              </Box>
+              
+              {/* Newsletter subscription */}
               <Box 
-                component="form" 
-                onSubmit={handleSubscribe} 
-                sx={{ 
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  alignItems: 'center',
-                  gap: { xs: 2, sm: 0 }
-                }}
+                component={motion.div}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                viewport={{ once: true }}
+                sx={{ mb: { xs: 4, md: 0 } }}
               >
-                <TextField
-                  fullWidth
-                  placeholder="Enter your email address"
-                  variant="outlined"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  sx={{
-                    bgcolor: 'var(--dashboard-bg)',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: 'transparent',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: 'var(--theme-color)',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'var(--theme-color)',
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      color: 'var(--text-color)',
-                      py: 1.5,
-                      px: 2,
-                    },
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          endIcon={<SendIcon />}
-                          sx={{
-                            bgcolor: 'var(--theme-color)',
-                            '&:hover': { 
-                              bgcolor: 'var(--hover-color)',
-                              transform: 'translateX(3px)'
-                            },
-                            height: '100%',
-                            borderRadius: '0 8px 8px 0',
-                            px: 3,
-                            py: 1.5,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: '1rem',
-                            transition: 'all 0.3s ease',
-                            display: { xs: 'none', sm: 'flex' }
-                          }}
-                        >
-                          Subscribe
-                        </Button>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  endIcon={<SendIcon />}
-                  sx={{
-                    bgcolor: 'var(--theme-color)',
-                    '&:hover': { 
-                      bgcolor: 'var(--hover-color)',
-                    },
-                    display: { xs: 'flex', sm: 'none' },
-                    width: '100%',
-                    py: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    borderRadius: '8px',
+                <Typography 
+                  variant="subtitle1" 
+                  gutterBottom 
+                  sx={{ fontWeight: 600 }}
+                >
+                  Subscribe to Newsletter
+                </Typography>
+                <Box 
+                  component="form" 
+                  onSubmit={handleSubscribe}
+                  sx={{ 
+                    position: 'relative',
+                    maxWidth: '100%',
                   }}
                 >
-                  Subscribe
-                </Button>
+                  <TextField
+                    fullWidth
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={subscribed}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton 
+                            type="submit" 
+                            edge="end"
+                            disabled={!email || subscribed}
+                            sx={{ 
+                              color: 'white',
+                              bgcolor: theme.palette.primary.main,
+                              borderRadius: '50%',
+                              width: 36,
+                              height: 36,
+                              '&:hover': {
+                                bgcolor: theme.palette.primary.dark,
+                              },
+                              '&.Mui-disabled': {
+                                bgcolor: theme.palette.grey[400],
+                              }
+                            }}
+                          >
+                            <Send fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                      sx: { 
+                        pr: 0.5,
+                        borderRadius: '50px',
+                        bgcolor: theme.palette.mode === 'dark' 
+                          ? 'rgba(255,255,255,0.05)'
+                          : 'rgba(0,0,0,0.02)',
+                      }
+                    }}
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '50px',
+                      }
+                    }}
+                  />
+                  <AnimatePresence>
+                    {subscribed && (
+                      <MotionBox
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        sx={{
+                          position: 'absolute',
+                          top: '120%',
+                          left: 0,
+                          width: '100%',
+                          color: theme.palette.success.main,
+                          fontSize: '0.75rem',
+                          mt: 0.5,
+                        }}
+                      >
+                        Successfully subscribed! Thank you.
+                      </MotionBox>
+                    )}
+                  </AnimatePresence>
+                </Box>
+              </Box>
+            </Grid>
+            
+            {/* Links sections */}
+            {!isSmall && (
+              <>
+                {footerLinks.map((section, index) => (
+                  <Grid item xs={6} md={2} key={section.title}>
+                    <MotionTypography
+                      variant="subtitle1"
+                      gutterBottom
+                      sx={{ fontWeight: 700 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.05 * index }}
+                      viewport={{ once: true }}
+                    >
+                      {section.title}
+                    </MotionTypography>
+                    <Box component="ul" sx={{ pl: 0, listStyle: 'none' }}>
+                      {section.links.map((link, linkIndex) => (
+                        <Box 
+                          component="li" 
+                          key={link.name}
+                          sx={{ mb: 1 }}
+                        >
+                          <MotionBox
+                            component={RouterLink}
+                            to={link.path}
+                            sx={{
+                              color: 'text.secondary',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              position: 'relative',
+                              '&:hover': {
+                                color: theme.palette.primary.main,
+                                '& .arrow': {
+                                  opacity: 1,
+                                  transform: 'translateX(4px)',
+                                },
+                              },
+                            }}
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4, delay: 0.1 + (0.05 * index) + (0.03 * linkIndex) }}
+                            viewport={{ once: true }}
+                          >
+                            {link.name}
+                            <ArrowForward 
+                              className="arrow"
+                              sx={{ 
+                                fontSize: '0.8rem',
+                                ml: 0.5,
+                                opacity: 0,
+                                transition: 'all 0.2s ease',
+                              }}
+                            />
+                          </MotionBox>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Grid>
+                ))}
+              </>
+            )}
+
+            {/* Collapsible link sections for mobile */}
+            {isSmall && (
+              <Grid item xs={12}>
+                <MotionPaper
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  viewport={{ once: true }}
+                  sx={{ 
+                    p: 2,
+                    borderRadius: '16px',
+                    bgcolor: theme.palette.mode === 'dark' 
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <Grid container spacing={2}>
+                    {footerLinks.map((section) => (
+                      <Grid item xs={6} key={section.title}>
+                        <Typography 
+                          variant="subtitle2" 
+                          sx={{ 
+                            fontWeight: 700,
+                            color: theme.palette.primary.main,
+                            mb: 1,
+                          }}
+                        >
+                          {section.title}
+                        </Typography>
+                        <Box component="ul" sx={{ pl: 0, listStyle: 'none' }}>
+                          {section.links.slice(0, 3).map((link) => (
+                            <Box component="li" key={link.name} sx={{ mb: 1 }}>
+                              <Link
+                                component={RouterLink}
+                                to={link.path}
+                                color="text.secondary"
+                                sx={{ 
+                                  textDecoration: 'none',
+                                  fontSize: '0.85rem',
+                                  '&:hover': {
+                                    color: theme.palette.primary.main,
+                                  }
+                                }}
+                              >
+                                {link.name}
+                              </Link>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </MotionPaper>
+              </Grid>
+            )}
+          </Grid>
+          
+          <Divider sx={{ my: 4 }} />
+          
+          {/* Bottom section with user info, time, copyright */}
+          <Grid 
+            container 
+            spacing={2}
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ py: 2 }}
+          >
+            <Grid item xs={12} sm={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {isAuthenticated && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+                    <Avatar 
+                      alt="Anuj Prajapati" 
+                      src="/assets/user-avatar.jpg"
+                      sx={{ 
+                        width: 32, 
+                        height: 32, 
+                        mr: 1,
+                        border: `2px solid ${theme.palette.primary.main}`,
+                      }}
+                    />
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        Anuj-prajapati-SDE
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Active Session
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+                
+                <Box 
+                  sx={{ 
+                    ml: isAuthenticated ? 2 : 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    px: 1.5,
+                    py: 0.7,
+                    borderRadius: '8px',
+                    bgcolor: theme.palette.mode === 'dark' 
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(0,0,0,0.02)',
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary" fontFamily="monospace">
+                    UTC {currentDateTime}
+                  </Typography>
+                </Box>
+                
+                <IconButton 
+                  onClick={toggleColorMode} 
+                  size="small" 
+                  sx={{ ml: 1 }}
+                  color="primary"
+                >
+                  {theme.palette.mode === 'dark' ? <LightMode fontSize="small" /> : <DarkMode fontSize="small" />}
+                </IconButton>
+              </Box>
+            </Grid>
+            
+            <Grid item xs={12} sm={6}>
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  justifyContent: { xs: 'center', sm: 'flex-end' },
+                  alignItems: 'center', 
+                  flexWrap: 'wrap',
+                  gap: 2,
+                }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  © {new Date().getFullYear()} Code-Quest. All rights reserved.
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Made with ❤️ by{' '}
+                  <Link href="#" color="inherit" sx={{ fontWeight: 600 }}>
+                    Anuj Prajapati
+                  </Link>
+                </Typography>
               </Box>
             </Grid>
           </Grid>
         </Container>
       </Box>
-
-      {/* Main Footer */}
-      <Container maxWidth="lg">
-        <Box sx={{ py: 8 }}>
-          <Grid container spacing={4}>
-            {/* Logo and Description */}
-            <Grid item xs={12} md={4}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 3,
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-3px)'
-                }
-              }}>
-                <Box 
-                  sx={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'rgba(var(--theme-color-rgb), 0.1)',
-                    borderRadius: '12px',
-                    p: 1.2,
-                    mr: 1.5
-                  }}
-                >
-                  <CodeIcon sx={{ fontSize: 32, color: 'var(--theme-color)' }} />
-                </Box>
-                <Typography 
-                  variant="h5" 
-                  component="div" 
-                  fontWeight="bold"
-                  letterSpacing="0.5px"
-                >
-                  Code-Quest
+      
+      {/* Contact info strip */}
+      <Box
+        sx={{
+          py: 2,
+          px: 3,
+          bgcolor: theme.palette.mode === 'dark' 
+            ? 'rgba(10, 10, 10, 0.95)'
+            : 'rgba(240, 240, 240, 0.98)',
+          borderTop: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Stack 
+            direction={{ xs: 'column', sm: 'row' }} 
+            justifyContent="space-between"
+            alignItems={{ xs: 'center', sm: 'flex-start' }}
+            spacing={2}
+          >
+            <Stack 
+              direction={{ xs: 'column', sm: 'row' }} 
+              spacing={{ xs: 2, sm: 4 }} 
+              alignItems="center"
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <LocationOn 
+                  fontSize="small" 
+                  sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
+                />
+                <Typography variant="body2" color="text.secondary">
+                  123 Coding Street, Tech City, 10001
                 </Typography>
               </Box>
-              <Typography 
-                variant="body2" 
-                paragraph 
-                sx={{ 
-                  color: 'var(--p-color)', 
-                  mb: 4,
-                  lineHeight: 1.7,
-                  fontSize: '0.95rem',
-                  maxWidth: '95%'
-                }}
-              >
-                A comprehensive online coding assessment platform designed for KITPS to conduct coding competitions with role-based access control for students, teachers, and administrators.
-              </Typography>
-              <Box sx={{ display: 'flex', mb: 3 }}>
-                <SocialButton 
-                  icon={<GitHubIcon />} 
-                  label="GitHub" 
-                  href="https://github.com" 
+              
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Email 
+                  fontSize="small" 
+                  sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
                 />
-                <SocialButton 
-                  icon={<LinkedInIcon />} 
-                  label="LinkedIn" 
-                  href="https://linkedin.com" 
+                <Typography variant="body2" color="text.secondary">
+                  contact@code-quest.com
+                </Typography>
+              </Box>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Phone 
+                  fontSize="small" 
+                  sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
                 />
-                <SocialButton 
-                  icon={<TwitterIcon />} 
-                  label="Twitter" 
-                  href="https://twitter.com" 
-                />
+                <Typography variant="body2" color="text.secondary">
+                  +1 (555) 123-4567
+                </Typography>
               </Box>
-            </Grid>
-
-            {/* Quick Links */}
-            <Grid item xs={12} sm={6} md={2}>
-              <Typography 
-                variant="h6" 
-                component="h3" 
-                gutterBottom
-                sx={{ 
-                  fontWeight: 600,
-                  position: 'relative',
-                  mb: 3,
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    width: '30px',
-                    height: '3px',
-                    bottom: '-8px',
-                    left: 0,
-                    backgroundColor: 'var(--theme-color)',
-                    borderRadius: '3px',
-                  }
-                }}
+            </Stack>
+            
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <Button 
+                variant="outlined" 
+                color="primary"
+                startIcon={<Email />}
+                component={RouterLink}
+                to="/contact"
+                size="small"
+                sx={{ borderRadius: '50px' }}
               >
-                Quick Links
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <FooterLink to="/">Home</FooterLink>
-                <FooterLink to="/about">About Us</FooterLink>
-                <FooterLink to="/contact">Contact</FooterLink>
-                <FooterLink to="/faq">FAQ</FooterLink>
-              </Box>
-            </Grid>
-
-            {/* Resources */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography 
-                variant="h6" 
-                component="h3" 
-                gutterBottom
-                sx={{ 
-                  fontWeight: 600,
-                  position: 'relative',
-                  mb: 3,
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    width: '30px',
-                    height: '3px',
-                    bottom: '-8px',
-                    left: 0,
-                    backgroundColor: 'var(--theme-color)',
-                    borderRadius: '3px',
-                  }
-                }}
-              >
-                Resources
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <FooterLink to="/competitions">Competitions</FooterLink>
-                <FooterLink to="/practice">Practice Problems</FooterLink>
-                <FooterLink to="/leaderboard">Leaderboard</FooterLink>
-                <FooterLink to="/tutorials">Tutorials</FooterLink>
-              </Box>
-            </Grid>
-
-            {/* Legal */}
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography 
-                variant="h6" 
-                component="h3" 
-                gutterBottom
-                sx={{ 
-                  fontWeight: 600,
-                  position: 'relative',
-                  mb: 3,
-                  '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    width: '30px',
-                    height: '3px',
-                    bottom: '-8px',
-                    left: 0,
-                    backgroundColor: 'var(--theme-color)',
-                    borderRadius: '3px',
-                  }
-                }}
-              >
-                Legal
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <FooterLink to="/privacy-policy">Privacy Policy</FooterLink>
-                <FooterLink to="/terms-of-use">Terms of Use</FooterLink>
-                <FooterLink to="/feedback">Feedback</FooterLink>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-
-        <Divider sx={{ 
-          borderColor: 'rgba(var(--theme-color-rgb), 0.15)', 
-          borderWidth: '1px',
-          opacity: 0.5
-        }} />
-
-        {/* Bottom Footer - Enhanced with better styling */}
-        <Box 
-          sx={{ 
-            py: 4, 
-            display: 'flex', 
-            flexDirection: { xs: 'column', md: 'row' }, 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            position: 'relative'
-          }}
-        >
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--p-color)', 
-              mb: { xs: 2, md: 0 },
-              fontWeight: 500
+                Contact Us
+              </Button>
+            </Box>
+          </Stack>
+        </Container>
+      </Box>
+      
+      {/* Scroll to top button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <MotionBox
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            transition={{ duration: 0.3 }}
+            sx={{
+              position: 'fixed',
+              bottom: 20,
+              right: 20,
+              zIndex: 10,
             }}
           >
-            © {new Date().getFullYear()} <span style={{ color: 'var(--theme-color)', fontWeight: 600 }}>Code-Quest</span> | KITPS Final Year Project
-          </Typography>
-          
-          <Box sx={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            position: { md: 'absolute' },
-            left: { md: '50%' },
-            transform: { md: 'translateX(-50%)' }
-          }}>
-            <FooterLink to="/sitemap">Sitemap</FooterLink>
-            <Box 
-              sx={{ 
-                width: '4px', 
-                height: '4px', 
-                bgcolor: 'var(--p-color)', 
-                borderRadius: '50%',
-                display: { xs: 'none', md: 'block' }
-              }} 
-            />
-            <FooterLink to="/accessibility">Accessibility</FooterLink>
-          </Box>
-          
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: 'var(--p-color)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5
-            }}
-          >
-            Developed with <span className="heart-icon" style={{ 
-              color: 'var(--theme-color)',
-              display: 'inline-flex',
-              animation: 'heartbeat 1.5s infinite'
-            }}>❤</span> by <Link 
-              href="https://github.com/yourUsername" 
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ 
-                color: 'var(--theme-color)', 
-                textDecoration: 'none',
-                fontWeight: 600,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
-              }}
-            >
-              Vansh Sharma
-            </Link>
-          </Typography>
-        </Box>
-      </Container>
-
-      {/* Back to top button */}
-      <Tooltip title="Back to top" placement="top" arrow>
-        <Fab 
-          color="primary" 
-          size="medium" 
-          aria-label="back to top"
-          onClick={scrollToTop}
-          sx={{
-            position: 'absolute',
-            right: 30,
-            top: -25,
-            bgcolor: 'var(--theme-color)',
-            '&:hover': {
-              bgcolor: 'var(--hover-color)',
-              transform: 'translateY(-5px)'
-            },
-            transition: 'all 0.3s ease',
-            zIndex: 2,
-            boxShadow: '0 4px 16px rgba(var(--theme-color-rgb), 0.4)'
-          }}
-        >
-          <KeyboardArrowUpIcon />
-        </Fab>
-      </Tooltip>
-
-      {/* Notification for subscription */}
-      <Snackbar 
-        open={showSnackbar} 
-        autoHideDuration={6000} 
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbarSeverity} 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-
-      {/* Add CSS for animations */}
-      <style jsx>{`
-        @keyframes heartbeat {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.3); }
-        }
-      `}</style>
+            <Tooltip title="Scroll to top">
+              <IconButton
+                onClick={scrollToTop}
+                color="primary"
+                aria-label="scroll to top"
+                sx={{
+                  backgroundColor: theme.palette.background.paper,
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                  '&:hover': {
+                    backgroundColor: theme.palette.background.paper,
+                    transform: 'translateY(-5px)',
+                  },
+                  transition: 'transform 0.3s ease',
+                }}
+              >
+                <ArrowUpward />
+              </IconButton>
+            </Tooltip>
+          </MotionBox>
+        )}
+      </AnimatePresence>
     </Box>
   );
 };

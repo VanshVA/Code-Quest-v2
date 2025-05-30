@@ -1,992 +1,1498 @@
-import React, { useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Grid, 
-  Box, 
-  Paper, 
-  Divider, 
-  Card, 
-  CardContent,
+import React, { useState, useRef, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import {
   Avatar,
+  Box,
   Button,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  LinearProgress,
+  Link,
+  Paper,
+  Stack,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+  useMediaQuery,
   useTheme,
-  useMediaQuery
 } from '@mui/material';
-import SchoolIcon from '@mui/icons-material/School';
-import PeopleIcon from '@mui/icons-material/People';
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import BuildIcon from '@mui/icons-material/Build';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import CodeIcon from '@mui/icons-material/Code';
-import { Link } from 'react-router-dom';
+import {
+  ArrowForward,
+  AutoAwesome,
+  CheckCircle,
+  Code,
+  EmojiEvents,
+  GitHub,
+  Groups,
+  LinkedIn,
+  Mail,
+  Person,
+  School,
+  Security,
+  Speed,
+  Twitter,
+  Verified,
+} from '@mui/icons-material';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
-const About = () => {
+
+// Current date and user info from global state
+const CURRENT_DATE_TIME = "2025-05-29 21:36:35";
+const CURRENT_USER = "Anuj-prajapati-SDE";
+
+// Motion components
+const MotionBox = motion(Box);
+const MotionTypography = motion(Typography);
+const MotionPaper = motion(Paper);
+const MotionCard = motion(Card);
+const MotionAvatar = motion(Avatar);
+
+const AboutPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isMedium = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
+  const [tabValue, setTabValue] = useState(0);
+  const { scrollYProgress } = useScroll();
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
 
-  // Add scroll animation
+  // Handle tab change
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  // Canvas animation for background
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('show');
-        }
-      });
-    }, { threshold: 0.1 });
+    if (!canvasRef.current) return;
     
-    document.querySelectorAll('.fade-in').forEach(el => {
-      observer.observe(el);
-    });
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resizeCanvas = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight * 2;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+    };
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // Premium gradient orbs class with improved rendering
+    class GradientOrb {
+      constructor() {
+        this.reset();
+      }
+      
+      reset() {
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.opacity = Math.random() * 0.12 + 0.04;
+        
+        // Premium color combinations
+        const colorSets = [
+          { start: '#bc4037', end: '#f47061' }, // Primary red
+          { start: '#9a342d', end: '#bd5c55' }, // Dark red
+          { start: '#2C3E50', end: '#4A6572' }, // Dark blue
+          { start: '#3a47d5', end: '#00d2ff' }, // Blue
+        ];
+        
+        this.colors = colorSets[Math.floor(Math.random() * colorSets.length)];
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        // Bounce effect at edges
+        if (this.x < -this.size) this.x = width + this.size;
+        if (this.x > width + this.size) this.x = -this.size;
+        if (this.y < -this.size) this.y = height + this.size;
+        if (this.y > height + this.size) this.y = -this.size;
+      }
+      
+      draw() {
+        // Create gradient with proper opacity
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.size
+        );
+        
+        // Convert hex to rgba for better control
+        const startColor = this.hexToRgba(this.colors.start, this.opacity);
+        const endColor = this.hexToRgba(this.colors.end, 0);
+        
+        gradient.addColorStop(0, startColor);
+        gradient.addColorStop(1, endColor);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+      
+      hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    }
+    
+    // Create optimal number of orbs based on screen size
+    const orbCount = isMobile ? 6 : 10;
+    const orbs = Array(orbCount).fill().map(() => new GradientOrb());
+    
+    // Animation loop with performance optimization
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      
+      orbs.forEach((orb) => {
+        orb.update();
+        orb.draw();
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animate();
     
     return () => {
-      document.querySelectorAll('.fade-in').forEach(el => {
-        observer.unobserve(el);
-      });
+      cancelAnimationFrame(animationRef.current);
+      window.removeEventListener('resize', resizeCanvas);
     };
-  }, []);
+  }, [isMobile, isDark]);
 
-  return (
-    <Box sx={{ 
-      bgcolor: 'var(--background-color)', 
-      color: 'var(--text-color)',
-      minHeight: '100vh',
-      pb: 10,
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Hero Section - Enhanced with better visuals and positioning */}
-      <Box 
-        sx={{ 
-          position: 'relative',
-          py: { xs: 12, md: 18 }, 
-          background: 'linear-gradient(135deg, rgba(var(--theme-color-rgb), 0.05) 0%, rgba(var(--theme-color-rgb), 0.15) 100%)',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Decorative elements */}
-        <Box 
-          sx={{ 
-            position: 'absolute',
-            width: '500px',
-            height: '500px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(var(--theme-color-rgb), 0.2) 0%, rgba(0,0,0,0) 70%)',
-            top: '-250px',
-            right: '-100px',
-            zIndex: 0,
-          }} 
-        />
-        
-        <Box 
-          sx={{ 
-            position: 'absolute',
-            width: '300px',
-            height: '300px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(var(--theme-color-rgb), 0.1) 0%, rgba(0,0,0,0) 70%)',
-            bottom: '-150px',
-            left: '-100px',
-            zIndex: 0,
-          }} 
-        />
-        
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <Box 
-            className="fade-in"
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              position: 'relative'
+  // About tabs content
+  const aboutTabs = [
+    { label: "Our Story", value: 0 },
+    { label: "Mission & Vision", value: 1 },
+    { label: "Our Team", value: 2 },
+    { label: "Timeline", value: 3 },
+  ];
+
+  // Our story content
+  const ourStory = (
+    <MotionBox
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+        Code-Quest was founded in 2022 by a team of passionate educators and industry professionals who identified a gap in the technical education space. While many platforms offered basic coding challenges, none provided a comprehensive environment that simulated real-world coding scenarios with enterprise-grade tools.
+      </Typography>
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+        Our journey began in a small office in Bangalore, India, where our founding team of five developers and two educational experts started building the initial prototype. After six months of intensive development, we launched the beta version to select educational institutions for testing.
+      </Typography>
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+        The feedback was overwhelmingly positive, with students and teachers praising the platform's intuitive design and comprehensive features. This early success attracted initial funding from education-focused venture capital firms, allowing us to expand our team and enhance our technology infrastructure.
+      </Typography>
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+        Today, Code-Quest has grown into a leading platform used by over 500,000 active users across more than 2,500 educational institutions worldwide. Our commitment to excellence in coding education continues to drive our innovation and growth.
+      </Typography>
+      <Box sx={{ mt: 4 }}>
+        <Grid container spacing={4}>
+          <Grid item xs={12} sm={6}>
+            <MotionPaper
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              sx={{ 
+                p: 3, 
+                height: '100%',
+                borderRadius: '16px',
+                backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              }}
+            >
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                <School sx={{ mr: 1, color: theme.palette.primary.main }} /> Educational Excellence
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                We partner with top universities and industry experts to ensure our platform delivers the highest quality educational content and the most relevant coding challenges.
+              </Typography>
+            </MotionPaper>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <MotionPaper
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              sx={{ 
+                p: 3, 
+                height: '100%',
+                borderRadius: '16px',
+                backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              }}
+            >
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                <Security sx={{ mr: 1, color: theme.palette.primary.main }} /> Industry Standards
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Our platform utilizes the same tools and standards used in professional development environments, preparing students for real-world coding scenarios and challenges.
+              </Typography>
+            </MotionPaper>
+          </Grid>
+        </Grid>
+      </Box>
+    </MotionBox>
+  );
+  
+  // Mission & vision content
+  const missionVision = (
+    <MotionBox
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Grid container spacing={5}>
+        <Grid item xs={12} md={6}>
+          <MotionPaper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            sx={{ 
+              p: 4, 
+              height: '100%',
+              borderRadius: '16px',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
             <Box 
               sx={{ 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 8,
+                height: '100%',
+                background: theme.palette.gradients.primary,
+              }}
+            />
+            <Typography 
+              variant="h4" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 800,
+                color: theme.palette.primary.main,
+              }}
+            >
+              Our Mission
+            </Typography>
+            <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+              To democratize coding education by providing an accessible, comprehensive platform that empowers learners of all backgrounds to master programming skills through practical, industry-relevant challenges and assessments.
+            </Typography>
+            <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+              We aim to bridge the gap between theoretical knowledge and practical application, ensuring that every student can build the competencies needed to thrive in the technology-driven future.
+            </Typography>
+            <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Chip 
+                label="Educational Access" 
+                size="small" 
+                sx={{ 
+                  bgcolor: isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)',
+                  color: theme.palette.primary.main,
+                  fontWeight: 600,
+                }} 
+              />
+              <Chip 
+                label="Skill Development" 
+                size="small" 
+                sx={{ 
+                  bgcolor: isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)',
+                  color: theme.palette.primary.main,
+                  fontWeight: 600,
+                }} 
+              />
+              <Chip 
+                label="Community Building" 
+                size="small" 
+                sx={{ 
+                  bgcolor: isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)',
+                  color: theme.palette.primary.main,
+                  fontWeight: 600,
+                }} 
+              />
+            </Box>
+          </MotionPaper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <MotionPaper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            sx={{ 
+              p: 4, 
+              height: '100%',
+              borderRadius: '16px',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <Box 
+              sx={{ 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 8,
+                height: '100%',
+                background: 'linear-gradient(135deg, #3a47d5 0%, #00d2ff 100%)',
+              }}
+            />
+            <Typography 
+              variant="h4" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 800,
+                color: '#3a47d5',
+              }}
+            >
+              Our Vision
+            </Typography>
+            <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+              To become the world's leading platform for coding education and assessment, recognized for our innovative approach, technical excellence, and measurable impact on learners' career outcomes.
+            </Typography>
+            <Typography variant="body1" paragraph sx={{ lineHeight: 1.8 }}>
+              We envision a future where every aspiring programmer has equal access to world-class education tools, regardless of geographic location or socioeconomic background, and where Code-Quest certification is universally respected by educational institutions and employers.
+            </Typography>
+            <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Chip 
+                label="Global Impact" 
+                size="small" 
+                sx={{ 
+                  bgcolor: isDark ? 'rgba(58, 71, 213, 0.1)' : 'rgba(58, 71, 213, 0.05)',
+                  color: '#3a47d5',
+                  fontWeight: 600,
+                }} 
+              />
+              <Chip 
+                label="Educational Innovation" 
+                size="small" 
+                sx={{ 
+                  bgcolor: isDark ? 'rgba(58, 71, 213, 0.1)' : 'rgba(58, 71, 213, 0.05)',
+                  color: '#3a47d5',
+                  fontWeight: 600,
+                }} 
+              />
+              <Chip 
+                label="Industry Recognition" 
+                size="small" 
+                sx={{ 
+                  bgcolor: isDark ? 'rgba(58, 71, 213, 0.1)' : 'rgba(58, 71, 213, 0.05)',
+                  color: '#3a47d5',
+                  fontWeight: 600,
+                }} 
+              />
+            </Box>
+          </MotionPaper>
+        </Grid>
+        <Grid item xs={12}>
+          <MotionPaper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            sx={{ 
+              p: 4, 
+              borderRadius: '16px',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              textAlign: 'center',
+            }}
+          >
+            <Typography 
+              variant="h5" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 700,
                 mb: 3,
+              }}
+            >
+              Our Core Values
+            </Typography>
+            <Grid container spacing={3}>
+              {[
+                {
+                  title: "Excellence",
+                  description: "We strive for technical perfection in everything we create, from our platform's code to our educational content."
+                },
+                {
+                  title: "Innovation",
+                  description: "We continuously push boundaries to develop new features and approaches that enhance the learning experience."
+                },
+                {
+                  title: "Accessibility",
+                  description: "We are committed to making high-quality coding education available to everyone, regardless of background."
+                },
+                {
+                  title: "Community",
+                  description: "We foster a supportive environment where learners can collaborate, compete, and grow together."
+                }
+              ].map((value, index) => (
+                <Grid item xs={12} sm={6} md={3} key={index}>
+                  <MotionBox
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + (index * 0.1), duration: 0.5 }}
+                  >
+                    <Box
+                      sx={{ 
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Box 
+                        sx={{
+                          width: 60,
+                          height: 60,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2,
+                          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
+                          boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                        }}
+                      >
+                        <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
+                          {index + 1}
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
+                        {value.title}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {value.description}
+                      </Typography>
+                    </Box>
+                  </MotionBox>
+                </Grid>
+              ))}
+            </Grid>
+          </MotionPaper>
+        </Grid>
+      </Grid>
+    </MotionBox>
+  );
+  
+  // Team members data
+  const teamMembers = [
+    {
+      name: "Anuj Prajapati",
+      role: "Founder & CEO",
+      avatar: "/assets/images/team/anuj.jpg", // Placeholder image path
+      bio: "Former Google engineer with 15+ years of experience in educational technology. Founded Code-Quest with a vision to revolutionize coding education.",
+      social: {
+        linkedin: "https://linkedin.com/in/anuj-prajapati",
+        twitter: "https://twitter.com/anujprajapati",
+        github: "https://github.com/anuj-prajapati"
+      }
+    },
+    {
+      name: "Priya Sharma",
+      role: "CTO",
+      avatar: "/assets/images/team/priya.jpg", // Placeholder image path
+      bio: "PhD in Computer Science with expertise in compiler design and educational technology. Led the development of Code-Quest's core assessment engine.",
+      social: {
+        linkedin: "https://linkedin.com/in/priya-sharma",
+        github: "https://github.com/priya-sharma"
+      }
+    },
+    {
+      name: "Rajesh Kumar",
+      role: "Head of Education",
+      avatar: "/assets/images/team/rajesh.jpg", // Placeholder image path
+      bio: "Former professor at IIT Delhi with 20+ years of experience in computer science education. Designs our curriculum and assessment methodology.",
+      social: {
+        linkedin: "https://linkedin.com/in/rajesh-kumar",
+        twitter: "https://twitter.com/rajeshkumar"
+      }
+    },
+    {
+      name: "Neha Gupta",
+      role: "Lead UX Designer",
+      avatar: "/assets/images/team/neha.jpg", // Placeholder image path
+      bio: "Award-winning designer focused on creating intuitive, accessible interfaces for educational platforms. Previously worked at Microsoft and Udacity.",
+      social: {
+        linkedin: "https://linkedin.com/in/neha-gupta",
+        github: "https://github.com/neha-gupta"
+      }
+    },
+    {
+      name: "Vikram Singh",
+      role: "VP of Operations",
+      avatar: "/assets/images/team/vikram.jpg", // Placeholder image path
+      bio: "Operations expert with experience scaling educational startups. Manages our partnerships with educational institutions worldwide.",
+      social: {
+        linkedin: "https://linkedin.com/in/vikram-singh",
+        twitter: "https://twitter.com/vikramsingh"
+      }
+    },
+    {
+      name: "Aisha Khan",
+      role: "Senior Software Architect",
+      avatar: "/assets/images/team/aisha.jpg", // Placeholder image path
+      bio: "Full-stack developer with expertise in distributed systems and real-time collaboration tools. Leads our platform infrastructure team.",
+      social: {
+        github: "https://github.com/aisha-khan",
+        linkedin: "https://linkedin.com/in/aisha-khan"
+      }
+    }
+  ];
+
+  // Our team content
+  const ourTeam = (
+    <MotionBox
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8, mb: 4 }}>
+        At Code-Quest, our diverse team brings together expertise from education, software development, and design. We're united by our passion for revolutionizing coding education and creating opportunities for learners worldwide.
+      </Typography>
+      
+      <Grid container spacing={4}>
+        {teamMembers.map((member, index) => (
+          <Grid item xs={12} sm={6} md={4} key={index}>
+            <MotionCard
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index, duration: 0.5 }}
+              sx={{ 
+                height: '100%',
+                borderRadius: '16px',
+                backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-10px)',
+                  boxShadow: isDark ? '0 20px 40px rgba(0, 0, 0, 0.3)' : '0 20px 40px rgba(0, 0, 0, 0.1)',
+                },
               }}
             >
               <Box 
-                sx={{
-                  bgcolor: 'rgba(var(--theme-color-rgb), 0.1)',
-                  borderRadius: '50%',
-                  p: 2,
-                  display: 'inline-flex',
-                  boxShadow: '0 8px 32px rgba(var(--theme-color-rgb), 0.2)',
+                sx={{ 
+                  height: 6, 
+                  background: theme.palette.gradients.primary,
+                }}
+              />
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Avatar
+                    src={member.avatar}
+                    alt={member.name}
+                    sx={{ 
+                      width: 80, 
+                      height: 80, 
+                      mr: 2,
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                      border: `3px solid ${theme.palette.primary.main}`,
+                    }}
+                  />
+                  <Box>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {member.name}
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      color="primary"
+                      sx={{ 
+                        fontWeight: 600,
+                      }}
+                    >
+                      {member.role}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography 
+                  variant="body2" 
+                  color="textSecondary"
+                  sx={{ mb: 2 }}
+                >
+                  {member.bio}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  {member.social.linkedin && (
+                    <IconButton 
+                      size="small"
+                      href={member.social.linkedin}
+                      target="_blank"
+                      rel="noopener"
+                      sx={{
+                        color: '#0077B5',
+                        backgroundColor: isDark ? 'rgba(0, 119, 181, 0.1)' : 'rgba(0, 119, 181, 0.05)',
+                      }}
+                    >
+                      <LinkedIn fontSize="small" />
+                    </IconButton>
+                  )}
+                  {member.social.twitter && (
+                    <IconButton 
+                      size="small"
+                      href={member.social.twitter}
+                      target="_blank"
+                      rel="noopener"
+                      sx={{
+                        color: '#1DA1F2',
+                        backgroundColor: isDark ? 'rgba(29, 161, 242, 0.1)' : 'rgba(29, 161, 242, 0.05)',
+                      }}
+                    >
+                      <Twitter fontSize="small" />
+                    </IconButton>
+                  )}
+                  {member.social.github && (
+                    <IconButton 
+                      size="small"
+                      href={member.social.github}
+                      target="_blank"
+                      rel="noopener"
+                      sx={{
+                        color: isDark ? '#ffffff' : '#24292e',
+                        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(36, 41, 46, 0.05)',
+                      }}
+                    >
+                      <GitHub fontSize="small" />
+                    </IconButton>
+                  )}
+                </Box>
+              </CardContent>
+            </MotionCard>
+          </Grid>
+        ))}
+      </Grid>
+      
+      <MotionPaper
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+        sx={{ 
+          mt: 6,
+          p: 4, 
+          borderRadius: '16px',
+          backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+          backdropFilter: 'blur(10px)',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+          textAlign: 'center',
+        }}
+      >
+        <Typography 
+          variant="h5" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 700,
+          }}
+        >
+          Join Our Team
+        </Typography>
+        <Typography variant="body1" paragraph>
+          We're always looking for talented individuals passionate about education and technology. 
+          Check our careers page for current openings and opportunities.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          component={RouterLink}
+          to="/careers"
+          sx={{ 
+            borderRadius: '50px',
+            px: 4,
+            py: 1.5,
+            background: theme.palette.gradients.primary,
+            fontWeight: 600,
+            textTransform: 'none',
+          }}
+        >
+          View Career Opportunities
+        </Button>
+      </MotionPaper>
+    </MotionBox>
+  );
+  
+  // Timeline milestones
+  const milestones = [
+    { 
+      year: 2022, 
+      quarter: 'Q1', 
+      title: 'Founding',
+      description: 'Code-Quest is founded by Anuj Prajapati and a team of five developers in Bangalore, India.'
+    },
+    { 
+      year: 2022, 
+      quarter: 'Q3', 
+      title: 'Beta Launch',
+      description: 'Initial beta version released to 10 educational institutions for testing and feedback.'
+    },
+    { 
+      year: 2022, 
+      quarter: 'Q4', 
+      title: 'Seed Funding',
+      description: 'Secured $2.5 million in seed funding from education-focused venture capital firms.'
+    },
+    { 
+      year: 2023, 
+      quarter: 'Q1', 
+      title: 'Public Launch',
+      description: 'Official platform launch with support for 15 programming languages and 1,000+ coding challenges.'
+    },
+    { 
+      year: 2023, 
+      quarter: 'Q3', 
+      title: 'University Partnerships',
+      description: 'Established partnerships with 50+ universities across India, USA, and Europe.'
+    },
+    { 
+      year: 2024, 
+      quarter: 'Q1', 
+      title: 'Series A Funding',
+      description: 'Raised $12 million in Series A funding to expand platform capabilities and global reach.'
+    },
+    { 
+      year: 2024, 
+      quarter: 'Q2', 
+      title: 'Enterprise Features',
+      description: 'Launched enterprise version with advanced plagiarism detection and custom assessment creation.'
+    },
+    { 
+      year: 2024, 
+      quarter: 'Q4', 
+      title: 'Mobile App Launch',
+      description: 'Released native mobile applications for iOS and Android platforms.'
+    },
+    { 
+      year: 2025, 
+      quarter: 'Q1', 
+      title: 'Global Expansion',
+      description: 'Expanded to support 30+ programming languages and launched localized versions in 10 languages.'
+    },
+    { 
+      year: 2025, 
+      quarter: 'Q2', 
+      title: 'Industry Recognition',
+      description: 'Named "Best EdTech Platform" at the Global Education Technology Awards.'
+    }
+  ];
+  
+  // Timeline content
+  const timeline = (
+    <MotionBox
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Typography variant="body1" paragraph sx={{ lineHeight: 1.8, mb: 6 }}>
+        Since our founding in 2022, Code-Quest has grown rapidly through continuous innovation and a commitment to educational excellence. 
+        Our journey has been marked by significant milestones as we've expanded our platform capabilities and global reach.
+      </Typography>
+      
+      <Box sx={{ 
+        position: 'relative',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: { xs: 20, sm: '50%' },
+          width: 4,
+          backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          transform: { xs: 'translateX(0)', sm: 'translateX(-2px)' },
+          zIndex: 1,
+        }
+      }}>
+        {milestones.map((milestone, index) => (
+          <MotionBox
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.5 }}
+            sx={{ 
+              position: 'relative',
+              mb: 5,
+              zIndex: 2,
+            }}
+          >
+            <Grid container>
+              <Grid 
+                item 
+                xs={12} sm={6}
+                sx={{ 
+                  textAlign: { xs: 'left', sm: index % 2 === 0 ? 'right' : 'left' },
+                  pr: { xs: 0, sm: index % 2 === 0 ? 4 : 0 },
+                  pl: { xs: 5, sm: index % 2 === 0 ? 0 : 4 },
+                  order: { xs: 2, sm: index % 2 === 0 ? 1 : 2 },
                 }}
               >
-                <CodeIcon sx={{ fontSize: 40, color: 'var(--theme-color)' }} />
-              </Box>
-            </Box>
-            
-            <Typography 
-              variant="h1" 
-              component="h1" 
-              fontWeight="800"
-              align="center"
-              sx={{ 
-                mb: 3,
-                fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
-                letterSpacing: '-0.5px',
-                position: 'relative',
+                <Box sx={{ position: 'relative' }}>
+                  <Paper
+                    sx={{
+                      p: 3,
+                      borderRadius: '16px',
+                      backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                      backdropFilter: 'blur(10px)',
+                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                      boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.2)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      gutterBottom 
+                      sx={{ 
+                        fontWeight: 700,
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      {milestone.title}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {milestone.description}
+                    </Typography>
+                  </Paper>
+                </Box>
+              </Grid>
+              
+              <Grid 
+                item 
+                xs={12} sm={6}
+                sx={{ 
+                  display: 'flex',
+                  justifyContent: { xs: 'flex-start', sm: index % 2 === 0 ? 'flex-start' : 'flex-end' },
+                  alignItems: 'center',
+                  order: { xs: 1, sm: index % 2 === 0 ? 2 : 1 },
+                }}
+              >
+                <Box sx={{ 
+                  position: { xs: 'absolute', sm: 'static' },
+                  left: { xs: 0, sm: 'auto' },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}>
+                  <Box sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: theme.palette.gradients.primary,
+                    color: 'white',
+                    fontWeight: 'bold',
+                    boxShadow: '0 0 0 4px rgba(188, 64, 55, 0.1), 0 0 10px rgba(0, 0, 0, 0.2)',
+                    zIndex: 3,
+                  }}>
+                    <CheckCircle />
+                  </Box>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontWeight: 700,
+                      mt: 1,
+                    }}
+                  >
+                    {milestone.year} {milestone.quarter}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </MotionBox>
+        ))}
+      </Box>
+      
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          mt: 8,
+        }}
+      >
+        <Card
+          sx={{ 
+            p: 3,
+            borderRadius: '16px',
+            backgroundColor: theme.palette.primary.main,
+            color: 'white',
+            textAlign: 'center',
+            maxWidth: 500,
+          }}
+        >
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            The journey continues...
+          </Typography>
+          <Typography variant="body2">
+            We're just getting started! Our roadmap includes AI-powered personalized learning paths,
+            expanded language support, and deeper integration with university curricula.
+          </Typography>
+        </Card>
+      </MotionBox>
+    </MotionBox>
+  );
+
+  return (
+    <>
+      {/* <Navbar isAuthenticated={true} /> */}
+      
+      {/* Canvas Background for Premium Gradient Animation */}
+      <Box sx={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+        overflow: 'hidden',
+      }}>
+        <canvas 
+          ref={canvasRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        />
+        {/* Overlay for better text contrast */}
+        <Box 
+          sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(30px)',
+          }} 
+        />
+      </Box>
+      
+      {/* Hero Section */}
+      <Box 
+        component="section" 
+        sx={{ 
+          position: 'relative',
+          pt: { xs: '100px', sm: '120px', md: '140px' },
+          pb: { xs: '60px', sm: '80px', md: '100px' },
+          overflow: 'hidden',
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Current Time Display */}
+          <MotionBox
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            sx={{
+              position: 'absolute',
+              top: { xs: 65, sm: 80, md: 100 },
+              right: { xs: '50%', md: 24 },
+              transform: { xs: 'translateX(50%)', md: 'none' },
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              px: 2.5,
+              py: 1,
+              borderRadius: '100px',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+              boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Typography
+              variant="body2" 
+              sx={{
+                fontFamily: 'monospace',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                color: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.7)',
               }}
             >
-              About <span style={{
-                color: 'var(--theme-color)',
-                position: 'relative',
-                display: 'inline-block'
-              }}>
-                Code-Quest
+              UTC: {CURRENT_DATE_TIME}
+              <Box 
+                component="span"
+                sx={{
+                  display: 'inline-block',
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.success.main,
+                  ml: 1.5,
+                  animation: 'pulse 2s infinite',
+                  '@keyframes pulse': {
+                    '0%': { opacity: 0.6, transform: 'scale(0.9)' },
+                    '50%': { opacity: 1, transform: 'scale(1.1)' },
+                    '100%': { opacity: 0.6, transform: 'scale(0.9)' },
+                  },
+                }}
+              />
+            </Typography>
+          </MotionBox>
+          
+          {/* User Badge */}
+          <MotionBox
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            sx={{
+              position: 'absolute',
+              top: { xs: 110, sm: 80, md: 100 },
+              left: { xs: '50%', md: 24 },
+              transform: { xs: 'translateX(-50%)', md: 'none' },
+              zIndex: 10,
+              display: { xs: 'none', md: 'flex' },
+              alignItems: 'center',
+              px: 2.5,
+              py: 1,
+              borderRadius: '100px',
+              backdropFilter: 'blur(10px)',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+              boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Avatar
+              alt={CURRENT_USER}
+              src="/assets/images/avatar.jpg"
+              sx={{ 
+                width: 32, 
+                height: 32, 
+                border: `2px solid ${theme.palette.primary.main}`,
+                boxShadow: '0 4px 8px rgba(188, 64, 55, 0.2)',
+                mr: 1.5
+              }}
+            />
+            <Box>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontWeight: 600,
+                  color: isDark ? 'white' : 'text.primary',
+                  lineHeight: 1.2,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {CURRENT_USER}
+                <Verified 
+                  sx={{ 
+                    fontSize: '0.9rem', 
+                    color: theme.palette.primary.main,
+                    ml: 0.7,
+                  }} 
+                />
+              </Typography>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
                 <Box 
-                  sx={{
-                    position: 'absolute',
-                    bottom: '0px',
-                    left: 0,
-                    width: '100%',
-                    height: '8px',
-                    background: 'rgba(var(--theme-color-rgb), 0.2)',
-                    borderRadius: '4px',
-                    zIndex: -1,
+                  sx={{ 
+                    width: 6, 
+                    height: 6, 
+                    borderRadius: '50%',
+                    bgcolor: theme.palette.success.main,
+                    mr: 0.8,
+                    display: 'inline-block',
                   }}
                 />
-              </span>
-            </Typography>
-            
-            <Typography 
-              variant="h5" 
-              component="p" 
-              align="center"
-              sx={{ 
-                mb: 5, 
-                color: 'var(--p-color)', 
-                maxWidth: '800px', 
-                mx: 'auto',
-                lineHeight: 1.6,
-                fontWeight: 400,
-              }}
-            >
-              A final year project developed to address the need for a comprehensive coding assessment platform at Kothiwal Institute of Technology & Professional Studies (KITPS)
-            </Typography>
-            
-            <Button
-              variant="contained"
-              component={Link}
-              to="/contact"
-              endIcon={<ArrowForwardIcon />}
+                Premium Member
+              </Typography>
+            </Box>
+          </MotionBox>
+          
+          <Grid 
+            container 
+            spacing={{ xs: 4, md: 8 }}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+              <MotionBox>
+                {/* Top Badge */}
+                <MotionBox
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  sx={{ mb: 3, display: 'inline-block' }}
+                >
+                  <Chip 
+                    label="ABOUT CODE-QUEST" 
+                    color="primary"
+                    size="small"
+                    icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem' }} />}
+                    sx={{ 
+                      background: theme.palette.gradients.primary,
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                      letterSpacing: 1.2,
+                      py: 2.2,
+                      pl: 1,
+                      pr: 2,
+                      borderRadius: '100px',
+                      boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                      '& .MuiChip-icon': { 
+                        color: 'white',
+                        mr: 0.5
+                      }
+                    }}
+                  />
+                </MotionBox>
+                
+                {/* Main Headline */}
+                <MotionTypography
+                  variant="h1"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  sx={{ 
+                    fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                    fontWeight: 800,
+                    lineHeight: 1.1,
+                    mb: { xs: 3, md: 4 },
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Our Mission to Elevate
+                  <Box 
+                    component="span" 
+                    sx={{
+                      display: 'block',
+                      background: theme.palette.gradients.primary,
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textFillColor: 'transparent',
+                    }}
+                  >
+                    Coding Education
+                  </Box>
+                </MotionTypography>
+                
+                {/* Subheadline */}
+                <MotionTypography
+                  variant="h5"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  color="textSecondary"
+                  sx={{ 
+                    mb: 5,
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    fontSize: { xs: '1.1rem', md: '1.3rem' },
+                    maxWidth: '800px',
+                    mx: 'auto',
+                  }}
+                >
+                  Learn about our journey, our team, and the vision driving us to create 
+                  the world's most comprehensive coding education platform.
+                </MotionTypography>
+              </MotionBox>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+      
+      {/* Main Content Section */}
+      <Box 
+        component="section"
+        sx={{ 
+          pb: { xs: 10, md: 15 },
+          position: 'relative',
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Tabs for different content sections */}
+          <MotionPaper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            sx={{ 
+              p: 1, 
+              mb: { xs: 4, md: 6 },
+              borderRadius: '50px',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.2)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <Tabs 
+              value={tabValue}
+              onChange={handleTabChange}
+              variant={isMobile ? "scrollable" : "fullWidth"}
+              scrollButtons="auto"
               sx={{
-                bgcolor: 'var(--theme-color)', 
-                px: 4,
-                py: 1.5,
-                borderRadius: '30px',
-                fontWeight: 600,
-                fontSize: '1.05rem',
-                textTransform: 'none',
-                boxShadow: '0 8px 20px rgba(var(--theme-color-rgb), 0.3)',
-                '&:hover': {
-                  bgcolor: 'var(--hover-color)',
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 12px 25px rgba(var(--theme-color-rgb), 0.4)',
+                '& .MuiTabs-indicator': {
+                  display: 'none',
                 },
-                transition: 'all 0.3s ease',
+                '& .MuiTab-root': {
+                  minWidth: 'auto',
+                  minHeight: 'auto',
+                  py: 1.5,
+                  px: 3,
+                  borderRadius: '50px',
+                  fontWeight: 600,
+                  transition: 'all 0.3s ease',
+                  '&.Mui-selected': {
+                    color: 'white',
+                    backgroundColor: theme.palette.primary.main,
+                    boxShadow: '0 4px 12px rgba(188, 64, 55, 0.3)',
+                  },
+                },
               }}
             >
-              Get in Touch
-            </Button>
+              {aboutTabs.map((tab) => (
+                <Tab 
+                  key={tab.value}
+                  label={tab.label} 
+                  value={tab.value}
+                  disableRipple
+                />
+              ))}
+            </Tabs>
+          </MotionPaper>
+          
+          {/* Tab panels */}
+          <Box sx={{ py: 2 }}>
+            {tabValue === 0 && ourStory}
+            {tabValue === 1 && missionVision}
+            {tabValue === 2 && ourTeam}
+            {tabValue === 3 && timeline}
           </Box>
         </Container>
       </Box>
       
-      {/* Our Story - Enhanced with modern card design and visual elements */}
-      <Container maxWidth="lg">
-        <Box 
-          sx={{ 
-            py: { xs: 8, md: 12 },
-            position: 'relative'
-          }}
-          className="fade-in"
-        >
-          <Grid container spacing={8} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Typography 
-                variant="overline" 
-                component="div" 
-                sx={{ 
-                  color: 'var(--theme-color)', 
-                  fontWeight: 600,
-                  letterSpacing: 1.5,
-                  mb: 2 
-                }}
-              >
-                OUR JOURNEY
-              </Typography>
-              <Typography 
-                variant="h3" 
-                component="h2" 
-                gutterBottom
-                sx={{
-                  fontWeight: 700,
-                  mb: 3,
-                  position: 'relative'
-                }}
-              >
-                Our Story
-                <Box 
-                  sx={{
-                    position: 'absolute',
-                    bottom: '-8px',
-                    left: '0',
-                    width: '80px',
-                    height: '4px',
-                    background: 'var(--theme-color)',
-                    borderRadius: '2px'
-                  }}
-                />
-              </Typography>
-              
-              <Box sx={{ mb: 4 }}>
-                <Typography 
-                  variant="body1" 
-                  paragraph 
-                  sx={{ 
-                    color: 'var(--p-color)',
-                    fontSize: '1.1rem',
-                    lineHeight: 1.7,
-                    mb: 3
-                  }}
-                >
-                  Code-Quest was born out of a clear need identified at KITPS - the lack of a dedicated software system for conducting coding competitions and assessments. As final year students, we observed the challenges faced by faculty and students in organizing and participating in coding events.
-                </Typography>
-                
-                <List>
-                  { [
-                    'Streamlined coding assessment process',
-                    'Enhanced student engagement in technical education',
-                    'Created role-based access for different users',
-                    'Developed a platform tailored for KITPS needs'
-                  ].map((item, index) => (
-                    <ListItem key={index} sx={{ px: 0, py: 1 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleOutlineIcon sx={{ color: 'var(--theme-color)' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={item} 
-                        primaryTypographyProps={{ 
-                          sx: { color: 'var(--text-color)', fontWeight: 500 } 
-                        }}
-                      />
-                    </ListItem>
-                  )) }
-                </List>
-              </Box>
-              
-              <Typography 
-                variant="body1" 
-                paragraph 
-                sx={{ 
-                  color: 'var(--p-color)',
-                  fontSize: '1.1rem',
-                  lineHeight: 1.7
-                }}
-              >
-                Under the guidance of our principal, Dr. Atul Rai, we set out to create a solution that would not only serve the immediate needs of our institution but also stand as a testament to the practical application of our learning journey at KITPS.
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Card 
-                elevation={0} 
-                sx={{ 
-                  bgcolor: 'transparent',
-                  position: 'relative',
-                  borderRadius: 4,
-                  overflow: 'visible'
-                }}
-              >
-                <Box 
-                  sx={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    border: '2px solid rgba(var(--theme-color-rgb), 0.2)',
-                    borderRadius: 4,
-                    top: 20,
-                    left: 20,
-                    zIndex: 0
-                  }}
-                />
-                <Box 
-                  sx={{ 
-                    overflow: 'hidden',
-                    borderRadius: 4,
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                    position: 'relative',
-                    zIndex: 1
-                  }}
-                >
-                  <img 
-                    src="/assets/kitps-campus.jpg" 
-                    alt="KITPS Campus" 
-                    style={{ 
-                      width: '100%', 
-                      height: '450px', 
-                      objectFit: 'cover',
-                      display: 'block',
-                      transition: 'transform 0.5s ease',
-                      '&:hover': {
-                        transform: 'scale(1.05)'
-                      }
-                    }}
-                  />
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-        
-        {/* Custom divider */}
-        <Box 
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            my: { xs: 3, md: 6 }
-          }}
-        >
-          <Box sx={{ flex: 1, height: '1px', bgcolor: 'rgba(var(--theme-color-rgb), 0.1)' }} />
-          <Box 
-            sx={{
-              mx: 4,
-              p: 1.5,
-              borderRadius: '50%',
-              bgcolor: 'rgba(var(--theme-color-rgb), 0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <CodeIcon sx={{ color: 'var(--theme-color)', fontSize: 24 }} />
-          </Box>
-          <Box sx={{ flex: 1, height: '1px', bgcolor: 'rgba(var(--theme-color-rgb), 0.1)' }} />
-        </Box>
-        
-        {/* Mission and Vision - Redesigned with cards and better layout */}
-        <Box 
-          sx={{ 
-            py: { xs: 8, md: 12 },
-            position: 'relative'
-          }}
-          className="fade-in"
-        >
-          <Grid container spacing={8} alignItems="center">
-            <Grid item xs={12} md={6} order={{ xs: 2, md: 1 }}>
-              <Box 
-                sx={{ 
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4
-                }}
-              >
-                {/* Mission Card */}
-                <Card 
-                  elevation={0}
-                  sx={{ 
-                    bgcolor: 'var(--dashboard-bg)',
-                    borderRadius: '16px',
-                    p: 4,
-                    border: '1px solid rgba(var(--theme-color-rgb), 0.1)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 15px 30px var(--background-shadow)'
-                    }
-                  }}
-                >
-                  <CardContent sx={{ p: 0 }}>
-                    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                      <Box 
-                        sx={{ 
-                          bgcolor: 'rgba(var(--theme-color-rgb), 0.1)',
-                          borderRadius: '12px',
-                          p: 1.2,
-                          mr: 2,
-                          display: 'flex'
-                        }}
-                      >
-                        <CodeIcon sx={{ color: 'var(--theme-color)', fontSize: 24 }} />
-                      </Box>
-                      <Typography 
-                        variant="h5" 
-                        component="h3" 
-                        sx={{ 
-                          fontWeight: 700,
-                          color: 'var(--theme-color)'
-                        }}
-                      >
-                        Our Mission
-                      </Typography>
-                    </Box>
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
-                        color: 'var(--p-color)',
-                        fontSize: '1.05rem',
-                        lineHeight: 1.7
-                      }}
-                    >
-                      To provide KITPS with a robust, user-friendly platform that streamlines the process of conducting coding assessments and competitions, fostering a culture of technical excellence and healthy competition among students.
-                    </Typography>
-                  </CardContent>
-                </Card>
-                
-                {/* Vision Card */}
-                <Card 
-                  elevation={0}
-                  sx={{ 
-                    bgcolor: 'var(--dashboard-bg)',
-                    borderRadius: '16px',
-                    p: 4, 
-                    border: '1px solid rgba(var(--theme-color-rgb), 0.1)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-5px)',
-                      boxShadow: '0 15px 30px var(--background-shadow)'
-                    }
-                  }}
-                >
-                  <CardContent sx={{ p: 0 }}>
-                    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-                      <Box 
-                        sx={{ 
-                          bgcolor: 'rgba(var(--theme-color-rgb), 0.1)',
-                          borderRadius: '12px',
-                          p: 1.2,
-                          mr: 2,
-                          display: 'flex'
-                        }}
-                      >
-                        <LightbulbIcon sx={{ color: 'var(--theme-color)', fontSize: 24 }} />
-                      </Box>
-                      <Typography 
-                        variant="h5" 
-                        component="h3" 
-                        sx={{ 
-                          fontWeight: 700,
-                          color: 'var(--theme-color)'
-                        }}
-                      >
-                        Our Vision
-                      </Typography>
-                    </Box>
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
-                        color: 'var(--p-color)',
-                        fontSize: '1.05rem',
-                        lineHeight: 1.7
-                      }}
-                    >
-                      To establish Code-Quest as an indispensable educational tool at KITPS that enhances the learning experience, provides valuable insights to educators, and prepares students for real-world coding challenges.
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-            </Grid>
-            
-            <Grid item xs={12} md={6} order={{ xs: 1, md: 2 }}>
-              <Typography 
-                variant="overline" 
-                component="div" 
-                sx={{ 
-                  color: 'var(--theme-color)', 
-                  fontWeight: 600,
-                  letterSpacing: 1.5,
-                  mb: 2 
-                }}
-              >
-                OUR PURPOSE
-              </Typography>
-              <Typography 
-                variant="h3" 
-                component="h2" 
-                gutterBottom
-                sx={{
-                  fontWeight: 700,
-                  mb: 3,
-                  position: 'relative'
-                }}
-              >
-                Mission & Vision
-                <Box 
-                  sx={{
-                    position: 'absolute',
-                    bottom: '-8px',
-                    left: '0',
-                    width: '80px',
-                    height: '4px',
-                    background: 'var(--theme-color)',
-                    borderRadius: '2px'
-                  }}
-                />
-              </Typography>
-              
-              <Typography 
-                variant="body1" 
-                paragraph 
-                sx={{ 
-                  color: 'var(--p-color)',
-                  fontSize: '1.1rem',
-                  lineHeight: 1.7,
-                  mb: 4
-                }}
-              >
-                At Code-Quest, we're driven by a clear purpose: to revolutionize how coding education and assessment are conducted at KITPS. Our mission and vision statements reflect our commitment to creating lasting value for students and educators alike.
-              </Typography>
-              
-              <Box 
-                sx={{ 
-                  mt: 4, 
-                  mb: { xs: 4, md: 0 },
-                  display: { xs: 'flex', md: 'block' },
-                  flexDirection: 'column',
-                  alignItems: { xs: 'center', md: 'flex-start' }
-                }}
-              >
-                <Box
-                  component="img"
-                  src="/assets/coding-mission.jpg"
-                  alt="Our Mission and Vision"
-                  sx={{
-                    maxWidth: '100%',
-                    height: 'auto',
-                    borderRadius: '20px',
-                    boxShadow: '0 25px 50px rgba(0,0,0,0.2)',
-                    transform: { md: 'rotate(3deg)' },
-                    transition: 'transform 0.5s ease',
-                    '&:hover': {
-                      transform: { md: 'rotate(0deg) scale(1.02)' }
-                    }
-                  }}
-                />
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-        
-        {/* Custom divider */}
-        <Box 
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            my: { xs: 3, md: 6 }
-          }}
-        >
-          <Box sx={{ flex: 1, height: '1px', bgcolor: 'rgba(var(--theme-color-rgb), 0.1)' }} />
-          <Box 
-            sx={{
-              mx: 4,
-              p: 1.5,
-              borderRadius: '50%',
-              bgcolor: 'rgba(var(--theme-color-rgb), 0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <CodeIcon sx={{ color: 'var(--theme-color)', fontSize: 24 }} />
-          </Box>
-          <Box sx={{ flex: 1, height: '1px', bgcolor: 'rgba(var(--theme-color-rgb), 0.1)' }} />
-        </Box>
-        
-        {/* Core Values - Enhanced with modern card design */}
-        <Box 
-          sx={{ 
-            py: { xs: 8, md: 12 },
-            position: 'relative'
-          }}
-          className="fade-in"
-        >
-          <Typography 
-            variant="overline" 
-            component="div" 
+      {/* Contact Section */}
+      <Box 
+        component="section"
+        sx={{ 
+          py: { xs: 8, md: 12 },
+          position: 'relative',
+          bgcolor: isDark ? 'rgba(20, 20, 20, 0.5)' : 'rgba(245, 245, 245, 0.5)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Container maxWidth="md">
+          <MotionPaper
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
             sx={{ 
-              color: 'var(--theme-color)', 
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              mb: 2,
-              textAlign: 'center'
+              p: { xs: 4, md: 6 }, 
+              borderRadius: '24px',
+              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(16px)',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+              boxShadow: isDark ? '0 20px 40px rgba(0, 0, 0, 0.2)' : '0 20px 40px rgba(0, 0, 0, 0.1)',
+              textAlign: 'center',
             }}
           >
-            WHAT WE STAND FOR
-          </Typography>
-          <Typography 
-            variant="h3" 
-            component="h2" 
-            align="center"
-            gutterBottom
-            sx={{ 
-              mb: { xs: 6, md: 8 },
-              fontWeight: 700,
-              position: 'relative',
-              display: 'inline-block',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}
-          >
-            Our Core Values
-            <Box 
-              sx={{
-                position: 'absolute',
-                bottom: '-12px',
-                left: 'calc(50% - 40px)',
-                width: '80px',
-                height: '4px',
-                background: 'var(--theme-color)',
-                borderRadius: '2px'
-              }}
-            />
-          </Typography>
-          
-          <Grid container spacing={4}>
-            { [
-              {
-                icon: <SchoolIcon sx={{ fontSize: 40, color: 'var(--theme-color)' }} />,
-                title: "Educational Excellence",
-                description: "Committed to enhancing the learning experience through practical application of coding skills and continuous improvement of educational methodologies."
-              },
-              {
-                icon: <PeopleIcon sx={{ fontSize: 40, color: 'var(--theme-color)' }} />,
-                title: "Inclusivity",
-                description: "Designed with all users in mind - students, teachers, and administrators - ensuring a seamless experience for everyone regardless of their technical expertise."
-              },
-              {
-                icon: <LightbulbIcon sx={{ fontSize: 40, color: 'var(--theme-color)' }} />,
-                title: "Innovation",
-                description: "Continuously evolving to incorporate new technologies and methodologies in coding education, staying ahead of industry trends."
-              },
-              {
-                icon: <BuildIcon sx={{ fontSize: 40, color: 'var(--theme-color)' }} />,
-                title: "Quality",
-                description: "Built with high standards to ensure reliability, security, and a premium user experience through rigorous testing and attention to detail."
-              }
-            ].map((value, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card 
-                  elevation={0}
-                  sx={{ 
-                    height: '100%',
-                    bgcolor: 'var(--dashboard-bg)',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    transition: 'all 0.4s ease',
-                    border: '1px solid rgba(var(--theme-color-rgb), 0.1)',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.12)'
-                    },
-                    position: 'relative'
-                  }}
-                >
-                  <Box 
-                    sx={{ 
-                      height: '6px', 
-                      bgcolor: 'var(--theme-color)',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0
-                    }} 
-                  />
-                  <CardContent sx={{ p: 4, height: '100%' }}>
-                    <Box 
-                      sx={{ 
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 3,
-                        p: 2,
-                        bgcolor: 'rgba(var(--theme-color-rgb), 0.08)',
-                        borderRadius: '16px',
-                        width: '80px',
-                        height: '80px'
-                      }}
-                    >
-                      {value.icon}
-                    </Box>
-                    <Typography 
-                      variant="h5" 
-                      component="h3" 
-                      gutterBottom
-                      sx={{ fontWeight: 600, mb: 2 }}
-                    >
-                      {value.title}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: 'var(--p-color)',
-                        lineHeight: 1.7,
-                        fontSize: '0.95rem'
-                      }}
-                    >
-                      {value.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )) }
-          </Grid>
-        </Box>
-        
-        {/* Custom divider */}
-        <Box 
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            my: { xs: 3, md: 6 }
-          }}
-        >
-          <Box sx={{ flex: 1, height: '1px', bgcolor: 'rgba(var(--theme-color-rgb), 0.1)' }} />
-          <Box 
-            sx={{
-              mx: 4,
-              p: 1.5,
-              borderRadius: '50%',
-              bgcolor: 'rgba(var(--theme-color-rgb), 0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <CodeIcon sx={{ color: 'var(--theme-color)', fontSize: 24 }} />
-          </Box>
-          <Box sx={{ flex: 1, height: '1px', bgcolor: 'rgba(var(--theme-color-rgb), 0.1)' }} />
-        </Box>
-        
-        {/* Team Section - Enhanced with modern card design */}
-        <Box 
-          sx={{ 
-            py: { xs: 8, md: 12 },
-            position: 'relative'
-          }}
-          className="fade-in"
-        >
-          <Typography 
-            variant="overline" 
-            component="div" 
-            sx={{ 
-              color: 'var(--theme-color)', 
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              mb: 2,
-              textAlign: 'center'
-            }}
-          >
-            OUR LEADERSHIP
-          </Typography>
-          <Typography 
-            variant="h3" 
-            component="h2" 
-            align="center"
-            gutterBottom
-            sx={{ 
-              mb: 3,
-              fontWeight: 700,
-              position: 'relative',
-              display: 'inline-block',
-              left: '50%',
-              transform: 'translateX(-50%)'
-            }}
-          >
-            The Team Behind Code-Quest
-            <Box 
-              sx={{
-                position: 'absolute',
-                bottom: '-12px',
-                left: 'calc(50% - 40px)',
-                width: '80px',
-                height: '4px',
-                background: 'var(--theme-color)',
-                borderRadius: '2px'
-              }}
-            />
-          </Typography>
-          <Typography 
-            variant="body1" 
-            align="center"
-            sx={{ 
-              mb: { xs: 6, md: 8 }, 
-              color: 'var(--p-color)', 
-              maxWidth: '700px', 
-              mx: 'auto',
-              fontSize: '1.1rem',
-              lineHeight: 1.7
-            }}
-          >
-            Code-Quest was developed as a final year project under the guidance of Dr. Atul Rai, Principal of KITPS
-          </Typography>
-          
-          <Grid container spacing={6} justifyContent="center">
-            <Grid item xs={12} md={8} lg={6}>
-              <Card 
-                elevation={0}
-                sx={{ 
-                  bgcolor: 'var(--dashboard-bg)',
-                  borderRadius: '24px',
-                  overflow: 'hidden',
-                  border: '1px solid rgba(var(--theme-color-rgb), 0.1)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
-                  transition: 'all 0.4s ease',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 30px 60px rgba(0,0,0,0.12)'
-                  }
-                }}
-              >
-                <Grid container>
-                  <Grid item xs={12} md={5}>
-                    <Box 
-                      sx={{ 
-                        height: { xs: '250px', md: '100%' },
-                        overflow: 'hidden',
-                        position: 'relative'
-                      }}
-                    >
-                      <Box 
-                        component="img"
-                        src="/assets/team/dr-atul-rai.jpg" 
-                        alt="Dr. Atul Rai"
-                        sx={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          objectPosition: 'top center',
-                          transition: 'transform 0.6s ease',
-                          '&:hover': {
-                            transform: 'scale(1.05)'
-                          }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={7}>
-                    <CardContent sx={{ p: 4 }}>
-                      <Typography 
-                        variant="h4" 
-                        component="h3" 
-                        gutterBottom
-                        sx={{ fontWeight: 700 }}
-                      >
-                        Dr. Atul Rai
-                      </Typography>
-                      <Typography 
-                        variant="subtitle1" 
-                        sx={{ 
-                          color: 'var(--theme-color)', 
-                          mb: 3, 
-                          fontWeight: 600,
-                          fontSize: '1.1rem'
-                        }}
-                      >
-                        Project Guide & Principal, KITPS
-                      </Typography>
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
-                          color: 'var(--p-color)', 
-                          mb: 3,
-                          lineHeight: 1.7
-                        }}
-                      >
-                        Under Dr. Rai's visionary leadership, Code-Quest has transformed from a concept to a fully-functional platform that addresses a critical need at our institution. His expertise in educational technology and commitment to student success have been instrumental in shaping this project.
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        sx={{
-                          color: 'var(--theme-color)',
-                          borderColor: 'var(--theme-color)',
-                          borderRadius: '8px',
-                          px: 3,
-                          py: 1,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          '&:hover': {
-                            borderColor: 'var(--hover-color)',
-                            bgcolor: 'rgba(var(--theme-color-rgb), 0.05)'
-                          }
-                        }}
-                        component={Link}
-                        to="/contact"
-                      >
-                        Contact
-                      </Button>
-                    </CardContent>
-                  </Grid>
-                </Grid>
-              </Card>
-            </Grid>
-          </Grid>
-
-          <Box 
-            sx={{ 
-              textAlign: 'center', 
-              mt: { xs: 6, md: 10 },
-            }}
-          >
-            <Button
-              variant="contained"
-              component={Link}
-              to="/contact"
-              endIcon={<ArrowForwardIcon />}
-              sx={{
-                bgcolor: 'var(--theme-color)', 
-                px: 4,
-                py: 1.5,
-                borderRadius: '8px',
-                fontWeight: 600,
-                fontSize: '1.05rem',
-                textTransform: 'none',
-                boxShadow: '0 8px 20px rgba(var(--theme-color-rgb), 0.3)',
-                '&:hover': {
-                  bgcolor: 'var(--hover-color)',
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 12px 25px rgba(var(--theme-color-rgb), 0.4)',
-                },
-                transition: 'all 0.3s ease',
+            <Typography 
+              variant="h3" 
+              gutterBottom
+              sx={{ 
+                fontWeight: 800,
+                mb: 3,
+                fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >
-              Join Our Community
-            </Button>
-          </Box>
-        </Box>
-      </Container>
+              Get in Touch
+            </Typography>
+            
+            <Typography 
+              variant="h6"
+              color="textSecondary"
+              sx={{ 
+                mb: 5,
+                maxWidth: '600px',
+                mx: 'auto',
+                fontWeight: 400,
+              }}
+            >
+              Have questions about Code-Quest or interested in partnership opportunities? 
+              We'd love to hear from you.
+            </Typography>
+            
+            <Grid container spacing={4} justifyContent="center">
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: theme.palette.gradients.primary,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                      color: 'white',
+                    }}
+                  >
+                    <Mail fontSize="large" />
+                  </Box>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    Email Us
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
+                    Our team is here to help
+                  </Typography>
+                  <Typography 
+                    variant="body1"
+                    color="primary"
+                    sx={{ fontWeight: 600 }}
+                  >
+                    contact@code-quest.com
+                  </Typography>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #3a47d5 0%, #00d2ff 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                      color: 'white',
+                    }}
+                  >
+                    <Person fontSize="large" />
+                  </Box>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    Support
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
+                    Need technical assistance?
+                  </Typography>
+                  <Typography 
+                    variant="body1"
+                    sx={{ color: '#3a47d5', fontWeight: 600 }}
+                  >
+                    support@code-quest.com
+                  </Typography>
+                </Box>
+              </Grid>
+              
+              <Grid item xs={12} sm={4}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #2C3E50 0%, #4A6572 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mx: 'auto',
+                      mb: 2,
+                      color: 'white',
+                    }}
+                  >
+                    <Groups fontSize="large" />
+                  </Box>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                    Partnerships
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
+                    Explore collaboration options
+                  </Typography>
+                  <Typography 
+                    variant="body1"
+                    sx={{ color: '#2C3E50', fontWeight: 600 }}
+                  >
+                    partners@code-quest.com
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+            
+            <Box sx={{ mt: 6 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                component={RouterLink}
+                to="/contact"
+                sx={{ 
+                  borderRadius: '50px',
+                  px: 5,
+                  py: 1.5,
+                  background: theme.palette.gradients.primary,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                }}
+                endIcon={<ArrowForward />}
+              >
+                Contact Us
+              </Button>
+            </Box>
+          </MotionPaper>
+        </Container>
+      </Box>
 
-      {/* Add CSS for animations */}
-      <style jsx global>{`
-        .fade-in {
-          opacity: 0;
-          transform: translateY(20px);
-          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-        
-        .fade-in.show {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      `}</style>
-    </Box>
+    </>
   );
 };
 
-export default About;
+export default AboutPage;

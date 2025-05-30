@@ -1,56 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
 
-// Import Components
+// Import theme provider
+import { ThemeProvider } from './context/ThemeContext';
+import Home from './pages/Home/Home';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
-import Home from './pages/Home/Home';
-import About from './pages/About/About';
-import Contact from './pages/Contact/Contact';
-import FAQ from './pages/FAQ/Faq';
-import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
-import TermsOfUse from './pages/Legal/TermsOfUse';
-import Feedback from './pages/Feedback/Feedback';
-// You can add more page imports as you develop them
+import AboutPage from './pages/About/About';
+import ContactPage from './pages/Contact/Contact';
+import FAQPage from './pages/FAQ/Faq';
+import TermsPage from './pages/Security/TermsPage';
+import PrivacyPage from './pages/Security/PrivacyPage';
+import FeedbackPage from './pages/Feedback/Feedback';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import OTPVerificationPage from './components/OTPVerificationPage/OTPVerificationPage';
+
+// Import pages
+// import LandingPage from './pages/LandingPage';
+// import Dashboard from './pages/Dashboard';
+// import Login from './pages/Login';
+// import Register from './pages/Register';
+// import CodeEditor from './pages/CodeEditor';
+// import MCQTest from './pages/MCQTest';
+// import AdminPanel from './pages/admin/AdminPanel';
+// import NotFound from './pages/NotFound';
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
-  
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
-  }, [darkMode]);
-
   return (
-    <Router>
-      <div className="App" style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        minHeight: '100vh',
-        backgroundColor: 'var(--background-color)',
-        color: 'var(--text-color)'
-      }}>
-        <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
-        <div style={{ flex: 1, paddingTop: '64px' }}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-use" element={<TermsOfUse />} />
-            <Route path="/feedback" element={<Feedback />} />
-            {/* Add more routes as you develop them */}
-          </Routes>
-        </div>
+    <ThemeProvider>
+      <CssBaseline />
+      <Router>
+      <Navbar />
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/about" element={<AboutPage/>} />
+          <Route path="/contact" element={<ContactPage/>} />
+          <Route path="/faqs" element={<FAQPage/>} />
+          <Route path="/terms" element={<TermsPage/>} />
+          <Route path="/privacy-policy" element={<PrivacyPage/>} />
+          <Route path="/feedback" element={<FeedbackPage/>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/otp-verification" element={<OTPVerificationPage />} />
+          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+          {/* <Route path="/code-editor/:testId" element={<CodeEditor />} /> */}
+          {/* <Route path="/mcq-test/:testId" element={<MCQTest />} /> */}
+          {/* <Route path="/admin/*" element={<AdminPanel />} /> */}
+          {/* <Route path="*" element={<NotFound />} /> */}
+        </Routes>
         <Footer />
-      </div>
-    </Router>
+      </Router>
+    </ThemeProvider>
   );
 }
 

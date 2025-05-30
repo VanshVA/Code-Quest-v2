@@ -8,6 +8,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import authService from './services/authService';
+import Leaderboard from './pages/Leaderboard/Leaderboard';
+import Error404Page from './pages/Error404/Error404Page';
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
@@ -102,18 +104,8 @@ function App() {
                   </AuthRoute>
                 } />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
                 
-                {/* Protected routes (require login) */}
-                {/* <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } /> */}
                 
                 {/* Other routes */}
                 <Route path="/about" element={<About />} />
@@ -122,9 +114,10 @@ function App() {
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfUse />} />
                 <Route path="/feedback" element={<Feedback />} />
+              
                 
                 {/* Catch-all route */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Error404Page/>} />
               </Routes>
             </Suspense>
           </Box>

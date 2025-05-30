@@ -131,7 +131,7 @@ const Logo = () => {
           transition={{ duration: 0.5 }}
         >
           CODE-QUEST
-        </MotionTypography>
+              </MotionTypography>
         <Typography 
           variant="caption"
           sx={{ 
@@ -155,6 +155,12 @@ const navItems = [
     name: 'Home', 
     path: '/', 
     icon: <Home />,
+    megaMenu: false
+  },
+   { 
+    name: 'About', 
+    path: '/about', 
+    icon: <Info />,
     megaMenu: false
   },
   { 
@@ -201,12 +207,7 @@ const navItems = [
     icon: <Leaderboard />,
     megaMenu: false
   },
-  { 
-    name: 'About', 
-    path: '/about', 
-    icon: <Info />,
-    megaMenu: false
-  },
+ 
   { 
     name: 'Contact', 
     path: '/contact', 
@@ -258,15 +259,17 @@ const Navbar = ({ isAuthenticated = false }) => {
     setAnchorElUser(null);
   };
   
+  // FIX 1: Reduce timeout delay for mega menu closing to make it more responsive
   const handleMenuEnter = (index) => {
     clearTimeout(megaMenuTimeout);
     setActiveMenu(index);
   };
   
   const handleMenuLeave = () => {
+    // Reduced timeout from 300ms to 100ms for quicker closing
     const timeout = setTimeout(() => {
       setActiveMenu(null);
-    }, 300);
+    }, 100);
     setMegaMenuTimeout(timeout);
   };
 
@@ -276,6 +279,11 @@ const Navbar = ({ isAuthenticated = false }) => {
 
   const handleMegaMenuLeave = () => {
     handleMenuLeave();
+  };
+
+  // Handle link click to immediately close mega menu
+  const handleLinkClick = () => {
+    setActiveMenu(null);
   };
 
   const currentDate = new Date();
@@ -367,7 +375,7 @@ const Navbar = ({ isAuthenticated = false }) => {
             fullWidth
             variant="outlined"
             component={RouterLink}
-            to="/signup"
+            to="/register"
           >
             Sign Up
           </Button>
@@ -510,26 +518,7 @@ const Navbar = ({ isAuthenticated = false }) => {
       >
         <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ height: scrolled ? 64 : 80, transition: 'height 0.3s ease' }}>
-            {/* Mobile menu button */}
-            {isMobile && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ 
-                  mr: 2, 
-                  backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
-                  '&:hover': {
-                    backgroundColor: scrolled ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.2)',
-                  }
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-            
-            {/* Logo */}
+            {/* Logo - moved to the left */}
             <Logo />
             
             {/* Desktop Navigation */}
@@ -556,12 +545,14 @@ const Navbar = ({ isAuthenticated = false }) => {
                       component={RouterLink}
                       to={item.megaMenu ? undefined : item.path}
                       color={scrolled ? "inherit" : "inherit"}
+                      onClick={handleLinkClick} // FIX 1: Close menu on click
                       sx={{ 
                         mx: 0.5,
                         py: scrolled ? 1.5 : 2,
                         px: 1.5,
                         position: 'relative',
                         fontWeight: (location.pathname === item.path || activeMenu === index) ? 600 : 400,
+                        // FIX 3: Removed box-shadow from navbar links
                         '&:after': {
                           content: '""',
                           position: 'absolute',
@@ -598,6 +589,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                         anchorEl={document.getElementById('root')}
                         onMouseEnter={handleMegaMenuEnter}
                         onMouseLeave={handleMegaMenuLeave}
+                        onClick={() => setActiveMenu(null)} // FIX 1: Close on click anywhere in menu
                         anchorOrigin={{
                           vertical: 'top',
                           horizontal: 'center',
@@ -611,7 +603,8 @@ const Navbar = ({ isAuthenticated = false }) => {
                             sx: {
                               mt: scrolled ? 8 : 10,
                               borderRadius: '16px',
-                              boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                              // FIX 3: Reduced box-shadow for mega menu
+                              // boxShadow: '0 5px 20px rgba(0,0,0,0.08)',
                               overflow: 'hidden',
                               width: '100%',
                               maxWidth: 900,
@@ -886,13 +879,13 @@ const Navbar = ({ isAuthenticated = false }) => {
                       
                       <MotionBox
                         component={RouterLink}
-                        to="/signup"
+                        to="/register"
                         variants={buttonVariants}
                         initial="initial"
                         animate="animate"
                         whileHover="hover"
                         whileTap="tap"
-                        transition={{ duration: 0.2, ditserelay: 0.1 }}
+                        transition={{ duration: 0.2, delay: 0.1 }}
                         sx={{
                           py: 1,
                           px: 3,
@@ -904,7 +897,8 @@ const Navbar = ({ isAuthenticated = false }) => {
                           fontSize: '0.9rem',
                           display: 'flex',
                           alignItems: 'center',
-                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                          // FIX 3: Reduced box-shadow for Sign Up button
+                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                         }}
                       >
                         Sign Up
@@ -926,14 +920,34 @@ const Navbar = ({ isAuthenticated = false }) => {
                   )}
                 </>
               )}
+              
+              {/* FIX 2: Menu button moved to the right side for mobile */}
+              {isMobile && (
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  edge="end"
+                  onClick={handleDrawerToggle}
+                  sx={{ 
+                    ml: 1, 
+                    backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
+                    '&:hover': {
+                      backgroundColor: scrolled ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.2)',
+                    }
+                  }}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
       
-      {/* Mobile drawer */}
+      {/* Mobile drawer - FIX 2: Changed to open from right side */}
       <Drawer
         variant="temporary"
+        anchor="right"
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
@@ -943,8 +957,8 @@ const Navbar = ({ isAuthenticated = false }) => {
           '& .MuiDrawer-paper': { 
             boxSizing: 'border-box', 
             width: 280,
-            borderTopRightRadius: '16px',
-            borderBottomRightRadius: '16px',
+            borderTopLeftRadius: '16px',
+            borderBottomLeftRadius: '16px',
           },
         }}
       >

@@ -33,13 +33,7 @@ import {
   DarkMode,
   LightMode,
 } from '@mui/icons-material';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useColorMode } from '../../context/ThemeContext';
-
-const MotionBox = motion(Box);
-const MotionPaper = motion(Paper);
-const MotionTypography = motion(Typography);
-const MotionIconButton = motion(IconButton);
 
 const socialLinks = [
   { name: 'Facebook', icon: <Facebook />, url: 'https://facebook.com' },
@@ -247,31 +241,22 @@ const Footer = ({ isAuthenticated = false }) => {
                   </Box>
                 </Box>
                 
-                <MotionTypography
+                <Typography
                   variant="body2"
                   color="text.secondary"
                   paragraph
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true }}
                 >
                   The ultimate platform for coding competitions and programming skill assessment.
                   Perfect for educational institutions, programming enthusiasts, and aspiring developers.
-                </MotionTypography>
+                </Typography>
                 
                 {/* Social links */}
                 <Stack 
                   direction="row" 
                   spacing={1}
-                  component={motion.div}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  viewport={{ once: true }}
                 >
                   {socialLinks.map((social, index) => (
-                    <MotionIconButton
+                    <IconButton
                       key={social.name}
                       color="primary"
                       aria-label={social.name}
@@ -279,39 +264,25 @@ const Footer = ({ isAuthenticated = false }) => {
                       href={social.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 260, 
-                        damping: 20, 
-                        delay: 0.1 + index * 0.05 
-                      }}
-                      viewport={{ once: true }}
-                      whileHover={{ 
-                        scale: 1.1,
-                        backgroundColor: theme.palette.primary.main,
-                        color: '#fff',
-                      }}
                       sx={{ 
                         backgroundColor: theme.palette.mode === 'dark' 
                           ? 'rgba(255,255,255,0.05)'
                           : 'rgba(0,0,0,0.03)',
+                        '&:hover': { 
+                          scale: 1.1,
+                          backgroundColor: theme.palette.primary.main,
+                          color: '#fff',
+                        },
                       }}
                     >
                       {social.icon}
-                    </MotionIconButton>
+                    </IconButton>
                   ))}
                 </Stack>
               </Box>
               
               {/* Newsletter subscription */}
               <Box 
-                component={motion.div}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                viewport={{ once: true }}
                 sx={{ mb: { xs: 4, md: 0 } }}
               >
                 <Typography 
@@ -374,27 +345,21 @@ const Footer = ({ isAuthenticated = false }) => {
                       }
                     }}
                   />
-                  <AnimatePresence>
-                    {subscribed && (
-                      <MotionBox
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        sx={{
-                          position: 'absolute',
-                          top: '120%',
-                          left: 0,
-                          width: '100%',
-                          color: theme.palette.success.main,
-                          fontSize: '0.75rem',
-                          mt: 0.5,
-                        }}
-                      >
-                        Successfully subscribed! Thank you.
-                      </MotionBox>
-                    )}
-                  </AnimatePresence>
+                  {subscribed && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '120%',
+                        left: 0,
+                        width: '100%',
+                        color: theme.palette.success.main,
+                        fontSize: '0.75rem',
+                        mt: 0.5,
+                      }}
+                    >
+                      Successfully subscribed! Thank you.
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Grid>
@@ -404,17 +369,13 @@ const Footer = ({ isAuthenticated = false }) => {
               <>
                 {footerLinks.map((section, index) => (
                   <Grid item xs={6} md={2} key={section.title}>
-                    <MotionTypography
+                    <Typography
                       variant="subtitle1"
                       gutterBottom
                       sx={{ fontWeight: 700 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.05 * index }}
-                      viewport={{ once: true }}
                     >
                       {section.title}
-                    </MotionTypography>
+                    </Typography>
                     <Box component="ul" sx={{ pl: 0, listStyle: 'none' }}>
                       {section.links.map((link, linkIndex) => (
                         <Box 
@@ -422,7 +383,7 @@ const Footer = ({ isAuthenticated = false }) => {
                           key={link.name}
                           sx={{ mb: 1 }}
                         >
-                          <MotionBox
+                          <Box
                             component={RouterLink}
                             to={link.path}
                             sx={{
@@ -439,10 +400,6 @@ const Footer = ({ isAuthenticated = false }) => {
                                 },
                               },
                             }}
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.4, delay: 0.1 + (0.05 * index) + (0.03 * linkIndex) }}
-                            viewport={{ once: true }}
                           >
                             {link.name}
                             <ArrowForward 
@@ -454,7 +411,7 @@ const Footer = ({ isAuthenticated = false }) => {
                                 transition: 'all 0.2s ease',
                               }}
                             />
-                          </MotionBox>
+                          </Box>
                         </Box>
                       ))}
                     </Box>
@@ -466,11 +423,7 @@ const Footer = ({ isAuthenticated = false }) => {
             {/* Collapsible link sections for mobile */}
             {isSmall && (
               <Grid item xs={12}>
-                <MotionPaper
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  viewport={{ once: true }}
+                <Paper
                   sx={{ 
                     p: 2,
                     borderRadius: '16px',
@@ -515,7 +468,7 @@ const Footer = ({ isAuthenticated = false }) => {
                       </Grid>
                     ))}
                   </Grid>
-                </MotionPaper>
+                </Paper>
               </Grid>
             )}
           </Grid>
@@ -681,41 +634,35 @@ const Footer = ({ isAuthenticated = false }) => {
       </Box>
       
       {/* Scroll to top button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <MotionBox
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0 }}
-            transition={{ duration: 0.3 }}
-            sx={{
-              position: 'fixed',
-              bottom: 20,
-              right: 20,
-              zIndex: 10,
-            }}
-          >
-            <Tooltip title="Scroll to top">
-              <IconButton
-                onClick={scrollToTop}
-                color="primary"
-                aria-label="scroll to top"
-                sx={{
+      {showScrollTop && (
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            zIndex: 10,
+          }}
+        >
+          <Tooltip title="Scroll to top">
+            <IconButton
+              onClick={scrollToTop}
+              color="primary"
+              aria-label="scroll to top"
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                '&:hover': {
                   backgroundColor: theme.palette.background.paper,
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
-                  '&:hover': {
-                    backgroundColor: theme.palette.background.paper,
-                    transform: 'translateY(-5px)',
-                  },
-                  transition: 'transform 0.3s ease',
-                }}
-              >
-                <ArrowUpward />
-              </IconButton>
-            </Tooltip>
-          </MotionBox>
-        )}
-      </AnimatePresence>
+                  transform: 'translateY(-5px)',
+                },
+                transition: 'transform 0.3s ease',
+              }}
+            >
+              <ArrowUpward />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
     </Box>
   );
 };

@@ -439,7 +439,7 @@ const AboutPage = () => {
             >
               Our Core Values
             </Typography>
-            <Grid container spacing={3}>
+            <Grid container spacing={3} >
               {[
                 {
                   title: "Excellence",
@@ -458,7 +458,7 @@ const AboutPage = () => {
                   description: "We foster a supportive environment where learners can collaborate, compete, and grow together."
                 }
               ].map((value, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index}>
+                <Grid item xs={12} sm={6} md={3} key={index} style={{ minWidth:"100%" }}>
                   <MotionBox
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -581,13 +581,14 @@ const AboutPage = () => {
         At Code-Quest, our diverse team brings together expertise from education, software development, and design. We're united by our passion for revolutionizing coding education and creating opportunities for learners worldwide.
       </Typography>
       
-      <Grid container spacing={4}>
+      <Grid container spacing={4}   >
         {teamMembers.map((member, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid item xs={12} sm={6} md={4} key={index} style={{ minWidth: '100%' }}>
             <MotionCard
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index, duration: 0.5 }}
+            
               sx={{ 
                 height: '100%',
                 borderRadius: '16px',
@@ -608,7 +609,7 @@ const AboutPage = () => {
                   background: theme.palette.gradients.primary,
                 }}
               />
-              <CardContent sx={{ p: 3 }}>
+              <CardContent sx={{ p: 3 }}  >
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Avatar
                     src={member.avatar}
@@ -1017,136 +1018,7 @@ const AboutPage = () => {
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="lg">
-          {/* Current Time Display */}
-          <MotionBox
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            sx={{
-              position: 'absolute',
-              top: { xs: 65, sm: 80, md: 100 },
-              right: { xs: '50%', md: 24 },
-              transform: { xs: 'translateX(50%)', md: 'none' },
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              px: 2.5,
-              py: 1,
-              borderRadius: '100px',
-              backdropFilter: 'blur(10px)',
-              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-              boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <Typography
-              variant="body2" 
-              sx={{
-                fontFamily: 'monospace',
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
-                color: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.7)',
-              }}
-            >
-              UTC: {CURRENT_DATE_TIME}
-              <Box 
-                component="span"
-                sx={{
-                  display: 'inline-block',
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: theme.palette.success.main,
-                  ml: 1.5,
-                  animation: 'pulse 2s infinite',
-                  '@keyframes pulse': {
-                    '0%': { opacity: 0.6, transform: 'scale(0.9)' },
-                    '50%': { opacity: 1, transform: 'scale(1.1)' },
-                    '100%': { opacity: 0.6, transform: 'scale(0.9)' },
-                  },
-                }}
-              />
-            </Typography>
-          </MotionBox>
-          
-          {/* User Badge */}
-          <MotionBox
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            sx={{
-              position: 'absolute',
-              top: { xs: 110, sm: 80, md: 100 },
-              left: { xs: '50%', md: 24 },
-              transform: { xs: 'translateX(-50%)', md: 'none' },
-              zIndex: 10,
-              display: { xs: 'none', md: 'flex' },
-              alignItems: 'center',
-              px: 2.5,
-              py: 1,
-              borderRadius: '100px',
-              backdropFilter: 'blur(10px)',
-              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-              boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <Avatar
-              alt={CURRENT_USER}
-              src="/assets/images/avatar.jpg"
-              sx={{ 
-                width: 32, 
-                height: 32, 
-                border: `2px solid ${theme.palette.primary.main}`,
-                boxShadow: '0 4px 8px rgba(188, 64, 55, 0.2)',
-                mr: 1.5
-              }}
-            />
-            <Box>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  fontWeight: 600,
-                  color: isDark ? 'white' : 'text.primary',
-                  lineHeight: 1.2,
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                {CURRENT_USER}
-                <Verified 
-                  sx={{ 
-                    fontSize: '0.9rem', 
-                    color: theme.palette.primary.main,
-                    ml: 0.7,
-                  }} 
-                />
-              </Typography>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: isDark ? 'rgba(255,255,255,0.7)' : 'text.secondary',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <Box 
-                  sx={{ 
-                    width: 6, 
-                    height: 6, 
-                    borderRadius: '50%',
-                    bgcolor: theme.palette.success.main,
-                    mr: 0.8,
-                    display: 'inline-block',
-                  }}
-                />
-                Premium Member
-              </Typography>
-            </Box>
-          </MotionBox>
-          
+        <Container maxWidth="lg"> 
           <Grid 
             container 
             spacing={{ xs: 4, md: 8 }}
@@ -1287,7 +1159,7 @@ const AboutPage = () => {
                   '&.Mui-selected': {
                     color: 'white',
                     backgroundColor: theme.palette.primary.main,
-                    boxShadow: '0 4px 12px rgba(188, 64, 55, 0.3)',
+                    // boxShadow: '0 4px 12px rgba(188, 64, 55, 0.3)',
                   },
                 },
               }}

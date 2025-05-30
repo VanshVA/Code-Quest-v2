@@ -8,6 +8,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar/Navbar';
 import Footer from './components/Footer/Footer';
 import authService from './services/authService';
+import Leaderboard from './pages/Leaderboard/Leaderboard';
+import Error404Page from './pages/Error404/Error404Page';
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (

@@ -3,9 +3,15 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const studentAuthRoutes = require('./routes/studentAuthRoutes');
+const teacherAuthRoutes = require('./routes/teacherAuthRoutes');
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const createDefaultAdmin = require('./utilities/createDefaultAdmin');
 
 // Connect to MongoDB
 connectDB();
+
+// Create default admin on server start
+createDefaultAdmin();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,10 +22,12 @@ app.use(cors());
 
 // Routes
 app.use('/api/students/auth', studentAuthRoutes);
+app.use('/api/teachers/auth', teacherAuthRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
 
 // Default route
 app.get('/', (req, res) => {
-  res.send('Code-Quest SERVER is running...');
+  res.send('Code-Quest API is running...');
 });
 
 // Error handling middleware

@@ -98,16 +98,16 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
   // Form data
   const [formData, setFormData] = useState({
     competitionName: '',
-    description: '',
+    competitionDescription: '',
     competitionType: 'MCQ',
     targetAudience: [],
     subjects: [],
     difficultyLevel: 'medium',
     questionCount: 5,
     startTiming: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Default to tomorrow
+    endTiming: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Default to a week from now
     duration: 60, // Default duration in minutes
-    isLive: false, // Default to not live
-    competitionAvailableTiming: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16) // Default to a week from now
+    isLive: false // Default to not live
   });
   
   // Generated competition data
@@ -129,16 +129,16 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
       setActiveStep(0);
       setFormData({
         competitionName: '',
-        description: '',
+        competitionDescription: '',
         competitionType: 'MCQ',
         targetAudience: [],
         subjects: [],
         difficultyLevel: 'medium',
         questionCount: 5,
         startTiming: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        endTiming: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
         duration: 60,
-        isLive: false,
-        competitionAvailableTiming: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+        isLive: false
       });
       setGeneratedCompetition(null);
       setErrors({});
@@ -192,8 +192,8 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
         if (!formData.competitionName.trim()) {
           newErrors.competitionName = 'Competition name is required';
         }
-        if (!formData.description.trim()) {
-          newErrors.description = 'Description is required';
+        if (!formData.competitionDescription.trim()) {
+          newErrors.competitionDescription = 'competitionDescription is required';
         }
         // Validate start time - must be in the future
         const startTime = new Date(formData.startTiming);
@@ -202,13 +202,15 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
         } else if (startTime < new Date() && !formData.isLive) {
           newErrors.startTiming = 'Start time must be in the future';
         }
-        // Validate activation time - must be in the future
-        const activationTime = new Date(formData.competitionAvailableTiming);
-        if (isNaN(activationTime) || !formData.competitionAvailableTiming) {
-          newErrors.competitionAvailableTiming = 'Valid activation time is required';
-        } else if (activationTime < new Date()) {
-          newErrors.competitionAvailableTiming = 'Activation time must be in the future';
+        
+        // Validate end time - must be after start time
+        const endTime = new Date(formData.endTiming);
+        if (isNaN(endTime) || !formData.endTiming) {
+          newErrors.endTiming = 'Valid end time is required';
+        } else if (endTime <= startTime) {
+          newErrors.endTiming = 'End time must be after start time';
         }
+        
         // Validate duration
         if (!formData.duration || formData.duration < 5) {
           newErrors.duration = 'Duration must be at least 5 minutes';
@@ -266,7 +268,7 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
       const prompt = `Create a ${formData.competitionType} competition named "${formData.competitionName}" 
         with the following attributes:
         
-        Description: ${formData.description}
+        competitionDescription: ${formData.competitionDescription}
         Target Audience: ${formData.targetAudience.join(', ')}
         Subjects: ${formData.subjects.join(', ')}
         Difficulty Level: ${formData.difficultyLevel}
@@ -323,10 +325,10 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
         competitionName: generatedData.competitionName,
         competitionType: generatedData.competitionType,
         duration: formData.duration,
-        description: formData.description,
+        competitionDescription: formData.competitionDescription,
         startTiming: formData.startTiming,
+        endTiming: formData.endTiming,
         isLive: formData.isLive,
-        competitionAvailableTiming: formData.competitionAvailableTiming,
         questions: generatedData.questions
       };
       
@@ -400,12 +402,12 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
             
             <TextField
               fullWidth
-              label="Description"
-              name="description"
-              value={formData.description}
+              label="competitionDescription"
+              name="competitionDescription"
+              value={formData.competitionDescription}
               onChange={handleChange}
-              error={!!errors.description}
-              helperText={errors.description || "Provide a detailed description for the AI to understand what kind of competition to create"}
+              error={!!errors.competitionDescription}
+              helperText={errors.competitionDescription || "Provide a detailed competitionDescription for the AI to understand what kind of competition to create"}
               margin="normal"
               required
               multiline
@@ -466,6 +468,21 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
               </Grid>
               
               <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="End Time"
+                  name="endTiming"
+                  type="datetime-local"
+                  value={formData.endTiming}
+                  onChange={handleChange}
+                  error={!!errors.endTiming}
+                  helperText={errors.endTiming || "When the competition will end"}
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} sm={6}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -493,29 +510,11 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
                     : "Competition will be available at the scheduled start time"}
                 </FormHelperText>
               </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Competition Activation Expiry"
-                  name="competitionAvailableTiming"
-                  type="datetime-local"
-                  value={formData.competitionAvailableTiming}
-                  onChange={handleChange}
-                  error={!!errors.competitionAvailableTiming}
-                  helperText={errors.competitionAvailableTiming || "After this time, the competition can only be viewed (not edited)"}
-                  margin="normal"
-                  InputLabelProps={{ shrink: true }}
-                />
-                <FormHelperText>
-                  Set a deadline after which the competition can no longer be edited
-                </FormHelperText>
-              </Grid>
             </Grid>
             
             <Alert severity="info" sx={{ mt: 3 }}>
               <Typography variant="body2">
-                AI will generate questions based on the information you provide. The more detailed your description,
+                AI will generate questions based on the information you provide. The more detailed your competitionDescription,
                 the better the generated questions will be.
               </Typography>
             </Alert>
@@ -705,7 +704,7 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
                 {generatedCompetition.competitionName}
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                {formData.description}
+                {generatedCompetition.competitionDescription}
               </Typography>
               
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
@@ -737,8 +736,8 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
                   size="small"
                 />
                 <Chip 
-                  label={`Editable until: ${new Date(formData.competitionAvailableTiming).toLocaleString()}`}
-                  color="info"
+                  label={`Ends: ${new Date(formData.endTiming).toLocaleString()}`}
+                  color="error"
                   variant="outlined"
                   size="small"
                 />

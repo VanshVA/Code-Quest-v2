@@ -155,7 +155,7 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
         }
     };
 
-    // Check if competition is expired (activation time has passed)
+    // Check if competition is expired (now only based on status)
     const isCompetitionExpired = (competition) => {
         if (!competition) return false;
         
@@ -164,12 +164,10 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
             return competition.status === 'ended';
         }
         
-        // Fallback to checking competitionAvailableTiming
-        if (!competition.competitionAvailableTiming) return false;
-        return new Date(competition.competitionAvailableTiming) < new Date();
+        return false; // No longer checking competitionAvailableTiming
     };
 
-    // Helper function to get status display info
+    // Helper function to get status display info - only uses status field
     const getStatusInfo = (competition) => {
         // Check status field from database first
         if (competition.status) {
@@ -185,14 +183,8 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
             }
         }
         
-        // Legacy fallback if no status field exists
-        if (!competition.competitionAvailableTiming) return { status: 'active', label: 'Active', color: 'success' };
-        
-        // Check if expired based on timing
-        const isExpired = new Date(competition.competitionAvailableTiming) < new Date();
-        return isExpired 
-            ? { status: 'expired', label: 'Expired', color: 'error' }
-            : { status: 'active', label: 'Active', color: 'success' };
+        // Default to active if no status field
+        return { status: 'active', label: 'Active', color: 'success' };
     };
 
     return (
@@ -302,6 +294,14 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
                                             )}
                                         </Box>
                                     </Box>
+                                    
+                                    {/* Add competition competitionDescription display */}
+                                    {competition.competitionDescription && (
+                                        <Typography variant="body2" sx={{ mt: 1, mb: 2 }}>
+                                            {competition.competitionDescription}
+                                        </Typography>
+                                    )}
+                                    
                                     <Typography 
                                         variant="body2" 
                                         color="text.secondary" 
@@ -365,6 +365,23 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
                                         </Box>
                                     </Grid>
 
+                                    {/* Add End Timing */}
+                                    <Grid item xs={12} sm={6} md={3}>
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: 1,
+                                            p: 1,
+                                            borderRadius: '8px',
+                                            bgcolor: theme.palette.background.paper
+                                        }}>
+                                            <Alarm fontSize="small" color="error" />
+                                            <Typography variant="body2" noWrap>
+                                                Ends: <strong>{formatDate(competition.endTiming)}</strong>
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+
                                     <Grid item xs={12} sm={6} md={3}>
                                         <Box sx={{ 
                                             display: 'flex', 
@@ -382,47 +399,6 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
                                         </Box>
                                     </Grid>
                                 </Grid>
-                                
-                                {/* Add activation timing information */}
-                                {competition.competitionAvailableTiming && (
-                                    <Grid item xs={12}>
-                                        <Paper 
-                                            elevation={0} 
-                                            sx={{ 
-                                                p: 1.5, 
-                                                mt: 1,
-                                                border: `1px solid ${
-                                                    competition.status === 'ended' 
-                                                        ? theme.palette.warning.main 
-                                                        : competition.status === 'active'
-                                                            ? theme.palette.success.main
-                                                            : theme.palette.info.main
-                                                }`,
-                                                borderRadius: '8px',
-                                                bgcolor: competition.status === 'ended'
-                                                    ? theme.palette.mode === 'dark' 
-                                                        ? 'rgba(255, 152, 0, 0.1)' 
-                                                        : 'rgba(255, 152, 0, 0.05)'
-                                                    : competition.status === 'active'
-                                                        ? theme.palette.mode === 'dark'
-                                                            ? 'rgba(0, 200, 83, 0.1)'
-                                                            : 'rgba(0, 200, 83, 0.05)'
-                                                        : theme.palette.mode === 'dark'
-                                                            ? 'rgba(33, 150, 243, 0.1)'
-                                                            : 'rgba(33, 150, 243, 0.05)'
-                                            }}
-                                        >
-                                            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                {competition.status === 'ended'
-                                                    ? `Competition has ended as of ${formatDate(competition.competitionAvailableTiming)}. It can no longer be edited.`
-                                                    : competition.status === 'active'
-                                                        ? `Competition is currently active and will be editable until ${formatDate(competition.competitionAvailableTiming)}`
-                                                        : `Competition is scheduled to start and will be editable until ${formatDate(competition.competitionAvailableTiming)}`
-                                                }
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                )}
                             </Grid>
                         </Box>
 
@@ -557,6 +533,12 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
                                                     <ListItemText
                                                         primary="Start Time"
                                                         secondary={formatDate(competition.startTiming)}
+                                                    />
+                                                </ListItem>
+                                                <ListItem sx={{ px: 0 }}>
+                                                    <ListItemText
+                                                        primary="End Time"
+                                                        secondary={formatDate(competition.endTiming)}
                                                     />
                                                 </ListItem>
                                                 <ListItem sx={{ px: 0 }}>

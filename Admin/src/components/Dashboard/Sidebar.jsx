@@ -26,7 +26,7 @@ import {
   AdminPanelSettings
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import authService from '../../services/authService'; // Adjust the import based on your project structure
 // Sidebar width
 const DRAWER_WIDTH = 240;
 
@@ -46,7 +46,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   // Check if path is active
   const isActive = (path) => {
     if (path === '/admin/dashboard') {
@@ -54,21 +54,22 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
     }
     return location.pathname === path;
   };
-  
+
   // Handle logout
   const handleLogout = () => {
     // Show confirmation dialog or directly logout
+    authService.logout();
     navigate('/login');
   };
-  
+
   // Sidebar content
   const sidebarContent = (
     <Box sx={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* App Logo and Title */}
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
           p: 2,
           mb: 1
         }}
@@ -80,9 +81,9 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
           Code-Quest Admin
         </Typography>
       </Box>
-      
+
       <Divider />
-      
+
       {/* Navigation Links */}
       <List sx={{ flexGrow: 1, px: 1.5 }}>
         {navItems.map((item) => (
@@ -90,7 +91,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
             <ListItemButton
               selected={isActive(item.path)}
               onClick={() => navigate(item.path)}
-              sx={{ 
+              sx={{
                 borderRadius: '8px',
                 '&.Mui-selected': {
                   backgroundColor: 'rgba(var(--primary-color-rgb), 0.08)',
@@ -115,13 +116,13 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
           </ListItem>
         ))}
       </List>
-      
+
       <Divider sx={{ mt: 'auto' }} />
-      
+
       {/* Logout Button */}
       <List sx={{ px: 1.5, pb: 1.5 }}>
         <ListItem disablePadding>
-          <ListItemButton 
+          <ListItemButton
             onClick={handleLogout}
             sx={{
               borderRadius: '8px',

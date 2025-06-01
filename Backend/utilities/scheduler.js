@@ -19,36 +19,37 @@ const updateCompetitionStatuses = async () => {
       const originalStatus = competition.status;
       
       // Skip if no timing info available
-      if (!competition.competitionAvailableTiming) {
+      if (!competition.startTiming) {
         continue;
       }
       
-      const availableFrom = new Date(competition.competitionAvailableTiming);
+      const startTime = new Date(competition.startTiming);
       
       // Calculate or use end time
       let endTime;
-      if (competition.endTiming) {
+      if (competition.endTiming && competition.endTiming !== "") {
         endTime = new Date(competition.endTiming);
       } else if (competition.duration) {
-        // Calculate end time from available time + duration
-        endTime = new Date(availableFrom.getTime() + (competition.duration * 60000));
+        // Calculate end time from start time + duration
+        endTime = new Date(startTime.getTime() + (competition.duration * 60000));
         competition.endTiming = endTime.toISOString();
       } else {
         // Default to 60 minutes
-        endTime = new Date(availableFrom.getTime() + (60 * 60000));
+        endTime = new Date(startTime.getTime() + (60 * 60000));
         competition.endTiming = endTime.toISOString();
       }
       
       // Determine status based on current time
-      if (now < availableFrom) {
+      if (now < startTime) {
         competition.status = 'upcoming';
-      } else if (now >= availableFrom && now <= endTime) {
+      } else if (now >= startTime && now <= endTime) {
         competition.status = 'active';
       } else {
         competition.status = 'ended';
         
-        // If competition has ended and is still live, mark it as not live
-        if (competition.isLive && !competition.previousCompetition) {
+        // If competition has ended, ensure it's not live
+        if (competition.isLive) {
+          competition.isLive = false;
           competition.previousCompetition = true;
         }
       }

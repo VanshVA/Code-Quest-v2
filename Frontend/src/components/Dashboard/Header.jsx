@@ -20,7 +20,6 @@ import {
   Menu as MenuIcon,
   Notifications,
   AccountCircle,
-  Settings,
   Logout,
   PersonOutlined,
   DarkMode,
@@ -36,11 +35,36 @@ import { useColorMode } from '../../context/ThemeContext';
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
 
-const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTime, currentUser }) => {
+const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTime }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode, setColorMode } = useColorMode();
+  
+  // Get user data from localStorage
+  const [userData, setUserData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    role: ''
+  });
+  
+  useEffect(() => {
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      try {
+        const userObj = JSON.parse(userString);
+        setUserData({
+          firstName: userObj.firstName || '',
+          lastName: userObj.lastName || '',
+          email: userObj.email || '',
+          role: userObj.role || ''
+        });
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+      }
+    }
+  }, []);
   
   // State for user menu and notifications
   const [anchorElUser, setAnchorElUser] = useState(null);
@@ -89,9 +113,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
   const handleUserMenuOption = (option) => {
     handleCloseUserMenu();
     if (option === 'profile') {
-      navigate('/Teacher/profile');
-    } else if (option === 'settings') {
-      navigate('/Teacher/settings');
+      navigate('/student/profile');
     } else if (option === 'logout') {
       // Show logout confirmation or directly logout
       authService.logout();
@@ -176,23 +198,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
         
         {/* Right side - Actions */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* Current Date and Time */}
-          {!isMobile && (
-            <MotionTypography
-              variant="body2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              sx={{
-                mr: 2,
-                fontFamily: 'monospace',
-                color: 'text.secondary',
-              }}
-            >
-              {currentDateTime}
-            </MotionTypography>
-          )}
-          
           {/* Theme Toggle */}
           <Tooltip title={theme.palette.mode === 'dark' ? "Light mode" : "Dark mode"}>
             <MotionBox
@@ -336,7 +341,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                 transition={{ delay: 0.5, duration: 0.3 }}
               >
                 <Avatar
-                  alt={currentUser}
+                  alt={userData.firstName}
                   src="/static/images/avatar/1.jpg"
                   sx={{ 
                     width: 32, 
@@ -348,7 +353,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                       : 'rgba(0,0,0,0.1)',
                   }}
                 >
-                  {currentUser?.charAt(0) || 'A'}
+                  {userData.firstName?.charAt(0) || 'A'}
                 </Avatar>
               </MotionBox>
             </Tooltip>
@@ -390,10 +395,13 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
             >
               <Box sx={{ px: 2, py: 1 }}>
                 <Typography variant="subtitle2" noWrap fontWeight="bold">
-                  {currentUser}
+                  {`${userData.firstName} ${userData.lastName}`}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap>
-                  Teacheristrator
+                  {userData.role}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  {userData.email}
                 </Typography>
               </Box>
               
@@ -404,13 +412,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                   <PersonOutlined fontSize="small" />
                 </ListItemIcon>
                 Profile
-              </MenuItem>
-              
-              <MenuItem onClick={() => handleUserMenuOption('settings')}>
-                <ListItemIcon>
-                  <Settings fontSize="small" />
-                </ListItemIcon>
-                Settings
               </MenuItem>
               
               <Divider />

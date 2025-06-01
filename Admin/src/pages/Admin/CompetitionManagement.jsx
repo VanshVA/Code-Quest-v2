@@ -200,15 +200,10 @@ const CompetitionManagement = () => {
     setFilterMenuAnchorEl(null);
   };
   
-  // Handle action menu open - modified to include activation status
+  // Handle action menu open - modified to remove activation status
   const handleActionMenuOpen = (event, competition) => {
-    const activationInfo = getActivationStatus(competition);
     setActionMenuAnchorEl(event.currentTarget);
-    setSelectedCompetition({
-      ...competition,
-      isExpired: activationInfo.status === 'ended' || activationInfo.status === 'expired',
-      activationStatus: activationInfo
-    });
+    setSelectedCompetition(competition);
   };
   
   // Handle action menu close
@@ -223,69 +218,43 @@ const CompetitionManagement = () => {
     setFormDialogOpen(true);
   };
   
-  // Check if competition is expired (activation time has passed)
+  // Check if competition is expired (now based on status or end time)
   const isCompetitionExpired = (competition) => {
     // If status is explicitly set, use it
     if (competition.status) {
       return competition.status === 'ended';
     }
     
-    // Otherwise fall back to the old check
-    if (!competition.competitionAvailableTiming) return false;
-    // Compare with current date
-    return new Date(competition.competitionAvailableTiming) < new Date();
-  };
-
-  // Get activation status based on competition status and dates
-  const getActivationStatus = (competition) => {
-    // Check status field first (as it's set on the server)
-    if (competition.status) {
-      switch (competition.status) {
-        case 'upcoming':
-          return { status: 'upcoming', label: 'Upcoming', color: 'info' };
-        case 'active':
-          return { status: 'active', label: 'Active', color: 'success' };
-        case 'ended':
-          return { status: 'ended', label: 'Ended', color: 'warning' };
-        default:
-          break;
-      }
+    // Check if endTiming has passed
+    if (competition.endTiming) {
+      return new Date(competition.endTiming) < new Date();
     }
     
-    // If no status field exists, use competitionAvailableTiming as fallback
-    if (!competition.competitionAvailableTiming) {
-      return { status: 'active', label: 'Active', color: 'success' };
-    }
-    
-    // Legacy check (only use if status field is not available)
-    const now = new Date();
-    const activationTime = new Date(competition.competitionAvailableTiming);
-    
-    if (activationTime < now) {
-      return { status: 'ended', label: 'Ended', color: 'warning' };
-    }
-    
-    return { status: 'active', label: 'Active', color: 'success' };
+    return false;
   };
   
-  // Update canEditCompetition to use status
+  // Update canEditCompetition to use status and end time
   const canEditCompetition = (competition) => {
     // Check status field first
     if (competition.status) {
       return competition.status !== 'ended';
     }
     
-    // Fallback to date check
-    return !isCompetitionExpired(competition);
+    // Check if endTiming has passed
+    if (competition.endTiming && new Date(competition.endTiming) < new Date()) {
+      return false;
+    }
+    
+    return true; // Can edit if no status is set and end time hasn't passed
   };
   
-  // Handle competition edit - update to check activation timing
+  // Handle competition edit - updated to no longer check activation timing
   const handleEditCompetition = async () => {
     if (!canEditCompetition(selectedCompetition)) {
       setNotification({
         open: true,
         type: 'error',
-        message: 'This competition has expired and cannot be edited'
+        message: 'This competition has ended and cannot be edited'
       });
       handleActionMenuClose();
       return;
@@ -424,7 +393,7 @@ const CompetitionManagement = () => {
     }
   };
   
-  // Handle competition archive
+  // Handle competition archive/unarchive
   const handleArchiveCompetition = async () => {
     try {
       setLoading(true);
@@ -441,28 +410,35 @@ const CompetitionManagement = () => {
       
       if (response.data.success) {
         // Update the competition in the local state
+        const isCurrentlyArchived = selectedCompetition.previousCompetition;
         setCompetitions(competitions.map(comp => 
           comp._id === selectedCompetition._id ? 
-            { ...comp, previousCompetition: true, isLive: false } : comp
+            { 
+              ...comp, 
+              previousCompetition: !isCurrentlyArchived, 
+              isLive: isCurrentlyArchived // Make it live again if unarchiving
+            } : comp
         ));
         
         // Show success notification
         setNotification({
           open: true,
           type: 'success',
-          message: `Competition "${selectedCompetition.competitionName}" archived successfully`
+          message: isCurrentlyArchived 
+            ? `Competition "${selectedCompetition.competitionName}" unarchived successfully` 
+            : `Competition "${selectedCompetition.competitionName}" archived successfully`
         });
       } else {
-        throw new Error(response.data.message || 'Failed to archive competition');
+        throw new Error(response.data.message || 'Failed to update archive status');
       }
       
       handleActionMenuClose();
     } catch (err) {
-      console.error('Error archiving competition:', err);
+      console.error('Error updating archive status:', err);
       setNotification({
         open: true,
         type: 'error',
-        message: err.response?.data?.message || err.message || 'Failed to archive competition'
+        message: err.response?.data?.message || err.message || 'Failed to update archive status'
       });
     } finally {
       setLoading(false);
@@ -841,13 +817,13 @@ const CompetitionManagement = () => {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Competition Name</TableCell>
-                <TableCell>Status</TableCell>
-                {/* Add new column for activation status */}
-                <TableCell>Activation Status</TableCell>
+                <TableCell>Live Status</TableCell>
+                <TableCell>Active Status</TableCell>
                 <TableCell>Creator</TableCell>
                 <TableCell>Type</TableCell>
                 <TableCell>Duration</TableCell>
                 <TableCell>Start Time</TableCell>
+                <TableCell>End Time</TableCell>
                 <TableCell>Last Updated</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -904,19 +880,19 @@ const CompetitionManagement = () => {
                           />
                         )}
                       </TableCell>
-                      {/* Add activation status cell */}
                       <TableCell>
-                        {(() => {
-                          const activationInfo = getActivationStatus(competition);
-                          return (
-                            <Chip
-                              label={activationInfo.label}
-                              color={activationInfo.color}
-                              size="small"
-                              sx={{ borderRadius: '4px', fontWeight: 500 }}
-                            />
-                          );
-                        })()}
+                        {competition.status && (
+                          <Chip
+                            label={competition.status}
+                            color={
+                              competition.status === 'active' ? 'success' :
+                              competition.status === 'upcoming' ? 'info' :
+                              competition.status === 'ended' ? 'error' : 'default'
+                            }
+                            size="small"
+                            sx={{ borderRadius: '4px', fontWeight: 500 }}
+                          />
+                        )}
                       </TableCell>
                       <TableCell>{competition.creatorName}</TableCell>
                       <TableCell>
@@ -933,6 +909,7 @@ const CompetitionManagement = () => {
                       </TableCell>
                       <TableCell>{competition.duration} mins</TableCell>
                       <TableCell>{formatDate(competition.startTiming)}</TableCell>
+                      <TableCell>{formatDate(competition.endTiming)}</TableCell>
                       <TableCell>{formatDate(competition.lastSaved)}</TableCell>
                       <TableCell align="right">
                         <Tooltip title="Actions">
@@ -982,7 +959,7 @@ const CompetitionManagement = () => {
         />
       </Paper>
       
-      {/* Action Menu - conditionally show edit based on expiration status */}
+      {/* Action Menu - conditionally show options based on competition status */}
       <Menu
         anchorEl={actionMenuAnchorEl}
         open={Boolean(actionMenuAnchorEl)}
@@ -1000,14 +977,19 @@ const CompetitionManagement = () => {
           <Visibility fontSize="small" sx={{ mr: 1 }} /> View Details
         </MenuItem>
         
-        {selectedCompetition && (!selectedCompetition.status || selectedCompetition.status !== 'ended') && (
+        {/* Only show Edit for non-archived competitions that aren't ended */}
+        {selectedCompetition && 
+          !selectedCompetition.previousCompetition && 
+          (!selectedCompetition.status || selectedCompetition.status !== 'ended') && (
           <MenuItem onClick={handleEditCompetition}>
             <Edit fontSize="small" sx={{ mr: 1 }} /> Edit
           </MenuItem>
         )}
         
-        {selectedCompetition && !selectedCompetition.previousCompetition && 
-         (!selectedCompetition.status || selectedCompetition.status !== 'ended') && (
+        {/* Only show status toggle for non-archived competitions that aren't ended */}
+        {selectedCompetition && 
+          !selectedCompetition.previousCompetition && 
+          (!selectedCompetition.status || selectedCompetition.status !== 'ended') && (
           <MenuItem onClick={handleToggleStatus}>
             {selectedCompetition?.isLive ? (
               <>
@@ -1021,15 +1003,28 @@ const CompetitionManagement = () => {
           </MenuItem>
         )}
         
+        {/* Clone option for non-expired competitions */}
         {selectedCompetition && !selectedCompetition.isExpired && (
           <MenuItem onClick={handleCloneCompetition}>
             <ContentCopy fontSize="small" sx={{ mr: 1 }} /> Clone
           </MenuItem>
         )}
         
-        {selectedCompetition && !selectedCompetition.previousCompetition && !selectedCompetition.isExpired && (
+        {/* Archive/Unarchive option - toggle based on current archive status */}
+        {selectedCompetition && (
           <MenuItem onClick={handleArchiveCompetition}>
-            <Archive fontSize="small" sx={{ mr: 1 }} /> Archive
+            {selectedCompetition.previousCompetition ? (
+              <>
+                <Archive fontSize="small" sx={{ mr: 1, transform: 'rotate(180deg)' }} /> Unarchive
+              </>
+            ) : (
+              /* Only show Archive for non-expired competitions */
+              !selectedCompetition.isExpired && (
+                <>
+                  <Archive fontSize="small" sx={{ mr: 1 }} /> Archive
+                </>
+              )
+            )}
           </MenuItem>
         )}
         

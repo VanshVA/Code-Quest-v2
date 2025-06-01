@@ -34,12 +34,12 @@ const adminAuthController = {
         return res.status(401).json({ success: false, message: 'Invalid email or password' });
       }
 
-      // Update login time
-      admin.loginTime.push(new Date());
-      await admin.save();
-
       // Generate token
       const token = generateToken(admin._id);
+
+      // Update login time
+      admin.loginTime = new Date();
+      await admin.save();
 
       res.status(200).json({
         success: true,
@@ -49,6 +49,7 @@ const adminAuthController = {
           name: admin.adminName,
           email: admin.adminEmail,
           role: admin.role,
+          loginTime: admin.loginTime,
         }
       });
     } catch (error) {

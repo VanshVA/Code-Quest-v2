@@ -440,6 +440,11 @@ const TeacherManagement = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  const convertToIST = (dateString) => {
+    const utcDate = new Date(dateString);
+    return utcDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  };
+
   return (
     <Box>
       {/* Page header */}
@@ -615,10 +620,10 @@ const TeacherManagement = () => {
               {teachers.length > 0 ? (
                 teachers.map((teacher) => {
                   const roleInfo = getRoleDisplay(teacher.role);
-                  const lastLogin = teacher.loginTime?.length > 0 
-                    ? new Date(teacher.loginTime[teacher.loginTime.length - 1])
-                    : null;
-                    
+                  // const lastLogin = teacher.loginTime?.length > 0 
+                  //   ? new Date(teacher.loginTime[teacher.loginTime.length - 1])
+                  //   : null;
+                  const lastLogin = convertToIST(teacher.loginTime || "Never logged in");
                   return (
                     <TableRow 
                       key={teacher._id}

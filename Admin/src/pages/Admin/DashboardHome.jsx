@@ -31,74 +31,62 @@ import {
   Refresh,
   ArrowForward,
   CelebrationOutlined,
-  WarningAmber
+  FeedbackOutlined,
+  LoginOutlined
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
+import axios from 'axios';
 
 // Current date and time
 const CURRENT_DATE_TIME = "2025-05-30 10:05:36";
+// API base URL
+const API_BASE_URL = "http://localhost:5000/api/admin/dashboard";
 
 const AdminHome = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  
+
   // Loading state
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
   const [upcomingCompetitions, setUpcomingCompetitions] = useState([]);
-  
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // In a real app, these would be API calls
-        // Simulating API response data
-        const statsData = {
-          totalStudents: 1256,
-          totalTeachers: 89,
-          totalCompetitions: 157,
-          activeCompetitions: 12,
-          pendingApprovals: 5,
-          recentRegistrations: 32,
-          studentsGrowth: 12, // percentage
-          teachersGrowth: 8,   // percentage
-          competitionsGrowth: 15 // percentage
-        };
-        
-        const activities = [
-          { id: 1, type: 'teacher_register', user: 'Emily Johnson', time: '2 hours ago', action: 'registered as a teacher' },
-          { id: 2, type: 'competition_create', user: 'David Smith', time: '5 hours ago', action: 'created a new competition' },
-          { id: 3, type: 'student_register', user: 'Michael Brown', time: '1 day ago', action: 'registered as a student' },
-          { id: 4, type: 'competition_complete', user: 'Javascript Challenge', time: '2 days ago', action: 'competition completed' },
-          { id: 5, type: 'student_award', user: 'Sarah Wilson', time: '3 days ago', action: 'won first place in Python Challenge' }
-        ];
-        
-        const competitions = [
-          { id: 101, title: 'Algorithm Challenge', date: '2025-06-02', participants: 45, creator: 'Prof. Alan Turing' },
-          { id: 102, title: 'Web Development Contest', date: '2025-06-10', participants: 32, creator: 'Dr. Sara Johnson' },
-          { id: 103, title: 'Data Structures 101', date: '2025-06-15', participants: 28, creator: 'Prof. Robert Miles' },
-        ];
-        
+        // Make API call to fetch dashboard statistics
+        const response = await axios.get(`${API_BASE_URL}/statistics`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        const { data } = response.data;
         // Set state with fetched data
-        setStats(statsData);
-        setRecentActivities(activities);
-        setUpcomingCompetitions(competitions);
-        
-        // Simulate loading
-        setTimeout(() => {
-          setLoading(false);
-        }, 1000);
+        setStats({
+          totalStudents: data.counts.totalStudents,
+          totalTeachers: data.counts.totalTeachers,
+          totalCompetitions: data.counts.totalCompetitions,
+          feedbackCount: data.counts.feedbackCount,
+          activeCompetitions: data.counts.activeCompetitions,
+          userDistribution: data.userDistribution
+        });
+
+        setRecentActivities(data.recentActivity);
+        setUpcomingCompetitions(data.upcomingCompetitions);
+
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, []);
-  
+
   // Chart options for user distribution
   const userDistributionOptions = {
     chart: {
@@ -109,8 +97,8 @@ const AdminHome = () => {
       position: 'bottom',
       fontWeight: 500,
     },
-    labels: ['Students', 'Teachers', 'Admins'],
-    colors: [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.warning.main],
+    labels: ['Students', 'Teachers'],
+    colors: [theme.palette.primary.main, theme.palette.secondary.main],
     dataLabels: {
       enabled: true,
       formatter: function (val) {
@@ -135,71 +123,49 @@ const AdminHome = () => {
       }
     }
   };
-  
-  const userDistributionSeries = [93.2, 6.5, 0.3]; // Students, Teachers, Admins
-  
-  // Chart options for competition statistics
-  const competitionStatisticsOptions = {
-    chart: {
-      type: 'bar',
-      fontFamily: theme.typography.fontFamily,
-      toolbar: {
-        show: false
-      }
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '55%',
-        borderRadius: 4
-      },
-    },
-    dataLabels: {
-      enabled: false
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ['transparent']
-    },
-    xaxis: {
-      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-    },
-    yaxis: {
-      title: {
-        text: 'Count'
-      }
-    },
-    fill: {
-      opacity: 1
-    },
-    tooltip: {
-      y: {
-        formatter: function (val) {
-          return val + " competitions";
-        }
-      }
-    },
-    legend: {
-      position: 'top',
-    },
-    colors: [theme.palette.primary.main, theme.palette.success.main]
-  };
-  
-  const competitionStatisticsSeries = [
-    {
-      name: 'Created',
-      data: [12, 19, 10, 17, 23]
-    },
-    {
-      name: 'Completed',
-      data: [10, 15, 8, 15, 19]
+
+  const userDistributionSeries = stats?.userDistribution
+    ? [
+      stats.userDistribution.students.percentage,
+      stats.userDistribution.teachers.percentage
+    ]
+    : [0, 0];
+
+  // Helper function to get activity icon
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'teacher_registration':
+        return <SchoolOutlined />;
+      case 'student_registration':
+        return <PeopleOutlineOutlined />;
+      case 'teacher_login':
+        return <LoginOutlined />;
+      case 'student_login':
+        return <LoginOutlined />;
+      default:
+        return <InfoOutlined />;
     }
-  ];
-  
+  };
+
+  // Helper function to get activity color
+  const getActivityColor = (type) => {
+    switch (type) {
+      case 'teacher_registration':
+        return 'secondary.main';
+      case 'student_registration':
+        return 'primary.main';
+      case 'teacher_login':
+        return 'info.main';
+      case 'student_login':
+        return 'success.main';
+      default:
+        return 'warning.main';
+    }
+  };
+
   if (loading) {
     return (
-      <Box sx={{ 
+      <Box sx={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -209,19 +175,19 @@ const AdminHome = () => {
       </Box>
     );
   }
-  
+
+  const convertToIST = (dateString) => {
+    const utcDate = new Date(dateString);
+    return utcDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  };
+
   return (
     <Box>
       {/* Dashboard Header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Admin Dashboard
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Welcome back, Admin! Here's what's happening with your platform.
-          </Typography>
-        </Box>
+        <Typography variant="h5" fontWeight="bold">
+          Dashboard Home
+        </Typography>
         <Button
           variant="outlined"
           startIcon={<Refresh />}
@@ -231,10 +197,10 @@ const AdminHome = () => {
           Refresh
         </Button>
       </Box>
-      
+
       {/* Key Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={3.4} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={4}>
           <Paper
             elevation={0}
             sx={{
@@ -253,9 +219,8 @@ const AdminHome = () => {
                   {stats.totalStudents.toLocaleString()}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                  <TrendingUpOutlined sx={{ fontSize: '1rem', color: 'success.main', mr: 0.5 }} />
-                  <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 500 }}>
-                    +{stats.studentsGrowth}% this month
+                  <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                    {stats.userDistribution.students.percentage}% of users
                   </Typography>
                 </Box>
               </Box>
@@ -264,6 +229,7 @@ const AdminHome = () => {
                   bgcolor: 'primary.main',
                   width: 40,
                   height: 40,
+                  marginLeft:'20px'
                 }}
               >
                 <PeopleOutlineOutlined />
@@ -271,8 +237,8 @@ const AdminHome = () => {
             </Box>
           </Paper>
         </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
+
+        <Grid item xs={12} sm={6} md={4}>
           <Paper
             elevation={0}
             sx={{
@@ -291,9 +257,8 @@ const AdminHome = () => {
                   {stats.totalTeachers}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                  <TrendingUpOutlined sx={{ fontSize: '1rem', color: 'success.main', mr: 0.5 }} />
-                  <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 500 }}>
-                    +{stats.teachersGrowth}% this month
+                  <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                    {stats.userDistribution.teachers.percentage}% of users
                   </Typography>
                 </Box>
               </Box>
@@ -302,6 +267,7 @@ const AdminHome = () => {
                   bgcolor: 'secondary.main',
                   width: 40,
                   height: 40,
+                  marginLeft:'20px'
                 }}
               >
                 <SchoolOutlined />
@@ -309,8 +275,8 @@ const AdminHome = () => {
             </Box>
           </Paper>
         </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
+
+        <Grid item xs={12} sm={6} md={4}>
           <Paper
             elevation={0}
             sx={{
@@ -329,9 +295,8 @@ const AdminHome = () => {
                   {stats.totalCompetitions}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                  <TrendingUpOutlined sx={{ fontSize: '1rem', color: 'success.main', mr: 0.5 }} />
-                  <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 500 }}>
-                    +{stats.competitionsGrowth}% this month
+                  <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                    Active: {stats.activeCompetitions} | Upcoming: {stats.upcomingCompetitions}
                   </Typography>
                 </Box>
               </Box>
@@ -340,6 +305,7 @@ const AdminHome = () => {
                   bgcolor: 'warning.main',
                   width: 40,
                   height: 40,
+                  marginLeft:'20px'
                 }}
               >
                 <EmojiEventsOutlined />
@@ -347,8 +313,8 @@ const AdminHome = () => {
             </Box>
           </Paper>
         </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
+
+        <Grid item xs={12} sm={6} md={4}>
           <Paper
             elevation={0}
             sx={{
@@ -356,48 +322,69 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 193, 7, 0.16)' : 'rgba(255, 193, 7, 0.08)',
-              border: '1px solid',
-              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 193, 7, 0.3)' : 'rgba(255, 193, 7, 0.2)',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Pending Approvals
+                  Active Competitions
                 </Typography>
-                <Typography variant="h4" fontWeight="bold" color="warning.main">
-                  {stats.pendingApprovals}
+                <Typography variant="h4" fontWeight="bold" color="success.main">
+                  {stats.activeCompetitions}
                 </Typography>
-                <Box sx={{ mt: 0.5 }}>
-                  <Button
-                    size="small"
-                    variant="text"
-                    onClick={() => navigate('/admin/dashboard/approvals')}
-                    sx={{ p: 0, minWidth: 0, textTransform: 'none' }}
-                  >
-                    Review now
-                  </Button>
-                </Box>
               </Box>
               <Avatar
                 sx={{
-                  bgcolor: 'warning.main',
+                  bgcolor: 'success.main',
                   width: 40,
                   height: 40,
+                  marginLeft:'20px'
                 }}
               >
-                <WarningAmber />
+                <EmojiEventsOutlined />
+              </Avatar>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              borderRadius: '16px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+              height: '100%',
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Feedback Received
+                </Typography>
+                <Typography variant="h4" fontWeight="bold">
+                  {stats.feedbackCount}
+                </Typography>
+              </Box>
+              <Avatar
+                sx={{
+                  bgcolor: 'primary.light',
+                  width: 40,
+                  height: 40,
+                  marginLeft:'20px'
+                }}
+              >
+                <FeedbackOutlined />
               </Avatar>
             </Box>
           </Paper>
         </Grid>
       </Grid>
-      
+
       {/* Charts and Lists */}
       <Grid container spacing={3}>
         {/* Recent Activities */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={7}>
           <Paper
             elevation={0}
             sx={{
@@ -407,50 +394,35 @@ const AdminHome = () => {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h6" fontWeight="bold">
                 Recent Activities
               </Typography>
-              <Button
-                endIcon={<ArrowForward />}
-                size="small"
-                onClick={() => navigate('/admin/dashboard/activities')}
-                sx={{ textTransform: 'none' }}
-              >
-                View All
-              </Button>
             </Box>
             <List sx={{ p: 0 }}>
-              {recentActivities.map((activity) => (
-                <ListItem 
-                  key={activity.id}
-                  divider
+              {recentActivities.map((activity, index) => (
+                <ListItem
+                  key={index}
+                  divider={index < recentActivities.length - 1}
                   disablePadding
                 >
                   <ListItemButton sx={{ px: 2, py: 1.5 }}>
                     <ListItemAvatar>
-                      <Avatar sx={{ 
-                        bgcolor: activity.type === 'teacher_register' ? 'secondary.main' : 
-                                 activity.type === 'student_register' ? 'primary.main' :
-                                 activity.type === 'competition_create' ? 'warning.main' :
-                                 activity.type === 'competition_complete' ? 'info.main' : 'success.main'
+                      <Avatar sx={{
+                        bgcolor: getActivityColor(activity.type)
                       }}>
-                        {activity.type === 'teacher_register' && <SchoolOutlined />}
-                        {activity.type === 'student_register' && <PeopleOutlineOutlined />}
-                        {activity.type === 'competition_create' && <EmojiEventsOutlined />}
-                        {activity.type === 'competition_complete' && <EmojiEventsOutlined />}
-                        {activity.type === 'student_award' && <CelebrationOutlined />}
+                        {getActivityIcon(activity.type)}
                       </Avatar>
                     </ListItemAvatar>
-                    <ListItemText 
+                    <ListItemText
                       primary={
                         <Typography variant="body2" fontWeight="medium">
-                          <strong>{activity.user}</strong> {activity.action}
+                          <strong>{activity.user}</strong> {activity.type.includes('login') ? 'logged in' : 'registered'}
                         </Typography>
                       }
                       secondary={
                         <Typography variant="caption" color="text.secondary">
-                          {activity.time}
+                          {activity.email} • {convertToIST(activity.formattedTime)}
                         </Typography>
                       }
                     />
@@ -460,9 +432,9 @@ const AdminHome = () => {
             </List>
           </Paper>
         </Grid>
-        
+
         {/* User Distribution Chart */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={5}>
           <Paper
             elevation={0}
             sx={{
@@ -483,57 +455,24 @@ const AdminHome = () => {
               </Tooltip>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-              <Chart 
-                options={userDistributionOptions} 
-                series={userDistributionSeries} 
-                type="donut" 
+              <Chart
+                options={userDistributionOptions}
+                series={userDistributionSeries}
+                type="donut"
                 height={300}
                 width="100%"
               />
             </Box>
-          </Paper>
-        </Grid>
-        
-        {/* Competition Statistics Chart */}
-        <Grid item xs={12} md={8}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 3,
-              borderRadius: '16px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-              height: '100%',
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" fontWeight="bold">
-                Competition Statistics
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" align="center">
+                Total Users: {stats.totalStudents + stats.totalTeachers}
               </Typography>
-              <Box>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => navigate('/admin/dashboard/analytics')}
-                  sx={{ 
-                    textTransform: 'none',
-                    borderRadius: '8px',
-                  }}
-                >
-                  Detailed Analytics
-                </Button>
-              </Box>
             </Box>
-            <Chart 
-              options={competitionStatisticsOptions} 
-              series={competitionStatisticsSeries} 
-              type="bar" 
-              height={300}
-            />
           </Paper>
         </Grid>
-        
+
         {/* Upcoming Competitions */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12}>
           <Paper
             elevation={0}
             sx={{
@@ -543,58 +482,66 @@ const AdminHome = () => {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="h6" fontWeight="bold">
                 Upcoming Competitions
               </Typography>
-            </Box>
-            <List sx={{ p: 0 }}>
-              {upcomingCompetitions.map((comp) => (
-                <ListItem 
-                  key={comp.id}
-                  divider
-                  disablePadding
-                >
-                  <ListItemButton 
-                    sx={{ px: 2, py: 1.5 }}
-                    onClick={() => navigate(`/admin/dashboard/competitions/${comp.id}`)}
-                  >
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'warning.main' }}>
-                        <EmojiEventsOutlined />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText 
-                      primary={
-                        <Typography variant="body2" fontWeight="medium">
-                          {comp.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Date: {new Date(comp.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            Participants: {comp.participants} • Creator: {comp.creator}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-            <Box sx={{ p: 2, textAlign: 'center' }}>
               <Button
-                variant="text"
-                endIcon={<ArrowForward />}
-                onClick={() => navigate('/admin/dashboard/competitions')}
-                sx={{ textTransform: 'none' }}
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => navigate('/admin/competitions')}
+                sx={{ borderRadius: '8px', textTransform: 'none', marginLeft:'16px' }}
               >
-                View All Competitions
+                Manage
               </Button>
             </Box>
+            <List sx={{ p: 0 }}>
+              {upcomingCompetitions.length > 0 ? (
+                upcomingCompetitions.map((comp, index) => (
+                  <ListItem
+                    key={comp.id || index}
+                    divider={index < upcomingCompetitions.length - 1}
+                    disablePadding
+                  >
+                    <ListItemButton
+                      sx={{ px: 2, py: 1.5 }}
+                      onClick={() => navigate(`/admin/competitions`)}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'warning.main' }}>
+                          <EmojiEventsOutlined />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography variant="body2" fontWeight="medium">
+                            {comp.competitionName}
+                          </Typography>
+                        }
+                        secondary={
+                          <Box>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              Date: {new Date(comp.startTiming).toLocaleDateString('en-In', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))
+              ) : (
+                <ListItem>
+                  <ListItemText
+                    primary={
+                      <Typography variant="body1" align="center" sx={{ py: 2 }}>
+                        No upcoming competitions at the moment.
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+              )}
+            </List>
           </Paper>
         </Grid>
       </Grid>

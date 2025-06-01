@@ -28,9 +28,11 @@ const teacherSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    registerTime:{
+        type: Date,
+    },
     loginTime: {
-        type: [Date], // This will store multiple login timestamps
-        default: [],  // Default to an empty array
+        type: Date,
     },
 });
 

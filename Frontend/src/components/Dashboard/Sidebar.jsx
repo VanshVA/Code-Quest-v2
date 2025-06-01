@@ -25,6 +25,7 @@ import {
     Code as CodeIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import authService from '../../services/authService';
 
 // Sidebar width
 const DRAWER_WIDTH = 240;
@@ -54,9 +55,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
     // Handle logout
     const handleLogout = () => {
         // Show confirmation dialog or directly logout
-        localStorage.removeItem('token');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userEmail');
+        authService.logout();
         navigate('/login');
     };
 

@@ -20,7 +20,6 @@ import {
   Menu as MenuIcon,
   Notifications,
   AccountCircle,
-  Settings,
   Logout,
   PersonOutlined,
   DarkMode,
@@ -36,7 +35,7 @@ import { useColorMode } from '../../context/ThemeContext';
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
 
-const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTime, currentUser }) => {
+const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -45,6 +44,28 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
   // State for user menu and notifications
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [anchorElNotifications, setAnchorElNotifications] = useState(null);
+  
+  // State for user information
+  const [userInfo, setUserInfo] = useState({
+    name: 'Admin',
+    email: 'admin@example.com',
+    role: 'Administrator'
+  });
+  
+  useEffect(() => {
+    try {
+      const userObject = JSON.parse(localStorage.getItem('user'));
+      if (userObject && userObject.name) {
+        setUserInfo({
+          name: userObject.name,
+          email: userObject.email || 'admin@example.com',
+          role: userObject.role || 'Administrator'
+        });
+      }
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+    }
+  }, []);
   
   // Scroll effects
   const trigger = useScrollTrigger({
@@ -90,8 +111,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
     handleCloseUserMenu();
     if (option === 'profile') {
       navigate('/admin/profile');
-    } else if (option === 'settings') {
-      navigate('/admin/settings');
     } else if (option === 'logout') {
       // Show logout confirmation or directly logout
       authService.logout();
@@ -176,23 +195,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
         
         {/* Right side - Actions */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* Current Date and Time */}
-          {!isMobile && (
-            <MotionTypography
-              variant="body2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              sx={{
-                mr: 2,
-                fontFamily: 'monospace',
-                color: 'text.secondary',
-              }}
-            >
-              {currentDateTime}
-            </MotionTypography>
-          )}
-          
           {/* Theme Toggle */}
           <Tooltip title={theme.palette.mode === 'dark' ? "Light mode" : "Dark mode"}>
             <MotionBox
@@ -336,7 +338,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                 transition={{ delay: 0.5, duration: 0.3 }}
               >
                 <Avatar
-                  alt={currentUser}
+                  alt={userInfo.name}
                   src="/static/images/avatar/1.jpg"
                   sx={{ 
                     width: 32, 
@@ -348,7 +350,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                       : 'rgba(0,0,0,0.1)',
                   }}
                 >
-                  {currentUser?.charAt(0) || 'A'}
+                  {userInfo.name?.charAt(0) || 'A'}
                 </Avatar>
               </MotionBox>
             </Tooltip>
@@ -390,10 +392,13 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
             >
               <Box sx={{ px: 2, py: 1 }}>
                 <Typography variant="subtitle2" noWrap fontWeight="bold">
-                  {currentUser}
+                  {userInfo.name}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  {userInfo.email}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap>
-                  Administrator
+                  {userInfo.role}
                 </Typography>
               </Box>
               
@@ -404,13 +409,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                   <PersonOutlined fontSize="small" />
                 </ListItemIcon>
                 Profile
-              </MenuItem>
-              
-              <MenuItem onClick={() => handleUserMenuOption('settings')}>
-                <ListItemIcon>
-                  <Settings fontSize="small" />
-                </ListItemIcon>
-                Settings
               </MenuItem>
               
               <Divider />

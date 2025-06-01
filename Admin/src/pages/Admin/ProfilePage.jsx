@@ -35,7 +35,8 @@ import {
   History as HistoryIcon,
   PhotoCamera,
   Dashboard as DashboardIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Refresh
 } from '@mui/icons-material';
 import authService from '../../services/authService';
 import moment from 'moment';
@@ -46,12 +47,12 @@ const CURRENT_USER = "VanshSharmaSDEimport";
 
 const ProfilePage = () => {
   const theme = useTheme();
-  
+
   // Profile data state
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -59,7 +60,7 @@ const ProfilePage = () => {
     email: '',
     profileImage: ''
   });
-  
+
   // Password change state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -71,20 +72,20 @@ const ProfilePage = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState({});
-  
+
   // Notification state
   const [notification, setNotification] = useState({
     open: false,
     type: 'success',
     message: ''
   });
-  
+
   // Load admin profile on component mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        
+
         // In a real app, this would call an API
         // For now, let's simulate an API response
         setTimeout(() => {
@@ -98,7 +99,7 @@ const ProfilePage = () => {
             permissions: ['manage_teachers', 'manage_students', 'manage_competitions'],
             lastLogin: '2025-05-29T14:22:45.567Z'
           };
-          
+
           setProfile(mockProfile);
           setFormData({
             name: mockProfile.name,
@@ -107,7 +108,7 @@ const ProfilePage = () => {
           });
           setLoading(false);
         }, 1000);
-        
+
         // In real app, this would be:
         // const response = await authService.getProfile();
         // setProfile(response.data.admin);
@@ -116,17 +117,17 @@ const ProfilePage = () => {
         //   email: response.data.admin.email,
         //   profileImage: response.data.admin.profileImage || ''
         // });
-        
+
       } catch (err) {
         console.error('Error fetching profile:', err);
         setError('Failed to load profile. Please refresh the page.');
         setLoading(false);
       }
     };
-    
+
     fetchProfile();
   }, []);
-  
+
   // Handle profile form changes
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -135,7 +136,7 @@ const ProfilePage = () => {
       [name]: value
     });
   };
-  
+
   // Handle password form changes
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -143,7 +144,7 @@ const ProfilePage = () => {
       ...passwordData,
       [name]: value
     });
-    
+
     // Clear error for this field if any
     if (passwordErrors[name]) {
       setPasswordErrors({
@@ -152,7 +153,7 @@ const ProfilePage = () => {
       });
     }
   };
-  
+
   // Start editing profile
   const handleStartEditing = () => {
     setFormData({
@@ -162,23 +163,23 @@ const ProfilePage = () => {
     });
     setIsEditing(true);
   };
-  
+
   // Cancel editing profile
   const handleCancelEditing = () => {
     setIsEditing(false);
   };
-  
+
   // Save profile changes
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
-      
+
       // In a real app, this would call an API
       // await authService.updateProfile(formData);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Update local profile state with the changes
       setProfile({
         ...profile,
@@ -186,7 +187,7 @@ const ProfilePage = () => {
         email: formData.email,
         profileImage: formData.profileImage
       });
-      
+
       setIsEditing(false);
       setNotification({
         open: true,
@@ -204,7 +205,7 @@ const ProfilePage = () => {
       setLoading(false);
     }
   };
-  
+
   // Open password change dialog
   const handleOpenPasswordDialog = () => {
     setPasswordData({
@@ -215,54 +216,54 @@ const ProfilePage = () => {
     setPasswordErrors({});
     setPasswordDialogOpen(true);
   };
-  
+
   // Close password change dialog
   const handleClosePasswordDialog = () => {
     setPasswordDialogOpen(false);
   };
-  
+
   // Validate password form
   const validatePasswordForm = () => {
     const errors = {};
-    
+
     if (!passwordData.currentPassword) {
       errors.currentPassword = 'Current password is required';
     }
-    
+
     if (!passwordData.newPassword) {
       errors.newPassword = 'New password is required';
     } else if (passwordData.newPassword.length < 6) {
       errors.newPassword = 'Password must be at least 6 characters';
     }
-    
+
     if (!passwordData.confirmPassword) {
       errors.confirmPassword = 'Please confirm your new password';
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
     }
-    
+
     setPasswordErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
+
   // Save password changes
   const handleSavePassword = async () => {
     if (!validatePasswordForm()) {
       return;
     }
-    
+
     try {
       setLoading(true);
-      
+
       // In a real app, this would call an API
       // await authService.updatePassword({
       //   currentPassword: passwordData.currentPassword,
       //   newPassword: passwordData.newPassword
       // });
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       handleClosePasswordDialog();
       setNotification({
         open: true,
@@ -279,7 +280,7 @@ const ProfilePage = () => {
       setLoading(false);
     }
   };
-  
+
   // Close notification
   const handleCloseNotification = () => {
     setNotification({
@@ -287,7 +288,7 @@ const ProfilePage = () => {
       open: false
     });
   };
-  
+
   // Format date
   const formatDate = (dateString) => {
     return moment(dateString).format('MMMM D, YYYY [at] h:mm A');
@@ -296,40 +297,19 @@ const ProfilePage = () => {
   return (
     <Box>
       {/* Page title and header */}
-      <Typography 
-        variant="h4" 
-        component="h1" 
-        sx={{ 
-          fontWeight: 700, 
-          mb: 1,
-          color: 'var(--theme-color)'
-        }}
-      >
-        Profile Management
-      </Typography>
-      
-      {/* Page header with improved styling */}
-      <Box sx={{ 
-        mb: 4, 
-        pb: 2,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ 
-          background: 'linear-gradient(45deg, var(--theme-color), var(--hover-color))',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          letterSpacing: '0.5px'
-        }}>
-          Admin Profile
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h5" fontWeight="bold">
+          Profile Management
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Manage your account information and security preferences
-        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={() => window.location.reload()}
+          sx={{ borderRadius: '8px' }}
+        >
+          Refresh
+        </Button>
       </Box>
-      
       {loading && !profile ? (
         <ProfileSkeleton />
       ) : error ? (
@@ -383,7 +363,7 @@ const ProfilePage = () => {
                   {profile.name?.charAt(0)}
                 </Avatar>
                 {!isEditing && (
-                  <IconButton 
+                  <IconButton
                     className="edit-overlay"
                     size="small"
                     sx={{
@@ -404,38 +384,38 @@ const ProfilePage = () => {
                   </IconButton>
                 )}
               </Box>
-              
+
               <Typography variant="h5" fontWeight="bold" gutterBottom>
                 {profile.name}
               </Typography>
-              
+
               <Chip
                 label={profile.role === 'admin' ? 'Administrator' : profile.role}
                 color="primary"
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   textTransform: 'capitalize',
                   borderRadius: '20px',
                   fontWeight: 'bold',
                   px: 1
                 }}
               />
-              
+
               <Typography variant="body1" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <EmailIcon fontSize="small" />
                 {profile.email}
               </Typography>
-              
+
               {profile.lastLogin && (
-                <Box sx={{ 
-                  mt: 1, 
-                  mb: 2, 
-                  py: 1, 
-                  px: 2, 
+                <Box sx={{
+                  mt: 1,
+                  mb: 2,
+                  py: 1,
+                  px: 2,
                   bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
                   borderRadius: '12px',
-                  display: 'flex', 
-                  alignItems: 'center', 
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   gap: 1
                 }}>
@@ -445,16 +425,16 @@ const ProfilePage = () => {
                   </Typography>
                 </Box>
               )}
-              
+
               <Divider sx={{ my: 3, width: '100%' }} />
-              
+
               <Box sx={{ width: '100%' }}>
                 <Button
                   variant="contained"
                   fullWidth
                   startIcon={<Edit />}
                   onClick={handleStartEditing}
-                  sx={{ 
+                  sx={{
                     mb: 2,
                     borderRadius: '12px',
                     py: 1.2,
@@ -467,13 +447,13 @@ const ProfilePage = () => {
                 >
                   Edit Profile
                 </Button>
-                
+
                 <Button
                   variant="outlined"
                   fullWidth
                   startIcon={<LockIcon />}
                   onClick={handleOpenPasswordDialog}
-                  sx={{ 
+                  sx={{
                     borderRadius: '12px',
                     py: 1.2,
                     borderWidth: '2px',
@@ -487,7 +467,7 @@ const ProfilePage = () => {
               </Box>
             </Paper>
           </Grid>
-          
+
           {/* Profile Details and Quick Actions side by side with vertical inner content */}
           <Grid item xs={12} md={8} order={{ xs: 1, md: 2 }}>
             <Paper
@@ -504,10 +484,10 @@ const ProfilePage = () => {
                 boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
               }}
             >
-              <Box sx={{ 
-                mb: 2, 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              <Box sx={{
+                mb: 2,
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 pb: 1.5,
                 borderBottom: `2px solid ${theme.palette.divider}`
@@ -528,9 +508,9 @@ const ProfilePage = () => {
                   {isEditing ? 'Edit Profile' : 'Profile Information'}
                 </Typography>
                 {!isEditing && (
-                  <Button 
-                    variant="text" 
-                    startIcon={<Edit />} 
+                  <Button
+                    variant="text"
+                    startIcon={<Edit />}
                     onClick={handleStartEditing}
                     size="small"
                     sx={{
@@ -544,7 +524,7 @@ const ProfilePage = () => {
                   </Button>
                 )}
               </Box>
-              
+
               {/* Main content area with Profile Details and Quick Actions side by side */}
               <Grid container spacing={3}>
                 {/* Profile Details - Left side with vertical layout */}
@@ -569,13 +549,13 @@ const ProfilePage = () => {
                       />
                       {formData.profileImage && (
                         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                          <Avatar 
-                            src={formData.profileImage} 
+                          <Avatar
+                            src={formData.profileImage}
                             alt="Preview"
-                            sx={{ 
-                              width: 80, 
+                            sx={{
+                              width: 80,
                               height: 80,
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)' 
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                             }}
                           />
                         </Box>
@@ -620,7 +600,7 @@ const ProfilePage = () => {
                           variant="outlined"
                           onClick={handleCancelEditing}
                           disabled={loading}
-                          sx={{ 
+                          sx={{
                             borderRadius: '12px',
                             px: 3
                           }}
@@ -632,7 +612,7 @@ const ProfilePage = () => {
                           onClick={handleSaveProfile}
                           disabled={loading}
                           startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Save />}
-                          sx={{ 
+                          sx={{
                             borderRadius: '12px',
                             px: 3,
                             boxShadow: '0 4px 12px rgba(var(--primary-color-rgb), 0.2)',
@@ -649,9 +629,9 @@ const ProfilePage = () => {
                     <Box>
                       <Typography variant="h6" sx={{ mb: 2 }}>Profile Details</Typography>
                       <Stack spacing={3}>
-                        <Card 
+                        <Card
                           elevation={0}
-                          sx={{ 
+                          sx={{
                             borderRadius: '16px',
                             border: '1px solid',
                             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
@@ -666,8 +646,8 @@ const ProfilePage = () => {
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                               {/* Name field */}
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ 
-                                  bgcolor: 'primary.main', 
+                                <Avatar sx={{
+                                  bgcolor: 'primary.main',
                                   mr: 2,
                                   width: 36,
                                   height: 36
@@ -683,11 +663,11 @@ const ProfilePage = () => {
                                   </Typography>
                                 </Box>
                               </Box>
-                              
+
                               {/* Email field */}
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ 
-                                  bgcolor: 'secondary.main', 
+                                <Avatar sx={{
+                                  bgcolor: 'secondary.main',
                                   mr: 2,
                                   width: 36,
                                   height: 36
@@ -706,10 +686,10 @@ const ProfilePage = () => {
                             </Box>
                           </CardContent>
                         </Card>
-                        
-                        <Card 
+
+                        <Card
                           elevation={0}
-                          sx={{ 
+                          sx={{
                             borderRadius: '16px',
                             border: '1px solid',
                             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
@@ -722,11 +702,11 @@ const ProfilePage = () => {
                           }}
                         >
                           <CardContent sx={{ p: 2.5 }}>
-                            <Box sx={{ 
+                            <Box sx={{
                               display: 'flex',
                               alignItems: 'flex-start'
                             }}>
-                              <Avatar sx={{ 
+                              <Avatar sx={{
                                 mr: 2,
                                 width: 36,
                                 height: 36,
@@ -741,9 +721,9 @@ const ProfilePage = () => {
                                 <Typography variant="subtitle1" sx={{ mt: 0.25, mb: 1.5, fontWeight: 'bold', textTransform: 'capitalize' }}>
                                   {profile.role}
                                 </Typography>
-                                
+
                                 {/* Permissions layout */}
-                                <Box sx={{ 
+                                <Box sx={{
                                   display: 'flex',
                                   flexDirection: 'column',
                                   gap: 1
@@ -753,14 +733,14 @@ const ProfilePage = () => {
                                       key={index}
                                       label={permission.replace(/_/g, ' ')}
                                       size="small"
-                                      sx={{ 
+                                      sx={{
                                         textTransform: 'capitalize',
                                         borderRadius: '8px',
                                         fontWeight: 'medium',
                                         height: '28px',
                                         fontSize: '0.75rem',
                                         justifyContent: 'flex-start',
-                                        backgroundColor: theme.palette.mode === 'dark' 
+                                        backgroundColor: theme.palette.mode === 'dark'
                                           ? 'rgba(var(--primary-color-rgb), 0.2)'
                                           : 'rgba(var(--primary-color-rgb), 0.08)',
                                         color: 'primary.main',
@@ -776,7 +756,7 @@ const ProfilePage = () => {
                     </Box>
                   )}
                 </Grid>
-                
+
                 {/* Quick Actions - Right side with vertical layout */}
                 <Grid item xs={12} md={6}>
                   <Box>
@@ -804,7 +784,7 @@ const ProfilePage = () => {
                           </Typography>
                         </Box>
                       </Button>
-                      
+
                       <Button
                         fullWidth
                         variant="outlined"
@@ -827,7 +807,7 @@ const ProfilePage = () => {
                           </Typography>
                         </Box>
                       </Button>
-                      
+
                       <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Card
                           variant="outlined"
@@ -840,7 +820,7 @@ const ProfilePage = () => {
                         >
                           <CardContent sx={{ p: 0 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                              <Avatar sx={{ 
+                              <Avatar sx={{
                                 mr: 2,
                                 width: 36,
                                 height: 36,
@@ -871,10 +851,10 @@ const ProfilePage = () => {
           </Grid>
         </Grid>
       )}
-      
+
       {/* Password Change Dialog */}
-      <Dialog 
-        open={passwordDialogOpen} 
+      <Dialog
+        open={passwordDialogOpen}
         onClose={loading ? null : handleClosePasswordDialog}
         PaperProps={{
           sx: { borderRadius: '16px' }
@@ -911,7 +891,7 @@ const ProfilePage = () => {
                 sx: { borderRadius: '8px' }
               }}
             />
-            
+
             <TextField
               margin="normal"
               required
@@ -938,7 +918,7 @@ const ProfilePage = () => {
                 sx: { borderRadius: '8px' }
               }}
             />
-            
+
             <TextField
               margin="normal"
               required
@@ -968,19 +948,19 @@ const ProfilePage = () => {
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button 
-            onClick={handleClosePasswordDialog} 
+          <Button
+            onClick={handleClosePasswordDialog}
             disabled={loading}
             sx={{ borderRadius: '8px' }}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleSavePassword}
             variant="contained"
             disabled={loading}
             startIcon={loading ? <CircularProgress size={20} /> : <Save />}
-            sx={{ 
+            sx={{
               borderRadius: '8px',
               bgcolor: 'var(--theme-color)',
               '&:hover': {
@@ -992,7 +972,7 @@ const ProfilePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Notifications */}
       <Snackbar
         open={notification.open}
@@ -1000,7 +980,7 @@ const ProfilePage = () => {
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
+        <Alert
           onClose={handleCloseNotification}
           severity={notification.type}
           variant="filled"
@@ -1036,14 +1016,14 @@ const ProfileSkeleton = () => {
           <Skeleton variant="rectangular" width={100} height={32} sx={{ mb: 2, borderRadius: '16px' }} />
           <Skeleton variant="text" width="80%" sx={{ mb: 1 }} />
           <Skeleton variant="text" width="60%" sx={{ mb: 2 }} />
-          
+
           <Divider sx={{ my: 2, width: '100%' }} />
-          
+
           <Skeleton variant="rectangular" width="100%" height={36} sx={{ mb: 2, borderRadius: '8px' }} />
           <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: '8px' }} />
         </Paper>
       </Grid>
-      
+
       <Grid item xs={12} md={8} order={{ xs: 1, md: 2 }}>
         <Paper
           elevation={0}
@@ -1056,7 +1036,7 @@ const ProfileSkeleton = () => {
         >
           <Skeleton variant="text" width="30%" sx={{ mb: 2 }} />
           <Divider sx={{ mb: 3 }} />
-          
+
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <Skeleton variant="rectangular" height={120} sx={{ borderRadius: '8px', mb: 2 }} />

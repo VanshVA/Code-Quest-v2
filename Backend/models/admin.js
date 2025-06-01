@@ -28,8 +28,7 @@ const  adminSchema = mongoose.Schema({
         default: ["StudentManagement","TeacherManagement","CompetitionManagement"], // Default to an empty array
     },
     loginTime: {
-        type: [Date], // This will store multiple login timestamps
-        default: [],  // Default to an empty array
+        type: Date, // This will store multiple login timestamps
       },
     lastLoginTime: {
         type: Date,

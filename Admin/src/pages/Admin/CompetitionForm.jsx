@@ -39,9 +39,10 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
     competitionType: 'TEXT',
     duration: 60,
     startTiming: '',
+    endTiming: '', // Added endTiming field
     isLive: false,
-    competitionAvailableTiming: '', // Added new field
-    questions: []
+    questions: [],
+    competitionDescription: '' // Add competitionDescription field
   });
   
   const [errors, setErrors] = useState({});
@@ -56,11 +57,11 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
           competitionType: competition.competitionType || 'TEXT',
           duration: competition.duration || 60,
           startTiming: competition.startTiming || new Date().toISOString(),
+          endTiming: competition.endTiming || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to a week from now
           isLive: competition.isLive || false,
-          competitionAvailableTiming: competition.competitionAvailableTiming || 
-            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to a week from now
           questions: competition.questions ? 
-            JSON.parse(JSON.stringify(competition.questions)) : []
+            JSON.parse(JSON.stringify(competition.questions)) : [],
+          competitionDescription: competition.competitionDescription || '' // Include competitionDescription from competition data
         });
         
         console.log('Loaded competition for editing:', competition);
@@ -72,9 +73,10 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
           competitionType: 'TEXT',
           duration: 60,
           startTiming: new Date().toISOString(),
+          endTiming: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to a week from now
           isLive: false,
-          competitionAvailableTiming: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          questions: []
+          questions: [],
+          competitionDescription: '' // Default empty competitionDescription
         });
       }
       
@@ -193,8 +195,22 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
       newErrors.competitionName = 'Competition name is required';
     }
     
+    if (!formData.competitionDescription.trim()) {
+      newErrors.competitionDescription = 'Competition competitionDescription is required';
+    }
+    
     if (!formData.startTiming) {
       newErrors.startTiming = 'Start timing is required';
+    }
+    
+    if (!formData.endTiming) {
+      newErrors.endTiming = 'End timing is required';
+    }
+    
+    // Validate endTiming is after startTiming
+    if (formData.startTiming && formData.endTiming && 
+        new Date(formData.endTiming) <= new Date(formData.startTiming)) {
+      newErrors.endTiming = 'End time must be after start time';
     }
     
     if (!formData.competitionType) {
@@ -203,10 +219,6 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
     
     if (!formData.duration || formData.duration <= 0) {
       newErrors.duration = 'Duration must be greater than 0';
-    }
-    
-    if (!formData.competitionAvailableTiming) {
-      newErrors.competitionAvailableTiming = 'Activation expiry time is required';
     }
     
     // Validate questions if there are any
@@ -280,6 +292,23 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
               />
             </Grid>
             
+            {/* Competition competitionDescription - add this field */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Competition competitionDescription"
+                name="competitionDescription"
+                value={formData.competitionDescription}
+                onChange={handleChange}
+                error={!!errors.competitionDescription}
+                helperText={errors.competitionDescription}
+                required
+                multiline
+                rows={3}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+            </Grid>
+            
             {/* Competition Type */}
             <Grid item xs={12} sm={6}>
               <FormControl 
@@ -338,6 +367,22 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
               />
             </Grid>
             
+            {/* End Time - newly added */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="End Time"
+                name="endTiming"
+                type="datetime-local"
+                value={formData.endTiming ? format(new Date(formData.endTiming), "yyyy-MM-dd'T'HH:mm") : ''}
+                onChange={handleChange}
+                error={!!errors.endTiming}
+                helperText={errors.endTiming || "When the competition will end"}
+                InputLabelProps={{ shrink: true }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
+              />
+            </Grid>
+            
             {/* Live Status */}
             <Grid item xs={12} sm={6}>
               <FormGroup>
@@ -358,25 +403,6 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
                     : 'Competition will be saved as draft'}
                 </Typography>
               </FormGroup>
-            </Grid>
-            
-            {/* Competition Activation Timing */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Competition Activation Expiry"
-                name="competitionAvailableTiming"
-                type="datetime-local"
-                value={formData.competitionAvailableTiming ? format(new Date(formData.competitionAvailableTiming), "yyyy-MM-dd'T'HH:mm") : ''}
-                onChange={handleChange}
-                error={!!errors.competitionAvailableTiming}
-                helperText={errors.competitionAvailableTiming || "After this time, the competition can only be viewed (not edited)"}
-                InputLabelProps={{ shrink: true }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}
-              />
-              <FormHelperText>
-                Set a deadline after which the competition can no longer be edited
-              </FormHelperText>
             </Grid>
           </Grid>
           

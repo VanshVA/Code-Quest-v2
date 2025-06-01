@@ -52,5 +52,5 @@ const server = app.listen(PORT, () => {
   updateCompetitionStatuses();
   
   // Set up a recurring interval to update competition statuses every minute
-  setInterval(updateCompetitionStatuses, 60 * 1000); // 60 seconds * 1000 ms
+  setInterval(updateCompetitionStatuses, 60 * 200); // 60 seconds * 200 ms
 });

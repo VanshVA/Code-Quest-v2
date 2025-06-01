@@ -23,6 +23,10 @@ const competitionSchema = new Schema({
     type: String,
     required: true
   },
+  competitionDescription: {
+    type: String,
+    required: true
+  },
   creatorId: {
     type: String,
     required: true
@@ -51,10 +55,6 @@ const competitionSchema = new Schema({
   lastSaved: {
     type: String
   },
-  competitionAvailableTiming:{
-    type: String,
-    default: ""
-  },
   endTiming: {
     type: String,
     default: ""
@@ -73,92 +73,38 @@ const competitionSchema = new Schema({
 // Pre-save middleware to update status based on timing
 competitionSchema.pre('save', function(next) {
   // Only process if timing fields are available
-  if (this.competitionAvailableTiming) {
+  if (this.startTiming) {
     const now = new Date();
-    const availableFrom = new Date(this.competitionAvailableTiming);
+    const startTime = new Date(this.startTiming);
     
     // Calculate end time (if not explicitly set)
     let endTime;
-    if (this.endTiming) {
+    if (this.endTiming && this.endTiming !== "") {
       endTime = new Date(this.endTiming);
     } else if (this.duration) {
-      // If no end time but has duration, calculate end time from available time + duration
-      endTime = new Date(availableFrom.getTime() + (this.duration * 60000)); // Convert minutes to milliseconds
+      // If no end time but has duration, calculate end time from start time + duration
+      endTime = new Date(startTime.getTime() + (this.duration * 60000)); // Convert minutes to milliseconds
       // Update endTiming field
       this.endTiming = endTime.toISOString();
     } else {
       // Default to 60 minutes if no duration specified
-      endTime = new Date(availableFrom.getTime() + (60 * 60000));
+      endTime = new Date(startTime.getTime() + (60 * 60000));
       this.endTiming = endTime.toISOString();
     }
     
-    // Determine status based on current time relative to available and end times
-    if (now < availableFrom) {
+    // Determine status based on current time relative to start and end times
+    if (now < startTime) {
       this.status = 'upcoming';
-    } else if (now >= availableFrom && now <= endTime) {
+    } else if (now >= startTime && now <= endTime) {
       this.status = 'active';
     } else {
       this.status = 'ended';
+      // If competition has ended, it should not be live anymore
+      this.isLive = false;
     }
   }
   
   next();
-});
-
-// Create static method to update status for all competitions
-competitionSchema.statics.updateAllStatuses = async function() {
-  const now = new Date();
-  
-  // Find all competitions with timing info
-  const competitions = await this.find({ competitionAvailableTiming: { $ne: "" } });
-  
-  let updatedCount = 0;
-  
-  // Update each competition's status
-  for (const competition of competitions) {
-    const originalStatus = competition.status;
-    
-    const availableFrom = new Date(competition.competitionAvailableTiming);
-    let endTime;
-    
-    if (competition.endTiming) {
-      endTime = new Date(competition.endTiming);
-    } else if (competition.duration) {
-      endTime = new Date(availableFrom.getTime() + (competition.duration * 60000));
-      competition.endTiming = endTime.toISOString();
-    } else {
-      endTime = new Date(availableFrom.getTime() + (60 * 60000));
-      competition.endTiming = endTime.toISOString();
-    }
-    
-    if (now < availableFrom) {
-      competition.status = 'upcoming';
-    } else if (now >= availableFrom && now <= endTime) {
-      competition.status = 'active';
-    } else {
-      competition.status = 'ended';
-    }
-    
-    if (competition.status !== originalStatus) {
-      await competition.save();
-      updatedCount++;
-    }
-  }
-  
-  return updatedCount;
-};
-
-// Virtual property to check if competition is currently available
-competitionSchema.virtual('isAvailable').get(function() {
-  if (!this.competitionAvailableTiming) return false;
-  
-  const now = new Date();
-  const availableFrom = new Date(this.competitionAvailableTiming);
-  const endTime = this.endTiming ? new Date(this.endTiming) : null;
-  
-  // Competition is available if current time is after available time
-  // and before end time (if defined) and if competition is live
-  return this.isLive && now >= availableFrom && (!endTime || now <= endTime);
 });
 
 // Create and export the Competition model

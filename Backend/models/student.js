@@ -46,10 +46,20 @@ const studentSchema = new mongoose.Schema({
     provider: {
         type: String
     },
-    loginTime: {
-        type: [Date], // This will store multiple login timestamps
-        default: [],  // Default to an empty array
+    registerTime:{
+        type: Date,
     },
+    loginTime: {
+        type: Date,
+    },
+    blockedStatus: {
+        type: Boolean,
+        default: false
+    },
+    competitionsJoined: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Competition'
+    }],
 });
 
 studentSchema.pre('save', async function (next) {

@@ -82,7 +82,7 @@ const teacherAuthController = {
       }
 
       // Update login time
-      teacher.loginTime.push(new Date());
+      teacher.loginTime = new Date();
       await teacher.save();
 
       // Generate token
@@ -97,7 +97,8 @@ const teacherAuthController = {
           lastName: teacher.teacherLastName,
           email: teacher.teacherEmail,
           role: teacher.role,
-          image: teacher.teacherImage
+          image: teacher.teacherImage,
+          loginTime: teacher.loginTime,
         }
       });
     } catch (error) {

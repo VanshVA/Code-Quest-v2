@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { log } = require('console');
 
 // Configure nodemailer transporter
 const transporter = nodemailer.createTransport({
@@ -140,8 +141,8 @@ const studentAuthController = {
       student.allowance = true;
       student.otp = undefined;
       student.otpExpires = undefined;
-      student.loginTime.push(new Date());
-      
+      student.loginTime = new Date();
+      student.registerTime = new Date();
       await student.save();
 
       // Generate token
@@ -241,7 +242,7 @@ const studentAuthController = {
       }
 
       // Update login time
-      student.loginTime.push(new Date());
+      student.loginTime = new Date();
       await student.save();
 
       // Generate token
@@ -257,6 +258,7 @@ const studentAuthController = {
           email: student.studentEmail,
           role: student.role,
           image: student.studentImage,
+          loginTime: student.loginTime
         }
       });
     } catch (error) {

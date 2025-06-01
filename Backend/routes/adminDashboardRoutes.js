@@ -16,6 +16,7 @@ router.get('/students/:id', protectAdmin, authorize('admin'), adminDashboardCont
 router.post('/students', protectAdmin, authorize('admin'), adminDashboardController.createStudent);
 router.put('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.updateStudent);
 router.delete('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.deleteStudent);
+router.put('/students/:id/toggle-blocked-status', protectAdmin, authorize('admin'), adminDashboardController.getToggleBlockedStatus);
 
 // Competition management routes
 router.get('/competitions', protectAdmin, authorize('admin'), adminDashboardController.getAllCompetitions);
@@ -39,7 +40,6 @@ router.put('/profile', protectAdmin, adminDashboardController.updateProfile);
 router.put('/password', protectAdmin, adminDashboardController.updatePassword);
 
 // Dashboard statistics routes
-// router.get('/statistics', protectAdmin, adminDashboardController.getDashboardStatistics);
-// router.get('/recent-activities', protectAdmin, adminDashboardController.getRecentActivities);
+router.get('/statistics', protectAdmin, adminDashboardController.getDashboardStats);
 
 module.exports = router;

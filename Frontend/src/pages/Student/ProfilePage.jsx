@@ -1,883 +1,1780 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-    Box,
-    Container,
-    Typography,
-    Paper,
-    Grid,
-    TextField,
-    Button,
-    Avatar,
-    CircularProgress,
-    Divider,
-    Alert,
-    Snackbar,
-    Card,
-    CardContent,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    InputAdornment,
-    IconButton,
-    useTheme,
-    Stack
-} from '@mui/material';
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  TextField,
+  Button,
+  Avatar,
+  CircularProgress,
+  Divider,
+  Alert,
+  Snackbar,
+  Card,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  InputAdornment,
+  IconButton,
+  useTheme,
+  Stack,
+  Chip,
+  alpha,
+  Tooltip,
+  useMediaQuery,
+  Badge,
+  LinearProgress,
+} from "@mui/material";
 import {
-    Person as PersonIcon,
-    Edit as EditIcon,
-    Save as SaveIcon,
-    Lock as LockIcon,
-    School as SchoolIcon,
-    Dashboard as DashboardIcon,
-    EmojiEvents as EmojiEventsIcon,
-    Visibility as VisibilityIcon,
-    VisibilityOff as VisibilityOffIcon,
-    Assignment as AssignmentIcon
-} from '@mui/icons-material';
-import dashboardService from '../../services/dashboardService';
-import { useNavigate } from 'react-router-dom';
+  Person as PersonIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Lock as LockIcon,
+  School as SchoolIcon,
+  Dashboard as DashboardIcon,
+  EmojiEvents as TrophyIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
+  Assignment as AssignmentIcon,
+  AccessTime as ClockIcon,
+  VerifiedUser as VerifiedIcon,
+  Grade as GradeIcon,
+  Email as EmailIcon,
+  CalendarToday as CalendarIcon,
+  CheckCircle as CheckCircleIcon,
+  ArrowForward as ArrowIcon,
+  History as HistoryIcon,
+  Sync as SyncIcon,
+  Assignment,
+  Refresh,
+} from "@mui/icons-material";
+import dashboardService from "../../services/dashboardService";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 // Current date and time
-const CURRENT_DATE_TIME = "2025-05-31 14:23:14";
-const CURRENT_USER = "VanshSharmaSDE";
+const CURRENT_DATE_TIME = "2025-06-01 21:22:45";
+const CURRENT_USER = "Anuj-prajapati-SDE";
+
+// Create motion variants for animations
+const MotionContainer = motion(Container);
+const MotionPaper = motion(Paper);
+const MotionCard = motion(Card);
+const MotionTypography = motion(Typography);
+const MotionBox = motion(Box);
+const MotionAvatar = motion(Avatar);
 
 const ProfilePage = () => {
-    const theme = useTheme();
-    const navigate = useNavigate();
+  const theme = useTheme();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isDark = theme.palette.mode === "dark";
 
-    // Profile state
-    const [profile, setProfile] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState({
-        studentFirstName: '',
-        studentLastName: '',
-        studentEmail: '',
-        studentImage: '',
-        grade: '',
-        school: ''
+  // Profile state
+  const [profile, setProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    studentFirstName: "",
+    studentLastName: "",
+    studentEmail: "",
+    studentImage: "",
+    grade: "",
+    school: "",
+  });
+
+  // UI state
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Password dialog state
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
+
+  // Animation variants
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
+  const popIn = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { type: "spring", stiffness: 100, delay: 0.1 },
+    },
+    hover: {
+      y: -8,
+      boxShadow: "0px 10px 25px rgba(0,0,0,0.15)",
+      transition: { duration: 0.3 },
+    },
+  };
+
+  const staggerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const listItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.3 },
+    },
+  };
+
+  // Fetch student profile
+  useEffect(() => {
+    fetchProfile();
+  }, [navigate]);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+
+      // Use dashboardService to fetch profile data
+      const response = await dashboardService.getProfile();
+
+      if (response.success) {
+        // Get the student data from the response
+        const studentData = response.data.student;
+
+        setProfile(studentData);
+        setFormData({
+          studentFirstName: studentData.studentFirstName || "",
+          studentLastName: studentData.studentLastName || "",
+          studentEmail: studentData.studentEmail || "",
+          studentImage: studentData.studentImage || "",
+          grade: studentData.grade || "",
+          school: studentData.school || "",
+        });
+      } else {
+        throw new Error(response.message || "Failed to load profile");
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      setError("Failed to load profile. Please refresh and try again.");
+
+      // If unauthorized, redirect to login
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchProfile().then(() => {
+      setTimeout(() => {
+        setRefreshing(false);
+        setNotification({
+          open: true,
+          message: "Profile refreshed",
+          type: "success",
+        });
+      }, 800);
     });
+  };
 
-    // UI state
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState(null);
+  // Handle form input change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
-    // Password dialog state
-    const [passwordDialog, setPasswordDialog] = useState(false);
-    const [passwordData, setPasswordData] = useState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-    });
-    const [passwordErrors, setPasswordErrors] = useState({});
-    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // Handle password input change
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
 
-    // Notification state
-    const [notification, setNotification] = useState({
-        open: false,
-        message: '',
-        type: 'success'
-    });
+    // Clear error for this field if any
+    if (passwordErrors[name]) {
+      setPasswordErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: null,
+      }));
+    }
+  };
 
-    // Fetch student profile
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                setLoading(true);
-                
-                // Use dashboardService to fetch profile data
-                const response = await dashboardService.getProfile();
-                
-                if (response.success) {
-                    // Get the student data from the response
-                    const studentData = response.data.student;
-                    
-                    setProfile(studentData);
-                    setFormData({
-                        studentFirstName: studentData.studentFirstName || '',
-                        studentLastName: studentData.studentLastName || '',
-                        studentEmail: studentData.studentEmail || '',
-                        studentImage: studentData.studentImage || '',
-                        grade: studentData.grade || '',
-                        school: studentData.school || ''
-                    });
-                } else {
-                    throw new Error(response.message || 'Failed to load profile');
-                }
-            } catch (err) {
-                console.error('Error fetching profile:', err);
-                setError('Failed to load profile. Please refresh and try again.');
+  // Handle form submission
+  const handleSubmit = async () => {
+    try {
+      setSaving(true);
 
-                // If unauthorized, redirect to login
-                if (err.response?.status === 401 || err.response?.status === 403) {
-                    localStorage.removeItem('token');
-                    navigate('/login');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
+      // Use dashboardService to update profile
+      const response = await dashboardService.updateProfile(formData);
 
-        fetchProfile();
-    }, [navigate]);
+      if (response.success) {
+        const updatedStudentData = response.data.student;
 
-    // Handle form input change
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prevData => ({
-            ...prevData,
-            [name]: value
-        }));
-    };
-
-    // Handle password input change
-    const handlePasswordChange = (e) => {
-        const { name, value } = e.target;
-        setPasswordData(prevData => ({
-            ...prevData,
-            [name]: value
+        // Update profile state with new data
+        setProfile((prevProfile) => ({
+          ...prevProfile,
+          ...updatedStudentData,
         }));
 
-        // Clear error for this field if any
-        if (passwordErrors[name]) {
-            setPasswordErrors(prevErrors => ({
-                ...prevErrors,
-                [name]: null
-            }));
-        }
-    };
+        // Show success notification
+        setNotification({
+          open: true,
+          message: "Profile updated successfully",
+          type: "success",
+        });
 
-    // Handle form submission
-    const handleSubmit = async () => {
-        try {
-            setSaving(true);
-            
-            // Use dashboardService to update profile
-            const response = await dashboardService.updateProfile(formData);
+        // Exit edit mode
+        setIsEditing(false);
+      } else {
+        throw new Error(response.message || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
 
-            if (response.success) {
-                const updatedStudentData = response.data.student;
-                
-                // Update profile state with new data
-                setProfile(prevProfile => ({
-                    ...prevProfile,
-                    ...updatedStudentData
-                }));
+      setNotification({
+        open: true,
+        message: err.message || "Failed to update profile",
+        type: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
-                // Show success notification
-                setNotification({
-                    open: true,
-                    message: 'Profile updated successfully',
-                    type: 'success'
-                });
+  // Validate password form
+  const validatePasswordForm = () => {
+    const errors = {};
 
-                // Exit edit mode
-                setIsEditing(false);
-            } else {
-                throw new Error(response.message || 'Failed to update profile');
-            }
-        } catch (err) {
-            console.error('Error updating profile:', err);
+    if (!passwordData.currentPassword) {
+      errors.currentPassword = "Current password is required";
+    }
 
-            setNotification({
-                open: true,
-                message: err.message || 'Failed to update profile',
-                type: 'error'
-            });
-        } finally {
-            setSaving(false);
-        }
-    };
+    if (!passwordData.newPassword) {
+      errors.newPassword = "New password is required";
+    } else if (passwordData.newPassword.length < 6) {
+      errors.newPassword = "Password must be at least 6 characters";
+    }
 
-    // Validate password form
-    const validatePasswordForm = () => {
-        const errors = {};
+    if (!passwordData.confirmPassword) {
+      errors.confirmPassword = "Please confirm your new password";
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
 
-        if (!passwordData.currentPassword) {
-            errors.currentPassword = 'Current password is required';
-        }
+    setPasswordErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-        if (!passwordData.newPassword) {
-            errors.newPassword = 'New password is required';
-        } else if (passwordData.newPassword.length < 6) {
-            errors.newPassword = 'Password must be at least 6 characters';
-        }
+  // Handle password update
+  const handlePasswordUpdate = async () => {
+    if (!validatePasswordForm()) {
+      return;
+    }
 
-        if (!passwordData.confirmPassword) {
-            errors.confirmPassword = 'Please confirm your new password';
-        } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-            errors.confirmPassword = 'Passwords do not match';
-        }
+    try {
+      setSaving(true);
 
-        setPasswordErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+      // Use dashboardService to update password
+      const response = await dashboardService.updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
 
-    // Handle password update
-    const handlePasswordUpdate = async () => {
-        if (!validatePasswordForm()) {
-            return;
-        }
+      if (response.success) {
+        // Close dialog and reset form
+        setPasswordDialog(false);
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
 
-        try {
-            setSaving(true);
-            
-            // Use dashboardService to update password
-            const response = await dashboardService.updatePassword({
-                currentPassword: passwordData.currentPassword,
-                newPassword: passwordData.newPassword
-            });
+        // Show success notification
+        setNotification({
+          open: true,
+          message: "Password updated successfully",
+          type: "success",
+        });
+      } else {
+        throw new Error(response.message || "Failed to update password");
+      }
+    } catch (err) {
+      console.error("Error updating password:", err);
 
-            if (response.success) {
-                // Close dialog and reset form
-                setPasswordDialog(false);
-                setPasswordData({
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: ''
-                });
+      // Handle common errors
+      if (
+        err.message?.includes("incorrect") ||
+        err.response?.data?.message?.includes("incorrect")
+      ) {
+        setPasswordErrors({
+          ...passwordErrors,
+          currentPassword: "Current password is incorrect",
+        });
+      } else {
+        setNotification({
+          open: true,
+          message: err.message || "Failed to update password",
+          type: "error",
+        });
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
 
-                // Show success notification
-                setNotification({
-                    open: true,
-                    message: 'Password updated successfully',
-                    type: 'success'
-                });
-            } else {
-                throw new Error(response.message || 'Failed to update password');
-            }
-        } catch (err) {
-            console.error('Error updating password:', err);
+  // Close notification
+  const handleCloseNotification = () => {
+    setNotification((prev) => ({
+      ...prev,
+      open: false,
+    }));
+  };
 
-            // Handle common errors
-            if (err.message?.includes('incorrect') || err.response?.data?.message?.includes('incorrect')) {
-                setPasswordErrors({
-                    ...passwordErrors,
-                    currentPassword: 'Current password is incorrect'
-                });
-            } else {
-                setNotification({
-                    open: true,
-                    message: err.message || 'Failed to update password',
-                    type: 'error'
-                });
-            }
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    // Close notification
-    const handleCloseNotification = () => {
-        setNotification(prev => ({
-            ...prev,
-            open: false
-        }));
-    };
-
+  // Render loading skeleton
+  if (loading) {
     return (
-        <>
-            <Container maxWidth="xl">
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : error ? (
-                    <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
-                ) : (
-                    <Grid container spacing={3}>
-                        {/* Profile Card */}
-                        <Grid item xs={12} md={4}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: '16px',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                }}
-                            >
-                                <Box sx={{ textAlign: 'center', mb: 3 }}>
-                                    <Avatar
-                                        src={profile?.studentImage}
-                                        alt={profile?.studentFirstName}
-                                        sx={{
-                                            width: 120,
-                                            height: 120,
-                                            mx: 'auto',
-                                            mb: 2,
-                                            border: '4px solid',
-                                            borderColor: 'primary.main'
-                                        }}
-                                    >
-                                        {profile?.studentFirstName?.charAt(0)}
-                                    </Avatar>
-                                    <Typography variant="h5" fontWeight="bold">
-                                        {profile?.studentFirstName} {profile?.studentLastName}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {profile?.studentEmail}
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            display: 'inline-block',
-                                            bgcolor: 'primary.main',
-                                            color: 'primary.contrastText',
-                                            px: 1,
-                                            py: 0.5,
-                                            borderRadius: '4px',
-                                            mt: 1
-                                        }}
-                                    >
-                                        Student
-                                    </Typography>
-                                </Box>
-
-                                <Divider sx={{ my: 2 }} />
-
-                                {/* Profile Stats */}
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Statistics
-                                    </Typography>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={6}>
-                                            <Card
-                                                variant="outlined"
-                                                sx={{
-                                                    borderRadius: '8px',
-                                                    height: '100%'
-                                                }}
-                                            >
-                                                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                                        <EmojiEventsIcon sx={{ color: 'primary.main', mr: 1, fontSize: '1rem' }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Competitions
-                                                        </Typography>
-                                                    </Box>
-                                                    <Typography variant="h5" fontWeight="bold">
-                                                        {profile?.stats?.competitionsCount || 0}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Card
-                                                variant="outlined"
-                                                sx={{
-                                                    borderRadius: '8px',
-                                                    height: '100%'
-                                                }}
-                                            >
-                                                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                                        <AssignmentIcon sx={{ color: 'secondary.main', mr: 1, fontSize: '1rem' }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Completed
-                                                        </Typography>
-                                                    </Box>
-                                                    <Typography variant="h5" fontWeight="bold">
-                                                        {profile?.stats?.completedCompetitionsCount || 0}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grid>
-                                </Box>
-
-                                <Divider sx={{ my: 2 }} />
-
-                                {/* Action Buttons */}
-                                <Box>
-                                    <Button
-                                        fullWidth
-                                        variant="contained"
-                                        startIcon={<EditIcon />}
-                                        onClick={() => setIsEditing(true)}
-                                        sx={{
-                                            borderRadius: '8px',
-                                            mb: 2,
-                                            bgcolor: 'var(--theme-color)',
-                                            '&:hover': {
-                                                bgcolor: 'var(--hover-color)'
-                                            }
-                                        }}
-                                    >
-                                        Edit Profile
-                                    </Button>
-                                    <Button
-                                        fullWidth
-                                        variant="outlined"
-                                        color="primary"
-                                        startIcon={<LockIcon />}
-                                        onClick={() => setPasswordDialog(true)}
-                                        sx={{
-                                            borderRadius: '8px',
-                                        }}
-                                    >
-                                        Change Password
-                                    </Button>
-                                </Box>
-                            </Paper>
-                        </Grid>
-
-                        {/* Profile Details and Quick Actions side by side */}
-                        <Grid item xs={12} md={8}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: '16px',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                }}
-                            >
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography variant="h6" fontWeight="bold">
-                                        {isEditing ? 'Edit Profile' : 'Profile Information'}
-                                    </Typography>
-
-                                    {isEditing && (
-                                        <Button
-                                            variant="outlined"
-                                            color="inherit"
-                                            onClick={() => {
-                                                setIsEditing(false);
-                                                setFormData({
-                                                    studentFirstName: profile?.studentFirstName || '',
-                                                    studentLastName: profile?.studentLastName || '',
-                                                    studentEmail: profile?.studentEmail || '',
-                                                    studentImage: profile?.studentImage || '',
-                                                    grade: profile?.grade || '',
-                                                    school: profile?.school || ''
-                                                });
-                                            }}
-                                            sx={{ borderRadius: '8px' }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    )}
-                                </Box>
-
-                                <Divider sx={{ mb: 3 }} />
-                                
-                                {/* Main content area with Profile Details and Quick Actions side by side */}
-                                <Grid container spacing={3}>
-                                    {/* Profile Details - Vertical layout */}
-                                    <Grid item xs={12} md={6}>
-                                        {isEditing ? (
-                                            // Edit Form - Vertical layout
-                                            <Box component="form">
-                                                <Stack spacing={3}>
-                                                    <TextField
-                                                        fullWidth
-                                                        label="First Name"
-                                                        name="studentFirstName"
-                                                        value={formData.studentFirstName}
-                                                        onChange={handleChange}
-                                                        required
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <PersonIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Last Name"
-                                                        name="studentLastName"
-                                                        value={formData.studentLastName}
-                                                        onChange={handleChange}
-                                                        required
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <PersonIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Email Address"
-                                                        name="studentEmail"
-                                                        type="email"
-                                                        value={formData.studentEmail}
-                                                        onChange={handleChange}
-                                                        required
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <PersonIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Grade"
-                                                        name="grade"
-                                                        value={formData.grade}
-                                                        onChange={handleChange}
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <SchoolIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="School"
-                                                        name="school"
-                                                        value={formData.school}
-                                                        onChange={handleChange}
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <SchoolIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Profile Image URL"
-                                                        name="studentImage"
-                                                        value={formData.studentImage}
-                                                        onChange={handleChange}
-                                                        placeholder="Enter URL to your profile image"
-                                                        helperText="Leave blank to use default avatar"
-                                                        InputProps={{
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    {formData.studentImage && (
-                                                        <Box sx={{ textAlign: 'center' }}>
-                                                            <Avatar
-                                                                src={formData.studentImage}
-                                                                alt="Preview"
-                                                                sx={{ width: 80, height: 80, mx: 'auto', mb: 1 }}
-                                                            />
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                Image Preview
-                                                            </Typography>
-                                                        </Box>
-                                                    )}
-                                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                        <Button
-                                                            variant="contained"
-                                                            color="primary"
-                                                            startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                                                            onClick={handleSubmit}
-                                                            disabled={saving}
-                                                            sx={{
-                                                                borderRadius: '8px',
-                                                                px: 4,
-                                                                bgcolor: 'var(--theme-color)',
-                                                                '&:hover': {
-                                                                    bgcolor: 'var(--hover-color)'
-                                                                }
-                                                            }}
-                                                        >
-                                                            {saving ? 'Saving...' : 'Save Changes'}
-                                                        </Button>
-                                                    </Box>
-                                                </Stack>
-                                            </Box>
-                                        ) : (
-                                            // Display Profile - Vertical layout
-                                            <Box>
-                                                <Typography variant="h6" sx={{ mb: 2 }}>Profile Details</Typography>
-                                                <Stack spacing={2.5}>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            First Name
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.studentFirstName}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Last Name
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.studentLastName}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Email Address
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.studentEmail}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Grade
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.grade || 'Not specified'}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            School
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.school || 'Not specified'}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Account Created
-                                                        </Typography>
-                                                        <Typography variant="body1">
-                                                            {new Date(profile?.createdAt).toLocaleDateString('en-US', {
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric'
-                                                            })}
-                                                        </Typography>
-                                                    </Box>
-                                                </Stack>
-                                            </Box>
-                                        )}
-                                    </Grid>
-
-                                    {/* Quick Actions - Vertical layout */}
-                                    <Grid item xs={12} md={6}>
-                                        <Box>
-                                            <Typography variant="h6" sx={{ mb: 2 }}>Quick Actions</Typography>
-                                            <Stack spacing={2}>
-                                                <Button
-                                                    fullWidth
-                                                    variant="outlined"
-                                                    color="primary"
-                                                    startIcon={<EmojiEventsIcon />}
-                                                    onClick={() => navigate('/student/competitions')}
-                                                    sx={{
-                                                        p: 2,
-                                                        borderRadius: '8px',
-                                                        justifyContent: 'flex-start',
-                                                        borderWidth: '2px',
-                                                        height: '100%'
-                                                    }}
-                                                >
-                                                    <Box sx={{ textAlign: 'left' }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">
-                                                            Join Competitions
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Browse and join available competitions
-                                                        </Typography>
-                                                    </Box>
-                                                </Button>
-                                                <Button
-                                                    fullWidth
-                                                    variant="outlined"
-                                                    color="secondary"
-                                                    startIcon={<AssignmentIcon />}
-                                                    onClick={() => navigate('/student/results')}
-                                                    sx={{
-                                                        p: 2,
-                                                        borderRadius: '8px',
-                                                        justifyContent: 'flex-start',
-                                                        borderWidth: '2px',
-                                                        height: '100%'
-                                                    }}
-                                                >
-                                                    <Box sx={{ textAlign: 'left' }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">
-                                                            View Results
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            See your competition results
-                                                        </Typography>
-                                                    </Box>
-                                                </Button>
-                                                <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Card
-                                                        variant="outlined"
-                                                        sx={{
-                                                            borderRadius: '8px',
-                                                            p: 2,
-                                                            width: '100%'
-                                                        }}
-                                                    >
-                                                        <CardContent sx={{ p: 0 }}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                                                                <Typography variant="subtitle1" fontWeight="bold">
-                                                                    Current Session
-                                                                </Typography>
-                                                            </Box>
-                                                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                                Current User: {CURRENT_USER}
-                                                            </Typography>
-                                                            <Typography variant="body2" color="text.secondary">
-                                                                Login Time: {CURRENT_DATE_TIME}
-                                                            </Typography>
-                                                        </CardContent>
-                                                    </Card>
-                                                </Box>
-                                            </Stack>
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            </Paper>
-                        </Grid>
-                    </Grid>
-                )}
-            </Container>
-
-            {/* Password Change Dialog */}
-            <Dialog
-                open={passwordDialog}
-                onClose={() => !saving && setPasswordDialog(false)}
-                PaperProps={{
-                    sx: { borderRadius: '12px' }
+      <Container maxWidth="xl">
+        <Box sx={{ py: 4 }}>
+          {/* Header skeleton */}
+          <Paper
+            elevation={2}
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: 2,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  bgcolor: "grey.300",
                 }}
-            >
-                <DialogTitle>Change Password</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ pt: 1, width: { sm: '400px' } }}>
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            label="Current Password"
-                            name="currentPassword"
-                            type={showCurrentPassword ? 'text' : 'password'}
-                            value={passwordData.currentPassword}
-                            onChange={handlePasswordChange}
-                            error={!!passwordErrors.currentPassword}
-                            helperText={passwordErrors.currentPassword}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle current password visibility"
-                                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                            edge="end"
-                                        >
-                                            {showCurrentPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                                sx: { borderRadius: '8px' }
-                            }}
-                        />
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            label="New Password"
-                            name="newPassword"
-                            type={showNewPassword ? 'text' : 'password'}
-                            value={passwordData.newPassword}
-                            onChange={handlePasswordChange}
-                            error={!!passwordErrors.newPassword}
-                            helperText={passwordErrors.newPassword || "Password must be at least 6 characters"}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle new password visibility"
-                                            onClick={() => setShowNewPassword(!showNewPassword)}
-                                            edge="end"
-                                        >
-                                            {showNewPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                                sx: { borderRadius: '8px' }
-                            }}
-                        />
-                        <TextField
-                            fullWidth
-                            margin="normal"
-                            label="Confirm New Password"
-                            name="confirmPassword"
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            value={passwordData.confirmPassword}
-                            onChange={handlePasswordChange}
-                            error={!!passwordErrors.confirmPassword}
-                            helperText={passwordErrors.confirmPassword}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton
-                                            aria-label="toggle confirm password visibility"
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            edge="end"
-                                        >
-                                            {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                                sx: { borderRadius: '8px' }
-                            }}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{ p: 2, pt: 0 }}>
-                    <Button
-                        onClick={() => setPasswordDialog(false)}
-                        color="inherit"
-                        disabled={saving}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handlePasswordUpdate}
-                        variant="contained"
-                        color="primary"
-                        disabled={saving}
-                        startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                        sx={{
-                            borderRadius: '8px',
-                            bgcolor: 'var(--theme-color)',
-                            '&:hover': {
-                                bgcolor: 'var(--hover-color)'
-                            }
-                        }}
-                    >
-                        {saving ? 'Updating...' : 'Update Password'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
+              />
+              <Box>
+                <Box
+                  sx={{
+                    width: 150,
+                    height: 18,
+                    bgcolor: "grey.300",
+                    borderRadius: 1,
+                    mb: 1,
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: 100,
+                    height: 14,
+                    bgcolor: "grey.200",
+                    borderRadius: 1,
+                  }}
+                />
+              </Box>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  width: 180,
+                  height: 20,
+                  bgcolor: "grey.200",
+                  borderRadius: 1,
+                }}
+              />
+            </Box>
+          </Paper>
 
-            {/* Notification Snackbar */}
-            <Snackbar
-                open={notification.open}
-                autoHideDuration={6000}
-                onClose={handleCloseNotification}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-                <Alert
-                    onClose={handleCloseNotification}
-                    severity={notification.type}
-                    variant="filled"
-                    sx={{ width: '100%' }}
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  height: 450,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    mb: 3,
+                  }}
                 >
-                    {notification.message}
-                </Alert>
-            </Snackbar>
-        </>
+                  <Box
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: "50%",
+                      bgcolor: "grey.300",
+                      mb: 2,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      width: 160,
+                      height: 24,
+                      bgcolor: "grey.300",
+                      borderRadius: 1,
+                      mb: 1,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      width: 130,
+                      height: 16,
+                      bgcolor: "grey.200",
+                      borderRadius: 1,
+                    }}
+                  />
+                </Box>
+                <Box sx={{ mt: 4 }}>
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: 20,
+                      bgcolor: "grey.300",
+                      borderRadius: 1,
+                      mb: 2,
+                    }}
+                  />
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid item xs={6}>
+                      <Box
+                        sx={{
+                          height: 80,
+                          bgcolor: "grey.200",
+                          borderRadius: 2,
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box
+                        sx={{
+                          height: 80,
+                          bgcolor: "grey.200",
+                          borderRadius: 2,
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: 40,
+                      bgcolor: "grey.300",
+                      borderRadius: 2,
+                      mb: 2,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: 40,
+                      bgcolor: "grey.200",
+                      borderRadius: 2,
+                    }}
+                  />
+                </Box>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={8}>
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  height: 450,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 180,
+                      height: 24,
+                      bgcolor: "grey.300",
+                      borderRadius: 1,
+                    }}
+                  />
+                </Box>
+                <Divider sx={{ mb: 3 }} />
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Box key={i} sx={{ mb: 3 }}>
+                        <Box
+                          sx={{
+                            width: 100,
+                            height: 16,
+                            bgcolor: "grey.200",
+                            borderRadius: 1,
+                            mb: 1,
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            width: "80%",
+                            height: 24,
+                            bgcolor: "grey.300",
+                            borderRadius: 1,
+                          }}
+                        />
+                      </Box>
+                    ))}
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: 80,
+                        bgcolor: "grey.200",
+                        borderRadius: 2,
+                        mb: 2,
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: 80,
+                        bgcolor: "grey.200",
+                        borderRadius: 2,
+                        mb: 2,
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: 80,
+                        bgcolor: "grey.200",
+                        borderRadius: 2,
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
+      </Container>
     );
+  }
+
+  return (
+    <MotionContainer
+      maxWidth="xl"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+    >
+      <Box sx={{ py: 4 }}>
+        {/* Welcome Section */}
+        <MotionBox
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          sx={{
+            mb: 4,
+            bgcolor: isDark ? "rgba(9, 9, 9, 0.67)" : "primary.main",
+            borderRadius: 2,
+            p: 5,
+            boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.2)" : "none",
+          }}
+        >
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={7}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                sx={{
+                  mb: 1,
+                  color: isDark ? " #f47061" : " white",
+                }}
+              >
+                Welcome to Profile Page
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Track your progress, join competitions, and improve your coding
+                skills.
+              </Typography>
+
+              <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Assignment />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1.2,
+                    boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
+                  }}
+                  onClick={() => navigate("/student/competitions")}
+                >
+                  Browse Competitions
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  startIcon={<Refresh />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontWeight: 600,
+                    color:  " white",
+                    borderColor: " white",
+                    px: 3,
+                    py: 1.2,
+                  }}
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                >
+                  {refreshing ? "Refreshing..." : "Refresh Stats"}
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </MotionBox>
+
+        {error ? (
+          <Alert
+            severity="error"
+            variant="filled"
+            sx={{
+              mb: 3,
+              borderRadius: 2,
+            }}
+          >
+            {error}
+          </Alert>
+        ) : (
+          <Grid container spacing={3}>
+            {/* Profile Card */}
+            <Grid item xs={12} md={4}>
+              <MotionCard
+                elevation={3}
+                variants={popIn}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                sx={{
+                  borderRadius: 4,
+                  overflow: "hidden",
+                  position: "relative",
+                }}
+              >
+                {/* Header accent color */}
+                <Box
+                  sx={{
+                    height: 6,
+                    width: "100%",
+                    bgcolor: "primary.main",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                  }}
+                />
+
+                <CardContent sx={{ p: 4, pt: 5 }}>
+                  <Box sx={{ textAlign: "center", mb: 3 }}>
+                    <MotionAvatar
+                      src={profile?.studentImage}
+                      alt={profile?.studentFirstName}
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{
+                        delay: 0.2,
+                        type: "spring",
+                        stiffness: 100,
+                      }}
+                      sx={{
+                        width: 130,
+                        height: 130,
+                        mx: "auto",
+                        mb: 2,
+                        border: "4px solid",
+                        borderColor: "primary.main",
+                        boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+                      }}
+                    >
+                      {profile?.studentFirstName?.charAt(0)}
+                    </MotionAvatar>
+                    <MotionTypography
+                      variant="h5"
+                      fontWeight="bold"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      {profile?.studentFirstName} {profile?.studentLastName}
+                    </MotionTypography>
+                    <MotionTypography
+                      variant="body2"
+                      color="text.secondary"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      {profile?.studentEmail}
+                    </MotionTypography>
+                    <MotionBox
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <Chip
+                        label="Student"
+                        color="primary"
+                        size="small"
+                        icon={<SchoolIcon />}
+                        sx={{
+                          mt: 1,
+                          fontWeight: 600,
+                          px: 1,
+                        }}
+                      />
+                    </MotionBox>
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  {/* Profile Stats */}
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      sx={{
+                        mb: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <TrophyIcon sx={{ mr: 1, fontSize: 18 }} />
+                      Performance Statistics
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <MotionCard
+                          variant="outlined"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          sx={{
+                            borderRadius: 3,
+                            height: "100%",
+                            p: 2,
+                            background: isDark
+                              ? "linear-gradient(135deg, rgba(66, 66, 255, 0.08) 0%, rgba(66, 66, 255, 0.04) 100%)"
+                              : "linear-gradient(135deg, rgba(66, 66, 255, 0.05) 0%, rgba(66, 66, 255, 0.03) 100%)",
+                            borderColor: alpha(theme.palette.primary.main, 0.2),
+                            transition: "all 0.3s",
+                            "&:hover": {
+                              borderColor: theme.palette.primary.main,
+                              transform: "translateY(-3px)",
+                            },
+                          }}
+                        >
+                          <Box sx={{ mb: 1 }}>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              Competitions
+                            </Typography>
+                            <Typography
+                              variant="h4"
+                              fontWeight="bold"
+                              color="primary.main"
+                            >
+                              {profile?.stats?.competitionsCount || 0}
+                            </Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={Math.min(
+                              (profile?.stats?.competitionsCount || 0) * 10,
+                              100
+                            )}
+                            sx={{ height: 6, borderRadius: 3 }}
+                          />
+                        </MotionCard>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <MotionCard
+                          variant="outlined"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                          sx={{
+                            borderRadius: 3,
+                            height: "100%",
+                            p: 2,
+                            background: isDark
+                              ? "linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.04) 100%)"
+                              : "linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.03) 100%)",
+                            borderColor: alpha(theme.palette.success.main, 0.2),
+                            transition: "all 0.3s",
+                            "&:hover": {
+                              borderColor: theme.palette.success.main,
+                              transform: "translateY(-3px)",
+                            },
+                          }}
+                        >
+                          <Box sx={{ mb: 1 }}>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              Completed
+                            </Typography>
+                            <Typography
+                              variant="h4"
+                              fontWeight="bold"
+                              color="success.main"
+                            >
+                              {profile?.stats?.completedCompetitionsCount || 0}
+                            </Typography>
+                          </Box>
+                          <LinearProgress
+                            variant="determinate"
+                            value={
+                              profile?.stats?.competitionsCount
+                                ? Math.min(
+                                    (profile?.stats
+                                      ?.completedCompetitionsCount /
+                                      profile?.stats?.competitionsCount) *
+                                      100,
+                                    100
+                                  )
+                                : 0
+                            }
+                            color="success"
+                            sx={{ height: 6, borderRadius: 3 }}
+                          />
+                        </MotionCard>
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  <Divider sx={{ my: 3 }} />
+
+                  {/* Current session info */}
+                  <Box
+                    sx={{
+                      mb: 3,
+                      p: 2,
+                      borderRadius: 3,
+                      bgcolor: isDark
+                        ? alpha(theme.palette.background.default, 0.3)
+                        : alpha(theme.palette.background.default, 0.5),
+                      border: `1px solid ${
+                        isDark
+                          ? alpha(theme.palette.common.white, 0.05)
+                          : alpha(theme.palette.common.black, 0.05)
+                      }`,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        mb: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <HistoryIcon sx={{ mr: 1, fontSize: 16 }} />
+                      Current Session
+                    </Typography>
+                    <Stack spacing={1}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ display: "flex", alignItems: "center" }}
+                      >
+                        <PersonIcon sx={{ mr: 1, fontSize: 16 }} />
+                        {CURRENT_USER}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ display: "flex", alignItems: "center" }}
+                      >
+                        <ClockIcon sx={{ mr: 1, fontSize: 16 }} />
+                        {CURRENT_DATE_TIME}
+                      </Typography>
+                    </Stack>
+                  </Box>
+
+                  {/* Action Buttons */}
+                  <Box>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<EditIcon />}
+                      onClick={() => setIsEditing(true)}
+                      disabled={isEditing}
+                      sx={{
+                        borderRadius: 2,
+                        mb: 2,
+                        py: 1.2,
+                        fontWeight: 600,
+                        boxShadow: "0 4px 14px 0 rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      Edit Profile
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<LockIcon />}
+                      onClick={() => setPasswordDialog(true)}
+                      sx={{
+                        borderRadius: 2,
+                        py: 1.2,
+                        fontWeight: 600,
+                        borderWidth: 2,
+                        "&:hover": {
+                          borderWidth: 2,
+                        },
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  </Box>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+
+            {/* Profile Details and Quick Actions side by side */}
+            <Grid item xs={12} md={8}>
+              <MotionCard
+                elevation={3}
+                variants={popIn}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                transition={{ delay: 0.1 }}
+                sx={{
+                  borderRadius: 4,
+                  overflow: "hidden",
+                  position: "relative",
+                  height: "100%",
+                }}
+              >
+                {/* Header accent color */}
+                <Box
+                  sx={{
+                    height: 6,
+                    width: "100%",
+                    bgcolor: "secondary.main",
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                  }}
+                />
+
+                <CardContent sx={{ p: 4, pt: 5, height: "100%" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="h5" fontWeight="bold">
+                      {isEditing ? "Edit Profile" : "Profile Information"}
+                    </Typography>
+
+                    {isEditing && (
+                      <Button
+                        variant="outlined"
+                        color="inherit"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setFormData({
+                            studentFirstName: profile?.studentFirstName || "",
+                            studentLastName: profile?.studentLastName || "",
+                            studentEmail: profile?.studentEmail || "",
+                            studentImage: profile?.studentImage || "",
+                            grade: profile?.grade || "",
+                            school: profile?.school || "",
+                          });
+                        }}
+                        sx={{
+                          borderRadius: 2,
+                          fontWeight: 500,
+                          textTransform: "none",
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </Box>
+
+                  <Divider sx={{ mb: 3 }} />
+
+                  {/* Main content area with Profile Details and Quick Actions side by side */}
+                  <Grid container spacing={4}>
+                    {/* Profile Details - Vertical layout */}
+                    <Grid item xs={12} md={7}>
+                      {isEditing ? (
+                        // Edit Form - Vertical layout
+                        <MotionBox
+                          component="form"
+                          variants={staggerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          <Stack spacing={3}>
+                            <MotionBox variants={listItemVariants}>
+                              <TextField
+                                fullWidth
+                                label="First Name"
+                                name="studentFirstName"
+                                value={formData.studentFirstName}
+                                onChange={handleChange}
+                                required
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <PersonIcon color="action" />
+                                    </InputAdornment>
+                                  ),
+                                  sx: { borderRadius: 2 },
+                                }}
+                              />
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <TextField
+                                fullWidth
+                                label="Last Name"
+                                name="studentLastName"
+                                value={formData.studentLastName}
+                                onChange={handleChange}
+                                required
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <PersonIcon color="action" />
+                                    </InputAdornment>
+                                  ),
+                                  sx: { borderRadius: 2 },
+                                }}
+                              />
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <TextField
+                                fullWidth
+                                label="Email Address"
+                                name="studentEmail"
+                                type="email"
+                                value={formData.studentEmail}
+                                onChange={handleChange}
+                                required
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <EmailIcon color="action" />
+                                    </InputAdornment>
+                                  ),
+                                  sx: { borderRadius: 2 },
+                                }}
+                              />
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <TextField
+                                fullWidth
+                                label="Grade"
+                                name="grade"
+                                value={formData.grade}
+                                onChange={handleChange}
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <GradeIcon color="action" />
+                                    </InputAdornment>
+                                  ),
+                                  sx: { borderRadius: 2 },
+                                }}
+                              />
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <TextField
+                                fullWidth
+                                label="School"
+                                name="school"
+                                value={formData.school}
+                                onChange={handleChange}
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <SchoolIcon color="action" />
+                                    </InputAdornment>
+                                  ),
+                                  sx: { borderRadius: 2 },
+                                }}
+                              />
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <TextField
+                                fullWidth
+                                label="Profile Image URL"
+                                name="studentImage"
+                                value={formData.studentImage}
+                                onChange={handleChange}
+                                placeholder="Enter URL to your profile image"
+                                helperText="Leave blank to use default avatar"
+                                InputProps={{
+                                  sx: { borderRadius: 2 },
+                                }}
+                              />
+                            </MotionBox>
+                            {formData.studentImage && (
+                              <MotionBox
+                                variants={listItemVariants}
+                                sx={{ textAlign: "center" }}
+                              >
+                                <Avatar
+                                  src={formData.studentImage}
+                                  alt="Preview"
+                                  sx={{
+                                    width: 80,
+                                    height: 80,
+                                    mx: "auto",
+                                    mb: 1,
+                                  }}
+                                />
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  Image Preview
+                                </Typography>
+                              </MotionBox>
+                            )}
+                            <MotionBox
+                              variants={listItemVariants}
+                              sx={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                              }}
+                            >
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={
+                                  saving ? (
+                                    <CircularProgress size={20} />
+                                  ) : (
+                                    <SaveIcon />
+                                  )
+                                }
+                                onClick={handleSubmit}
+                                disabled={saving}
+                                sx={{
+                                  borderRadius: 2,
+                                  px: 4,
+                                  py: 1.2,
+                                  fontWeight: 600,
+                                  boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
+                                }}
+                              >
+                                {saving ? "Saving..." : "Save Changes"}
+                              </Button>
+                            </MotionBox>
+                          </Stack>
+                        </MotionBox>
+                      ) : (
+                        // Display Profile - Vertical layout
+                        <MotionBox
+                          variants={staggerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          <Stack spacing={3}>
+                            <MotionBox variants={listItemVariants}>
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: isDark
+                                    ? alpha(
+                                        theme.palette.background.default,
+                                        0.3
+                                      )
+                                    : alpha(
+                                        theme.palette.background.default,
+                                        0.5
+                                      ),
+                                  border: `1px solid ${
+                                    isDark
+                                      ? alpha(theme.palette.common.white, 0.05)
+                                      : alpha(theme.palette.common.black, 0.05)
+                                  }`,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  gutterBottom
+                                >
+                                  First Name
+                                </Typography>
+                                <Typography variant="body1" fontWeight="medium">
+                                  {profile?.studentFirstName || "Not specified"}
+                                </Typography>
+                              </Box>
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: isDark
+                                    ? alpha(
+                                        theme.palette.background.default,
+                                        0.3
+                                      )
+                                    : alpha(
+                                        theme.palette.background.default,
+                                        0.5
+                                      ),
+                                  border: `1px solid ${
+                                    isDark
+                                      ? alpha(theme.palette.common.white, 0.05)
+                                      : alpha(theme.palette.common.black, 0.05)
+                                  }`,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  gutterBottom
+                                >
+                                  Last Name
+                                </Typography>
+                                <Typography variant="body1" fontWeight="medium">
+                                  {profile?.studentLastName || "Not specified"}
+                                </Typography>
+                              </Box>
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: isDark
+                                    ? alpha(
+                                        theme.palette.background.default,
+                                        0.3
+                                      )
+                                    : alpha(
+                                        theme.palette.background.default,
+                                        0.5
+                                      ),
+                                  border: `1px solid ${
+                                    isDark
+                                      ? alpha(theme.palette.common.white, 0.05)
+                                      : alpha(theme.palette.common.black, 0.05)
+                                  }`,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  gutterBottom
+                                >
+                                  Email Address
+                                </Typography>
+                                <Typography variant="body1" fontWeight="medium">
+                                  {profile?.studentEmail || "Not specified"}
+                                </Typography>
+                              </Box>
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: isDark
+                                    ? alpha(
+                                        theme.palette.background.default,
+                                        0.3
+                                      )
+                                    : alpha(
+                                        theme.palette.background.default,
+                                        0.5
+                                      ),
+                                  border: `1px solid ${
+                                    isDark
+                                      ? alpha(theme.palette.common.white, 0.05)
+                                      : alpha(theme.palette.common.black, 0.05)
+                                  }`,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  gutterBottom
+                                >
+                                  Grade
+                                </Typography>
+                                <Typography variant="body1" fontWeight="medium">
+                                  {profile?.grade || "Not specified"}
+                                </Typography>
+                              </Box>
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: isDark
+                                    ? alpha(
+                                        theme.palette.background.default,
+                                        0.3
+                                      )
+                                    : alpha(
+                                        theme.palette.background.default,
+                                        0.5
+                                      ),
+                                  border: `1px solid ${
+                                    isDark
+                                      ? alpha(theme.palette.common.white, 0.05)
+                                      : alpha(theme.palette.common.black, 0.05)
+                                  }`,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  gutterBottom
+                                >
+                                  School
+                                </Typography>
+                                <Typography variant="body1" fontWeight="medium">
+                                  {profile?.school || "Not specified"}
+                                </Typography>
+                              </Box>
+                            </MotionBox>
+                            <MotionBox variants={listItemVariants}>
+                              <Box
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 2,
+                                  bgcolor: isDark
+                                    ? alpha(
+                                        theme.palette.background.default,
+                                        0.3
+                                      )
+                                    : alpha(
+                                        theme.palette.background.default,
+                                        0.5
+                                      ),
+                                  border: `1px solid ${
+                                    isDark
+                                      ? alpha(theme.palette.common.white, 0.05)
+                                      : alpha(theme.palette.common.black, 0.05)
+                                  }`,
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Box sx={{ flexGrow: 1 }}>
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    gutterBottom
+                                  >
+                                    Account Created
+                                  </Typography>
+                                  <Typography
+                                    variant="body1"
+                                    fontWeight="medium"
+                                  >
+                                    {new Date(
+                                      profile?.createdAt
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                    })}
+                                  </Typography>
+                                </Box>
+                                <CalendarIcon color="action" />
+                              </Box>
+                            </MotionBox>
+                          </Stack>
+                        </MotionBox>
+                      )}
+                    </Grid>
+
+                    {/* Quick Actions - Vertical layout */}
+                    <Grid item xs={12} md={5}>
+                      <MotionBox
+                        variants={staggerVariants}
+                        initial="hidden"
+                        animate="visible"
+                      >
+                        <Typography
+                          variant="h6"
+                          fontWeight="bold"
+                          sx={{ mb: 2 }}
+                        >
+                          Quick Actions
+                        </Typography>
+                        <Stack spacing={2}>
+                          <MotionBox variants={listItemVariants}>
+                            <Button
+                              fullWidth
+                              variant="contained"
+                              color="primary"
+                              startIcon={<TrophyIcon />}
+                              onClick={() => navigate("/student/competitions")}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                justifyContent: "flex-start",
+                                height: "100%",
+                                textTransform: "none",
+                                boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
+                                fontWeight: 600,
+                              }}
+                            >
+                              <Box sx={{ textAlign: "left" }}>
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight="bold"
+                                >
+                                  Join Competitions
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ opacity: 0.9, mt: 0.5 }}
+                                >
+                                  Browse and join available competitions
+                                </Typography>
+                              </Box>
+                            </Button>
+                          </MotionBox>
+                          <MotionBox variants={listItemVariants}>
+                            <Button
+                              fullWidth
+                              variant="outlined"
+                              color="secondary"
+                              startIcon={<AssignmentIcon />}
+                              onClick={() => navigate("/student/results")}
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                justifyContent: "flex-start",
+                                borderWidth: 2,
+                                height: "100%",
+                                textTransform: "none",
+                                fontWeight: 600,
+                              }}
+                            >
+                              <Box sx={{ textAlign: "left" }}>
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight="bold"
+                                >
+                                  View Results
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  sx={{ mt: 0.5 }}
+                                >
+                                  See your competition results
+                                </Typography>
+                              </Box>
+                            </Button>
+                          </MotionBox>
+
+                          <MotionBox variants={listItemVariants} sx={{ mt: 2 }}>
+                            <Box
+                              sx={{
+                                p: 2,
+                                borderRadius: 2,
+                                textAlign: "center",
+                                position: "relative",
+                                overflow: "hidden",
+                                bgcolor: theme.palette.primary.main,
+                                color: "white",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                              }}
+                            >
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight="bold"
+                                gutterBottom
+                              >
+                                Need Help?
+                              </Typography>
+                              <Typography variant="body2" paragraph>
+                                Our support team is available 24/7 to assist you
+                                with any questions.
+                              </Typography>
+                              <Button
+                                variant="contained"
+                                color="secondary"
+                                endIcon={<ArrowIcon />}
+                                sx={{
+                                  borderRadius: 2,
+                                  bgcolor: "white",
+                                  color: "primary.main",
+                                  "&:hover": {
+                                    bgcolor: "rgba(255,255,255,0.9)",
+                                  },
+                                  textTransform: "none",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Contact Support
+                              </Button>
+
+                              {/* Background pattern */}
+                              <Box
+                                sx={{
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  opacity: 0.1,
+                                  background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                                  zIndex: 0,
+                                }}
+                              />
+                            </Box>
+                          </MotionBox>
+                        </Stack>
+                      </MotionBox>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+          </Grid>
+        )}
+      </Box>
+
+      {/* Password Change Dialog */}
+      <Dialog
+        open={passwordDialog}
+        onClose={() => !saving && setPasswordDialog(false)}
+        PaperProps={{
+          sx: { borderRadius: 3, p: 1 },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold" }}>Change Password</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1, width: { sm: "400px" } }}>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Current Password"
+              name="currentPassword"
+              type={showCurrentPassword ? "text" : "password"}
+              value={passwordData.currentPassword}
+              onChange={handlePasswordChange}
+              error={!!passwordErrors.currentPassword}
+              helperText={passwordErrors.currentPassword}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle current password visibility"
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
+                      edge="end"
+                    >
+                      {showCurrentPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: 2 },
+              }}
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              label="New Password"
+              name="newPassword"
+              type={showNewPassword ? "text" : "password"}
+              value={passwordData.newPassword}
+              onChange={handlePasswordChange}
+              error={!!passwordErrors.newPassword}
+              helperText={
+                passwordErrors.newPassword ||
+                "Password must be at least 6 characters"
+              }
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle new password visibility"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      edge="end"
+                    >
+                      {showNewPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: 2 },
+              }}
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Confirm New Password"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={passwordData.confirmPassword}
+              onChange={handlePasswordChange}
+              error={!!passwordErrors.confirmPassword}
+              helperText={passwordErrors.confirmPassword}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      edge="end"
+                    >
+                      {showConfirmPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: 2 },
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button
+            onClick={() => setPasswordDialog(false)}
+            color="inherit"
+            disabled={saving}
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handlePasswordUpdate}
+            variant="contained"
+            color="primary"
+            disabled={saving}
+            startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
+            sx={{
+              borderRadius: 2,
+              py: 1,
+              px: 2,
+              textTransform: "none",
+              fontWeight: 600,
+            }}
+          >
+            {saving ? "Updating..." : "Update Password"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          variant="filled"
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+          }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </MotionContainer>
+  );
 };
 
 export default ProfilePage;

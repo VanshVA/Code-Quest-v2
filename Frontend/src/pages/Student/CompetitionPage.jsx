@@ -66,8 +66,6 @@ import { format } from 'date-fns';
 import dashboardService from '../../services/dashboardService';
 
 // Constants for UTC time and current user
-const CURRENT_DATE_TIME = "2025-06-01 10:17:25";
-const CURRENT_USER = "Anuj-prajapati-SDE";
 
 // Custom styled components using motion
 const MotionCard = motion(Card);

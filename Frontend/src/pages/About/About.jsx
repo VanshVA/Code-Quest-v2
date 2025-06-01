@@ -825,89 +825,72 @@ const AboutPage = () => {
         Our journey has been marked by significant milestones as we've expanded our platform capabilities and global reach.
       </Typography>
       
+      {/* Timeline Container with centered vertical line */}
       <Box sx={{ 
         position: 'relative',
+        maxWidth: 1000,
+        mx: 'auto',
+        pt: 6, // Add top padding for better spacing
         '&::after': {
           content: '""',
           position: 'absolute',
           top: 0,
           bottom: 0,
-          left: { xs: 20, sm: '50%' },
+          left: '50%',
           width: 4,
           backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-          transform: { xs: 'translateX(0)', sm: 'translateX(-2px)' },
+          transform: 'translateX(-50%)',
           zIndex: 1,
+          display: { xs: 'none', md: 'block' }
+        },
+        // Mobile timeline line (left-aligned)
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 20,
+          width: 4,
+          backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          zIndex: 1,
+          display: { xs: 'block', md: 'none' }
         }
       }}>
-        {milestones.map((milestone, index) => (
-          <MotionBox
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.5 }}
-            sx={{ 
-              position: 'relative',
-              mb: 5,
-              zIndex: 2,
-            }}
-          >
-            <Grid container>
+        {milestones.map((milestone, index) => {
+          const isEven = index % 2 === 0;
+          
+          return (
+            <MotionBox
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              sx={{ 
+                position: 'relative',
+                mb: 10, // Increase vertical spacing between milestones
+                minHeight: { md: 120 }, // Ensure minimum height for proper alignment
+                zIndex: 2,
+              }}
+            >
+              {/* Center marker (desktop only) */}
               <Grid 
                 item 
-                xs={12} sm={6}
+                xs={12} md={1}
                 sx={{ 
-                  display: 'flex',
+                  position: 'absolute',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: { xs: 'none', md: 'flex' },
+                  justifyContent: 'center',
                   alignItems: 'center',
-                  justifyContent: { xs: 'center', sm: 'flex-start' },
-                  order: { xs: 2, sm: 1 },
-                }}
-              >
-                <Box sx={{ position: 'relative' }}>
-                  <Paper
-                    sx={{
-                      p: 3,
-                      borderRadius: '16px',
-                      backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-                      backdropFilter: 'blur(10px)',
-                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
-                      boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.2)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
-                    }}
-                  >
-                    <Typography 
-                      variant="h6" 
-                      gutterBottom 
-                      sx={{ 
-                        fontWeight: 700,
-                        color: theme.palette.primary.main,
-                      }}
-                    >
-                      {milestone.title}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {milestone.description}
-                    </Typography>
-                  </Paper>
-                </Box>
-              </Grid>
-              
-              <Grid 
-                item 
-                xs={12} sm={6}
-                sx={{ 
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: { xs: 'center', sm: 'flex-end' },
-                  order: { xs: 1, sm: 2 },
-                  position: 'relative',
-                  
+                  zIndex: 3,
                 }}
               >
                 <Box sx={{ 
-                  position: { xs: 'absolute', sm: 'static' },
-                  left: { xs: 0, sm: 'auto' },
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
+                  justifyContent: 'center',
                 }}>
                   <Box sx={{
                     width: 40,
@@ -929,15 +912,196 @@ const AboutPage = () => {
                     sx={{ 
                       fontWeight: 700,
                       mt: 1,
+                      textAlign: 'center',
+                      bgcolor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                      px: 2,
+                      py: 0.75,
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                      minWidth: '100px',
+                      zIndex: 3,
                     }}
                   >
                     {milestone.year} {milestone.quarter}
                   </Typography>
                 </Box>
               </Grid>
-            </Grid>
-          </MotionBox>
-        ))}
+
+              {/* Left side content (on even indexes on desktop) */}
+              <Grid container>
+                <Grid
+                  item
+                  xs={12}
+                  md={5} // Use fixed width from center
+                  sx={{
+                    display: { xs: 'none', md: isEven ? 'block' : 'none' },
+                    position: 'absolute', // Position absolutely
+                    right: '50%', // Align to the center line
+                    pr: 5, // Padding from center line
+                    transform: 'translateX(-10px)', // Fine adjustment
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: '100%', // Use full width of container
+                    }}
+                  >
+                    <Paper
+                      sx={{
+                        p: 3,
+                        borderRadius: '16px',
+                        backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                        boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.2)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          top: '50%',
+                          width: 16,
+                          height: 16,
+                          backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                          transform: 'translateY(-50%) rotate(45deg)',
+                          border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                          right: -8,
+                          zIndex: 0,
+                        }
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                          fontWeight: 700,
+                          color: theme.palette.primary.main,
+                        }}
+                      >
+                        {milestone.title}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {milestone.description}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                </Grid>
+
+                {/* Right side content (on odd indexes on desktop) */}
+                <Grid
+                  item
+                  xs={12}
+                  md={5} // Use fixed width from center
+                  sx={{
+                    display: { xs: 'none', md: isEven ? 'none' : 'block' },
+                    position: 'absolute', // Position absolutely
+                    left: '50%', // Align to the center line
+                    pl: 5, // Padding from center line
+                    transform: 'translateX(10px)', // Fine adjustment
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: '100%', // Use full width of container
+                    }}
+                  >
+                    <Paper
+                      sx={{
+                        p: 3,
+                        borderRadius: '16px',
+                        backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                        backdropFilter: 'blur(10px)',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                        boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.2)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          top: '50%',
+                          width: 16,
+                          height: 16,
+                          backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                          transform: 'translateY(-50%) rotate(45deg)',
+                          border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                          left: -8,
+                          zIndex: 0,
+                        }
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                          fontWeight: 700,
+                          color: theme.palette.primary.main,
+                        }}
+                      >
+                        {milestone.title}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {milestone.description}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                </Grid>
+
+                {/* Mobile timeline content - keep as is */}
+                <Grid
+                  item
+                  xs={12}
+                  sx={{
+                    display: { xs: 'flex', md: 'none' },
+                    pl: 5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: '100%',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      zIndex: 1,
+                    }}
+                  />
+                  <Paper
+                    sx={{
+                      p: 3,
+                      borderRadius: '16px',
+                      backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                      backdropFilter: 'blur(10px)',
+                      border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+                      width: '100%',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      boxShadow: isDark ? '0 10px 30px rgba(0, 0, 0, 0.2)' : '0 10px 30px rgba(0, 0, 0, 0.05)',
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      sx={{
+                        fontWeight: 700,
+                        color: theme.palette.primary.main,
+                        mb: 1,
+                      }}
+                    >
+                      {milestone.title}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {milestone.description}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+            </MotionBox>
+          );
+        })}
       </Box>
       
       <MotionBox
@@ -1162,7 +1326,7 @@ const AboutPage = () => {
                   '&.Mui-selected': {
                     color: 'white',
                     backgroundColor: theme.palette.primary.main,
-                    // boxShadow: '0 4px 12px rgba(188, 64, 55, 0.3)',
+                    // boxShadow: '0 4px 12px rgba(188,64,55,0.3)',
                   },
                 },
               }}

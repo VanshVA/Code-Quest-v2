@@ -61,15 +61,15 @@ const Logo = () => {
     <MotionBox
       component={RouterLink}
       to="/"
-      sx={{ 
-        display: 'flex', 
+      sx={{
+        display: 'flex',
         alignItems: 'center',
         textDecoration: 'none'
       }}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
     >
-      <Box 
+      <Box
         component="span"
         sx={{
           display: 'flex',
@@ -87,11 +87,11 @@ const Logo = () => {
       >
         <MotionBox
           component="span"
-          animate={{ 
+          animate={{
             y: [0, -5, 0],
-            opacity: [1, 0.8, 1], 
+            opacity: [1, 0.8, 1],
           }}
-          transition={{ 
+          transition={{
             duration: 2,
             ease: "easeInOut",
             repeat: Infinity,
@@ -121,7 +121,7 @@ const Logo = () => {
         <MotionTypography
           variant="h6"
           noWrap
-          sx={{ 
+          sx={{
             fontWeight: 800,
             letterSpacing: '.1rem',
             color: 'white',
@@ -132,10 +132,10 @@ const Logo = () => {
           transition={{ duration: 0.5 }}
         >
           CODE-QUEST
-              </MotionTypography>
-        <Typography 
+        </MotionTypography>
+        <Typography
           variant="caption"
-          sx={{ 
+          sx={{
             display: { xs: 'none', sm: 'block' },
             color: 'rgba(255,255,255,0.7)',
             fontWeight: 500,
@@ -152,15 +152,15 @@ const Logo = () => {
 
 // Main navigation items with mega menu
 const navItems = [
-  { 
-    name: 'Home', 
-    path: '/', 
+  {
+    name: 'Home',
+    path: '/',
     icon: <Home />,
     megaMenu: false
   },
-   { 
-    name: 'About', 
-    path: '/about', 
+  {
+    name: 'About',
+    path: '/about',
     icon: <Info />,
     megaMenu: false
   },
@@ -207,20 +207,20 @@ const navItems = [
   //   path: '/leaderboard', 
   //   icon: <Leaderboard />,
   //   megaMenu: false
-  // },
-  { 
-    name: 'Faqs', 
-    path: '/faq', 
-    icon: <QuestionAnswer />,
-    megaMenu: false
-  },
- 
-  { 
-    name: 'Contact', 
-    path: '/contact', 
+  // }, 
+  {
+    name: 'Contact',
+    path: '/contact',
     icon: <ContactSupport />,
     megaMenu: false
   },
+  {
+    name: 'Faqs',
+    path: '/faq',
+    icon: <QuestionAnswer />,
+    megaMenu: false
+  },
+
 ];
 
 const Navbar = ({ isAuthenticated = false }) => {
@@ -234,8 +234,8 @@ const Navbar = ({ isAuthenticated = false }) => {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [megaMenuTimeout, setMegaMenuTimeout] = useState(null);
-  
- 
+
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -249,25 +249,25 @@ const Navbar = ({ isAuthenticated = false }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-  
+
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
-  
+
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-  
+
   // FIX 1: Reduce timeout delay for mega menu closing to make it more responsive
   const handleMenuEnter = (index) => {
     clearTimeout(megaMenuTimeout);
     setActiveMenu(index);
   };
-  
+
   const handleMenuLeave = () => {
     // Reduced timeout from 300ms to 100ms for quicker closing
     const timeout = setTimeout(() => {
@@ -291,22 +291,22 @@ const Navbar = ({ isAuthenticated = false }) => {
 
   const currentDate = new Date();
   const formattedTime = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
-  
+
   // Mobile drawer content
   const drawer = (
     <Box sx={{ width: 280, height: '100%', overflow: 'auto' }}>
       {/* Drawer header */}
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           p: 2,
-          display: 'flex', 
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box 
+          <Box
             component="span"
             sx={{
               display: 'flex',
@@ -334,11 +334,11 @@ const Navbar = ({ isAuthenticated = false }) => {
             CODE-QUEST
           </Typography>
         </Box>
-        <IconButton 
-          onClick={handleDrawerToggle} 
-          sx={{ 
-            backgroundColor: 'rgba(0, 0, 0, 0.04)', 
-            borderRadius: '12px' 
+        <IconButton
+          onClick={handleDrawerToggle}
+          sx={{
+            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            borderRadius: '12px'
           }}
         >
           <Close />
@@ -348,8 +348,8 @@ const Navbar = ({ isAuthenticated = false }) => {
       {/* Drawer user section */}
       {isAuthenticated ? (
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-          <Avatar 
-            alt="Anuj Prajapati" 
+          <Avatar
+            alt="Anuj Prajapati"
             src="/assets/user-avatar.jpg"
             sx={{ width: 40, height: 40, mr: 2 }}
           />
@@ -384,7 +384,7 @@ const Navbar = ({ isAuthenticated = false }) => {
           </Button>
         </Box>
       )}
-      
+
       <Divider />
 
       {/* Nav items */}
@@ -396,12 +396,12 @@ const Navbar = ({ isAuthenticated = false }) => {
                 <ListItem disablePadding>
                   <ListItemButton
                     onClick={() => setActiveMenu(activeMenu === index ? null : index)}
-                    // sx={{
-                    //   backgroundColor: activeMenu === index ? 'rgba(188, 64, 55, 0.08)' : 'transparent',
-                    //   '&:hover': {
-                    //     backgroundColor: 'rgba(188, 64, 55, 0.04)',
-                    //   },
-                    // }}
+                  // sx={{
+                  //   backgroundColor: activeMenu === index ? 'rgba(188, 64, 55, 0.08)' : 'transparent',
+                  //   '&:hover': {
+                  //     backgroundColor: 'rgba(188, 64, 55, 0.04)',
+                  //   },
+                  // }}
                   >
                     <ListItemIcon sx={{ color: activeMenu === index ? theme.palette.primary.main : 'inherit' }}>
                       {item.icon}
@@ -415,13 +415,13 @@ const Navbar = ({ isAuthenticated = false }) => {
                     {item.items.map((category, catIndex) => (
                       <React.Fragment key={category.title}>
                         <ListItem sx={{ pl: 4 }}>
-                          <ListItemText 
-                            primary={category.title} 
-                            primaryTypographyProps={{ 
-                              variant: 'subtitle2', 
+                          <ListItemText
+                            primary={category.title}
+                            primaryTypographyProps={{
+                              variant: 'subtitle2',
                               color: 'text.secondary',
                               fontWeight: 600,
-                            }} 
+                            }}
                           />
                         </ListItem>
                         {category.options.map((option, optIndex) => (
@@ -431,11 +431,11 @@ const Navbar = ({ isAuthenticated = false }) => {
                               to={option.path}
                               sx={{ pl: 6 }}
                             >
-                              <ListItemText 
-                                primary={option.name} 
+                              <ListItemText
+                                primary={option.name}
                                 secondary={option.description}
                                 primaryTypographyProps={{ variant: 'body2' }}
-                                secondaryTypographyProps={{ 
+                                secondaryTypographyProps={{
                                   variant: 'caption',
                                   sx: { display: 'block', mt: 0.5 }
                                 }}
@@ -480,7 +480,7 @@ const Navbar = ({ isAuthenticated = false }) => {
       </List>
 
       <Box sx={{ flexGrow: 1 }} />
-      
+
       <Box sx={{ p: 2, mt: 'auto' }}>
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -494,7 +494,7 @@ const Navbar = ({ isAuthenticated = false }) => {
       </Box>
     </Box>
   );
-  
+
   const buttonVariants = {
     initial: { opacity: 0, y: -5 },
     animate: { opacity: 1, y: 0 },
@@ -504,12 +504,12 @@ const Navbar = ({ isAuthenticated = false }) => {
 
   return (
     <>
-      <AppBar 
+      <AppBar
         position="fixed"
         elevation={scrolled ? 4 : 0}
         sx={{
-          background: scrolled 
-            ? theme.palette.mode === 'dark' 
+          background: scrolled
+            ? theme.palette.mode === 'dark'
               ? 'rgba(25, 25, 25, 0.8)'
               : 'rgba(255, 255, 255, 0.85)'
             : theme.palette.gradients.primary,
@@ -523,25 +523,25 @@ const Navbar = ({ isAuthenticated = false }) => {
           <Toolbar disableGutters sx={{ height: scrolled ? 64 : 80, transition: 'height 0.3s ease' }}>
             {/* Logo - moved to the left */}
             <Logo />
-            
+
             {/* Desktop Navigation */}
             {!isMobile && (
-              <Box 
+              <Box
                 component={motion.div}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
-                sx={{ 
-                  display: 'flex', 
+                sx={{
+                  display: 'flex',
                   flexGrow: 1,
                   mx: 4,
                   justifyContent: 'center',
                 }}
               >
                 {navItems.map((item, index) => (
-                  <Box 
+                  <Box
                     key={item.name}
-                    onMouseEnter={() => item.megaMenu && handleMenuEnter(index)} 
+                    onMouseEnter={() => item.megaMenu && handleMenuEnter(index)}
                     onMouseLeave={item.megaMenu && handleMenuLeave}
                   >
                     <Button
@@ -549,13 +549,18 @@ const Navbar = ({ isAuthenticated = false }) => {
                       to={item.megaMenu ? undefined : item.path}
                       color={scrolled ? "inherit" : "inherit"}
                       onClick={handleLinkClick} // FIX 1: Close menu on click
-                      sx={{ 
+                      sx={{
                         mx: 0.5,
                         py: scrolled ? 1.5 : 2,
                         px: 1.5,
                         position: 'relative',
                         fontWeight: (location.pathname === item.path || activeMenu === index) ? 600 : 400,
-                        // FIX 3: Removed box-shadow from navbar links
+                        // Remove background shadow effect from nav links
+                        backgroundColor: 'transparent',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          backgroundColor: 'white',
+                        },
                         '&:after': {
                           content: '""',
                           position: 'absolute',
@@ -563,7 +568,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                           left: '50%',
                           width: (location.pathname === item.path || activeMenu === index) ? '50%' : '0%',
                           height: '3px',
-                          // bgcolor: scrolled ? '#546E7A' : 'white',
+                          bgcolor: scrolled ? theme.palette.primary.main : 'white',
                           transform: 'translateX(-50%)',
                           transition: 'width 0.3s ease',
                           borderRadius: '2px',
@@ -573,9 +578,9 @@ const Navbar = ({ isAuthenticated = false }) => {
                         },
                       }}
                       endIcon={item.megaMenu && (
-                        <ExpandMore 
-                          fontSize="small" 
-                          sx={{ 
+                        <ExpandMore
+                          fontSize="small"
+                          sx={{
                             transition: 'transform 0.3s ease',
                             transform: activeMenu === index ? 'rotate(180deg)' : 'none',
                           }}
@@ -584,7 +589,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                     >
                       {item.name}
                     </Button>
-                    
+
                     {/* Mega Menu */}
                     {item.megaMenu && (
                       <Popover
@@ -618,26 +623,26 @@ const Navbar = ({ isAuthenticated = false }) => {
                         disableScrollLock
                       >
                         <Box
-                          sx={{ 
+                          sx={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(3, 1fr)', 
+                            gridTemplateColumns: 'repeat(3, 1fr)',
                             gap: 2,
                             p: 3,
                           }}
                         >
                           {item.items.map((category, catIndex) => (
                             <Box key={category.title}>
-                              <Typography 
-                                variant="subtitle1" 
-                                sx={{ 
-                                  fontWeight: 700, 
+                              <Typography
+                                variant="subtitle1"
+                                sx={{
+                                  fontWeight: 700,
                                   color: theme.palette.primary.main,
-                                  mb: 2 
+                                  mb: 2
                                 }}
                               >
                                 {category.title}
                               </Typography>
-                              
+
                               <Stack spacing={1.5}>
                                 {category.options.map((option) => (
                                   <Box
@@ -651,7 +656,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                                       borderRadius: '8px',
                                       transition: 'all 0.2s ease',
                                       '&:hover': {
-                                        backgroundColor: theme.palette.mode === 'dark' 
+                                        backgroundColor: theme.palette.mode === 'dark'
                                           ? 'rgba(255,255,255,0.05)'
                                           : 'rgba(0,0,0,0.02)',
                                         transform: 'translateX(5px)',
@@ -661,8 +666,8 @@ const Navbar = ({ isAuthenticated = false }) => {
                                     <Typography variant="body2" fontWeight={600}>
                                       {option.name}
                                     </Typography>
-                                    <Typography 
-                                      variant="caption" 
+                                    <Typography
+                                      variant="caption"
                                       color="text.secondary"
                                       sx={{ display: 'block', mt: 0.5 }}
                                     >
@@ -680,27 +685,27 @@ const Navbar = ({ isAuthenticated = false }) => {
                 ))}
               </Box>
             )}
-            
+
             {/* Search button, notifications & user profile */}
-            <Box 
+            <Box
               component={motion.div}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              sx={{ 
-                display: 'flex', 
+              sx={{
+                display: 'flex',
                 alignItems: 'center',
                 ml: 'auto'
               }}
             >
               {!isSmall && (
                 <>
-              
-                  
-                  <IconButton 
-                    onClick={toggleColorMode} 
+
+
+                  <IconButton
+                    onClick={toggleColorMode}
                     color="inherit"
-                    sx={{ 
+                    sx={{
                       mr: 1,
                       backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
                       '&:hover': {
@@ -717,9 +722,9 @@ const Navbar = ({ isAuthenticated = false }) => {
                 <>
                   {!isSmall && (
                     <Tooltip title="Notifications">
-                      <IconButton 
+                      <IconButton
                         color="inherit"
-                        sx={{ 
+                        sx={{
                           mr: 2,
                           backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
                           '&:hover': {
@@ -733,7 +738,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                       </IconButton>
                     </Tooltip>
                   )}
-                  
+
                   <Box sx={{ position: 'relative' }}>
                     <Tooltip title="Account settings">
                       <IconButton
@@ -744,8 +749,8 @@ const Navbar = ({ isAuthenticated = false }) => {
                           transition: 'all 0.2s ease',
                         }}
                       >
-                        <Avatar 
-                          alt="Anuj Prajapati" 
+                        <Avatar
+                          alt="Anuj Prajapati"
                           src="/assets/user-avatar.jpg"
                           sx={{ width: 36, height: 36 }}
                         />
@@ -866,7 +871,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                       >
                         Login
                       </MotionBox>
-                      
+
                       <MotionBox
                         component={RouterLink}
                         to="/signup"
@@ -895,12 +900,12 @@ const Navbar = ({ isAuthenticated = false }) => {
                       </MotionBox>
                     </Stack>
                   )}
-                  
+
                   {isMobile && !isSmall && (
-                    <Button 
-                      variant="contained" 
+                    <Button
+                      variant="contained"
                       color="secondary"
-                      component={RouterLink} 
+                      component={RouterLink}
                       to="/login"
                       size="small"
                       sx={{ borderRadius: '50px', px: 2 }}
@@ -910,7 +915,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                   )}
                 </>
               )}
-              
+
               {/* FIX 2: Menu button moved to the right side for mobile */}
               {isMobile && (
                 <IconButton
@@ -918,8 +923,8 @@ const Navbar = ({ isAuthenticated = false }) => {
                   aria-label="open drawer"
                   edge="end"
                   onClick={handleDrawerToggle}
-                  sx={{ 
-                    ml: 1, 
+                  sx={{
+                    ml: 1,
                     backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
                     '&:hover': {
                       backgroundColor: scrolled ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.2)',
@@ -933,7 +938,7 @@ const Navbar = ({ isAuthenticated = false }) => {
           </Toolbar>
         </Container>
       </AppBar>
-      
+
       {/* Mobile drawer - FIX 2: Changed to open from right side */}
       <Drawer
         variant="temporary"
@@ -944,8 +949,8 @@ const Navbar = ({ isAuthenticated = false }) => {
           keepMounted: true, // Better open performance on mobile
         }}
         sx={{
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
             width: 280,
             borderTopLeftRadius: '16px',
             borderBottomLeftRadius: '16px',
@@ -954,7 +959,7 @@ const Navbar = ({ isAuthenticated = false }) => {
       >
         {drawer}
       </Drawer>
-      
+
       {/* Space to prevent content from hiding under navbar */}
       <Toolbar sx={{ height: scrolled ? 64 : 80 }} />
     </>

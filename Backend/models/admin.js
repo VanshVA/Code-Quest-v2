@@ -15,15 +15,27 @@ const  adminSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    adminImage: {
+        type: String,
+        default: "https://res.cloudinary.com/dzqj1x3qk/image/upload/v1735681234/default-profile-picture.png"
+    },  
     role:{
         type: String,
         require:true
+    },
+    permissions: {
+        type: Array,
+        default: ["StudentManagement","TeacherManagement","CompetitionManagement"], // Default to an empty array
     },
     loginTime: {
         type: [Date], // This will store multiple login timestamps
         default: [],  // Default to an empty array
       },
-   
+    lastLoginTime: {
+        type: Date,
+        default: null,
+    },
+    
 });
 
 adminSchema.pre('save', async function (next) {

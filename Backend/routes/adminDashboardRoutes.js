@@ -11,29 +11,34 @@ router.put('/teachers/:id', protectAdmin, authorize('admin'), adminDashboardCont
 router.delete('/teachers/:id', protectAdmin, authorize('admin'), adminDashboardController.deleteTeacher);
 
 // Student management routes
-// router.get('/students', protectAdmin, authorize('admin'), adminDashboardController.getAllStudents);
-// router.get('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.getStudentById);
-// router.post('/students', protectAdmin, authorize('admin'), adminDashboardController.createStudent);
-// router.put('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.updateStudent);
-// router.delete('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.deleteStudent);
+router.get('/students', protectAdmin, authorize('admin'), adminDashboardController.getAllStudents);
+router.get('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.getStudentById);
+router.post('/students', protectAdmin, authorize('admin'), adminDashboardController.createStudent);
+router.put('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.updateStudent);
+router.delete('/students/:id', protectAdmin, authorize('admin'), adminDashboardController.deleteStudent);
 
-// // Competition management routes
-// router.get('/competitions', protectAdmin, authorize('admin'), adminDashboardController.getAllCompetitions);
-// router.get('/competitions/:id', protectAdmin, authorize('admin'), adminDashboardController.getCompetitionById);
-// router.post('/competitions', protectAdmin, authorize('admin'), adminDashboardController.createCompetition);
-// router.put('/competitions/:id', protectAdmin, authorize('admin'), adminDashboardController.updateCompetition);
-// router.delete('/competitions/:id', protectAdmin, authorize('admin'), adminDashboardController.deleteCompetition);
+// Competition management routes
+router.get('/competitions', protectAdmin, authorize('admin'), adminDashboardController.getAllCompetitions);
+router.get('/competitions/:id', protectAdmin, authorize('admin'), adminDashboardController.getCompetitionById);
+router.post('/competitions', protectAdmin, authorize('admin'), adminDashboardController.createCompetition);
+router.put('/competitions/:id', protectAdmin, authorize('admin'), adminDashboardController.updateCompetition);
+router.delete('/competitions/:id', protectAdmin, authorize('admin'), adminDashboardController.deleteCompetition);
+router.put('/competitions/:id/toggle-status', protectAdmin, authorize('admin'), adminDashboardController.toggleCompetitionStatus);
+router.get('/competitions/:id/stats', protectAdmin, authorize('admin'), adminDashboardController.getCompetitionStats);
+router.post('/competitions/:id/archive', protectAdmin, authorize('admin'), adminDashboardController.archiveCompetition);
+router.post('/competitions/:id/clone', protectAdmin, authorize('admin'), adminDashboardController.cloneCompetition);
 
-// // Results management routes
+
+// Results management routes
 // router.get('/results', protectAdmin, authorize('admin'), adminDashboardController.getAllResults);
 // router.get('/results/:id', protectAdmin, authorize('admin'), adminDashboardController.getResultById);
 
-// // Admin profile routes
-// router.get('/profile', protectAdmin, adminDashboardController.getProfile);
-// router.put('/profile', protectAdmin, adminDashboardController.updateProfile);
-// router.put('/password', protectAdmin, adminDashboardController.updatePassword);
+// Admin profile routes
+router.get('/profile', protectAdmin, adminDashboardController.getProfile);
+router.put('/profile', protectAdmin, adminDashboardController.updateProfile);
+router.put('/password', protectAdmin, adminDashboardController.updatePassword);
 
-// // Dashboard statistics routes
+// Dashboard statistics routes
 // router.get('/statistics', protectAdmin, adminDashboardController.getDashboardStatistics);
 // router.get('/recent-activities', protectAdmin, adminDashboardController.getRecentActivities);
 

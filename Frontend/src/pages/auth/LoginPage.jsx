@@ -285,7 +285,7 @@ const LoginPage = () => {
         
         // Redirect after login
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/student/dashboard');
         }, 1500);
       } catch (error) {
         setLoginStatus({

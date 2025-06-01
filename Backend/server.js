@@ -5,8 +5,11 @@ const connectDB = require('./config/db');
 const studentAuthRoutes = require('./routes/studentAuthRoutes');
 const teacherAuthRoutes = require('./routes/teacherAuthRoutes');
 const adminAuthRoutes = require('./routes/adminAuthRoutes');
-const adminDashboardRoutes = require('./routes/adminDashboardRoutes');
+const adminDashboardRoutes = require('./routes/adminDashboardRoutes'); 
+const teacherDashboardRoutes = require('./routes/teacherDashboardRoutes');
+const studentDashboardRoutes = require('./routes/studentDashboardRoutes');
 const createDefaultAdmin = require('./utilities/createDefaultAdmin');
+const { updateCompetitionStatuses } = require('./utilities/scheduler');
 
 // Connect to MongoDB
 connectDB();
@@ -15,7 +18,6 @@ connectDB();
 createDefaultAdmin();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
@@ -25,7 +27,10 @@ app.use(cors());
 app.use('/api/students/auth', studentAuthRoutes);
 app.use('/api/teachers/auth', teacherAuthRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
-app.use('/api/admin/dashboard', require('./routes/adminDashboardRoutes'));
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+app.use('/api/teacher/dashboard', teacherDashboardRoutes);
+app.use('/api/student/dashboard', studentDashboardRoutes);
+
 
 // Default route
 app.get('/', (req, res) => {
@@ -38,7 +43,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Something went wrong!', error: err.message });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Initialize the server
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Run the competition status update immediately on startup
+  updateCompetitionStatuses();
+  
+  // Set up a recurring interval to update competition statuses every minute
+  setInterval(updateCompetitionStatuses, 60 * 1000); // 60 seconds * 1000 ms
 });

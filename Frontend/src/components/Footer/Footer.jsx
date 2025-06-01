@@ -32,6 +32,7 @@ import {
   ArrowForward,
   DarkMode,
   LightMode,
+  CheckCircle,
 } from '@mui/icons-material';
 import { useColorMode } from '../../context/ThemeContext';
 
@@ -165,6 +166,7 @@ const Footer = ({ isAuthenticated = false }) => {
           pt: { xs: 8, md: 10 },
           pb: { xs: 6, md: 4 },
           borderTop: `1px solid ${theme.palette.divider}`,
+          boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.03)', // Added subtle shadow
         }}
       >
         {/* Subtle background pattern */}
@@ -189,8 +191,15 @@ const Footer = ({ isAuthenticated = false }) => {
             top: 0,
             left: 0,
             right: 0,
-            height: '4px',
-            background: theme.palette.gradients.primary,
+            height: '5px', // Slightly thicker accent
+            background: 'linear-gradient(90deg, #f47061, #bc4037, #f47061)', // Modified gradient
+            backgroundSize: '200% 100%',
+            animation: 'gradientMove 10s ease infinite',
+            '@keyframes gradientMove': {
+              '0%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+              '100%': { backgroundPosition: '0% 50%' },
+            },
           }}
         />
 
@@ -206,17 +215,17 @@ const Footer = ({ isAuthenticated = false }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: 40,
-                      height: 40,
-                      borderRadius: '12px',
+                      width: 48, // Larger logo
+                      height: 48,
+                      borderRadius: '14px',
                       background: 'linear-gradient(135deg, #f47061 0%, #bc4037 100%)',
-                      boxShadow: '0 4px 10px rgba(188, 64, 55, 0.3)',
+                      boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)', // Enhanced shadow
                       mr: 1.5,
                     }}
                   >
                     <Typography
                       sx={{
-                        fontSize: '1.8rem',
+                        fontSize: '2rem', // Larger font
                         fontWeight: 'bold',
                         color: 'white',
                       }}
@@ -225,15 +234,16 @@ const Footer = ({ isAuthenticated = false }) => {
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 1.2 }}> {/* Increased size and weight */}
                       CODE-QUEST
                     </Typography>
                     <Typography 
                       variant="caption"
                       sx={{ 
                         color: theme.palette.text.secondary,
-                        fontWeight: 500,
-                        letterSpacing: 1,
+                        fontWeight: 600,
+                        letterSpacing: 1.2,
+                        fontSize: '0.7rem', // Slightly larger
                       }}
                     >
                       CODING PLATFORM
@@ -244,7 +254,11 @@ const Footer = ({ isAuthenticated = false }) => {
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  paragraph
+                  sx={{ 
+                    mb: 2.5, // More space
+                    lineHeight: 1.8, // Better readability
+                    maxWidth: '90%' // Contained width
+                  }}
                 >
                   The ultimate platform for coding competitions and programming skill assessment.
                   Perfect for educational institutions, programming enthusiasts, and aspiring developers.
@@ -253,7 +267,7 @@ const Footer = ({ isAuthenticated = false }) => {
                 {/* Social links */}
                 <Stack 
                   direction="row" 
-                  spacing={1}
+                  spacing={1.5}
                 >
                   {socialLinks.map((social, index) => (
                     <IconButton
@@ -272,7 +286,10 @@ const Footer = ({ isAuthenticated = false }) => {
                           scale: 1.1,
                           backgroundColor: theme.palette.primary.main,
                           color: '#fff',
+                          transform: 'translateY(-3px)', // Added movement
+                          transition: 'all 0.3s ease',
                         },
+                        boxShadow: '0 3px 6px rgba(0,0,0,0.05)', // Subtle shadow
                       }}
                     >
                       {social.icon}
@@ -281,16 +298,35 @@ const Footer = ({ isAuthenticated = false }) => {
                 </Stack>
               </Box>
               
-              {/* Newsletter subscription */}
+              {/* Newsletter subscription - improved UI */}
               <Box 
-                sx={{ mb: { xs: 4, md: 0 } }}
+                sx={{ 
+                  width: '100%',
+                  mb: { xs: 4, md: 0 },
+                  p: 2.5, // Added padding
+                  borderRadius: '16px',
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255,255,255,0.03)'  
+                    : 'rgba(0,0,0,0.02)',
+                  border: '1px solid',
+                  borderColor: theme.palette.mode === 'dark'
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(0,0,0,0.05)',
+                }}
               >
                 <Typography 
                   variant="subtitle1" 
                   gutterBottom 
-                  sx={{ fontWeight: 600 }}
+                  sx={{ fontWeight: 700 }}
                 >
                   Subscribe to Newsletter
+                </Typography>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary" 
+                  sx={{ display: 'block', mb: 2 }}
+                >
+                  Get the latest updates and offers directly to your inbox
                 </Typography>
                 <Box 
                   component="form" 
@@ -319,12 +355,15 @@ const Footer = ({ isAuthenticated = false }) => {
                               borderRadius: '50%',
                               width: 36,
                               height: 36,
+                              marginRight:"1px",
                               '&:hover': {
                                 bgcolor: theme.palette.primary.dark,
+                                transform: 'scale(1.05)',
                               },
                               '&.Mui-disabled': {
                                 bgcolor: theme.palette.grey[400],
-                              }
+                              },
+                              transition: 'all 0.2s ease',
                             }}
                           >
                             <Send fontSize="small" />
@@ -332,11 +371,14 @@ const Footer = ({ isAuthenticated = false }) => {
                         </InputAdornment>
                       ),
                       sx: { 
-                        pr: 0.5,
                         borderRadius: '50px',
                         bgcolor: theme.palette.mode === 'dark' 
-                          ? 'rgba(255,255,255,0.05)'
-                          : 'rgba(0,0,0,0.02)',
+                          ? 'rgba(255,255,255,0.07)'
+                          : 'rgba(255,255,255,0.8)',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                        '&:hover': {
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.08)',
+                        },
                       }
                     }}
                     sx={{ 
@@ -355,8 +397,11 @@ const Footer = ({ isAuthenticated = false }) => {
                         color: theme.palette.success.main,
                         fontSize: '0.75rem',
                         mt: 0.5,
+                        display: 'flex',
+                        alignItems: 'center',
                       }}
                     >
+                      <CheckCircle sx={{ fontSize: '0.875rem', mr: 0.5 }} />
                       Successfully subscribed! Thank you.
                     </Box>
                   )}
@@ -364,62 +409,70 @@ const Footer = ({ isAuthenticated = false }) => {
               </Box>
             </Grid>
             
-            {/* Links sections */}
+            {/* Links sections - modified to use more space */}
             {!isSmall && (
-              <>
-                {footerLinks.map((section, index) => (
-                  <Grid item xs={6} md={2} key={section.title} >
-                    <Typography
-                      variant="subtitle1"
-                      gutterBottom
-                      sx={{ fontWeight: 700 }}
-                    >
-                      {section.title}
-                    </Typography>
-                    <Box component="ul" 
-                  
-                    sx={{ pl: 0, listStyle: 'none'}}>
-                      {section.links.map((link, linkIndex) => (
-                        <Box 
-                          component="li" 
-                          key={link.name}
-                          sx={{ mb: 1 }}
-                        >
-                          <Box
-                            component={RouterLink}
-                            to={link.path}
-                            sx={{
-                              color: 'text.secondary',
-                              textDecoration: 'none',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              position: 'relative',
-                              '&:hover': {
-                                color: theme.palette.primary.main,
-                                '& .arrow': {
-                                  opacity: 1,
-                                  transform: 'translateX(4px)',
-                                },
-                              },
-                            }}
+              <Grid item xs={12} md={8}>
+                <Grid container spacing={29}>
+                  {footerLinks.map((section, index) => (
+                    <Grid item xs={6} sm={3} key={section.title}>
+                      <Typography
+                        variant="subtitle1"
+                        gutterBottom
+                        sx={{ fontWeight: 700 }}
+                      >
+                        {section.title}
+                      </Typography>
+                      <Box 
+                        component="ul" 
+                        sx={{ 
+                          pl: 0, 
+                          listStyle: 'none',
+                          mb: 0
+                        }}
+                      >
+                        {section.links.map((link, linkIndex) => (
+                          <Box 
+                            component="li" 
+                            key={link.name}
+                            sx={{ mb: 1.5 }} // Increased spacing between links
                           >
-                            {link.name}
-                            <ArrowForward 
-                              className="arrow"
-                              sx={{ 
-                                fontSize: '0.8rem',
-                                ml: 0.5,
-                                opacity: 0,
-                                transition: 'all 0.2s ease',
+                            <Box
+                              component={RouterLink}
+                              to={link.path}
+                              sx={{
+                                color: 'text.secondary',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                position: 'relative',
+                                fontSize: '0.95rem', // Slightly larger font
+                                '&:hover': {
+                                  color: theme.palette.primary.main,
+                                  '& .arrow': {
+                                    opacity: 1,
+                                    transform: 'translateX(4px)',
+                                  },
+                                },
                               }}
-                            />
+                            >
+                              {link.name}
+                              <ArrowForward 
+                                className="arrow"
+                                sx={{ 
+                                  fontSize: '0.8rem',
+                                  ml: 0.5,
+                                  opacity: 0,
+                                  transition: 'all 0.2s ease',
+                                }}
+                              />
+                            </Box>
                           </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  </Grid>
-                ))}
-              </>
+                        ))}
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
             )}
 
             {/* Collapsible link sections for mobile */}
@@ -478,15 +531,16 @@ const Footer = ({ isAuthenticated = false }) => {
         </Container>
       </Box>
       
-      {/* Contact info strip */}
+      {/* Contact info strip - improved styling */}
       <Box
         sx={{
-          py: 2,
+          py: 2.5, // More padding
           px: 3,
           bgcolor: theme.palette.mode === 'dark' 
             ? 'rgba(10, 10, 10, 0.95)'
             : 'rgba(240, 240, 240, 0.98)',
           borderTop: `1px solid ${theme.palette.divider}`,
+          boxShadow: 'inset 0 5px 5px -5px rgba(0,0,0,0.1)', // Inset shadow
         }}
       >
         <Container maxWidth="lg">
@@ -549,7 +603,7 @@ const Footer = ({ isAuthenticated = false }) => {
         </Container>
       </Box>
       
-      {/* Scroll to top button */}
+      {/* Scroll to top button - improved */}
       {showScrollTop && (
         <Box
           sx={{
@@ -565,13 +619,16 @@ const Footer = ({ isAuthenticated = false }) => {
               color="primary"
               aria-label="scroll to top"
               sx={{
-                backgroundColor: theme.palette.background.paper,
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                backgroundColor: theme.palette.primary.main,
+                color: '#fff',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
                 '&:hover': {
-                  backgroundColor: theme.palette.background.paper,
+                  backgroundColor: theme.palette.primary.dark,
                   transform: 'translateY(-5px)',
                 },
                 transition: 'transform 0.3s ease',
+                width: 42, // Larger size
+                height: 42,
               }}
             >
               <ArrowUpward />

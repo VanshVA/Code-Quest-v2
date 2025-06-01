@@ -1,142 +1,240 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, useTheme, useMediaQuery } from '@mui/material';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Box } from '@mui/material';
 
-// Dashboard Components
-import Sidebar from '../../components/dashboard/Sidebar';
-import Header from '../../components/dashboard/Header';
-import PageLoader from '../../components/common/PageLoader';
+// Import Student dashboard components
+import DashboardHeader from '../../components/Dashboard/Header';
+import DashboardSidebar from '../../components/Dashboard/Sidebar';
 
-// Dashboard Pages
+// Import Student dashboard pages
+import CompetitionExamPage from './CompetitionExamPage';
 import DashboardHome from './DashboardHome';
-import Competitions from './Competitions';
-import Results from './Results';
-import Profile from './Profile';
-import CompetitionDetails from './CompetitionDetails';
-import CompetitionWaiting from './CompetitionWaiting';
-import CodeEditorScreen from './CodeEditorScreen';
-import CompetitionResult from './CompetitionResult';
+import CompetitionsPage from './CompetitionPage';
+import CompetitionDetailPage from './CompetitionDetailPage';
+import CompetitionResultsPage from './CompetitionResultsPage';
+import ProfilePage from './ProfilePage';
+import NotFoundPage from '../Error404/Error404Page';
 
-// Current date and time for status display
-const CURRENT_DATE_TIME = "2025-05-30 06:43:29";
-const CURRENT_USER = "VanshSharmaSDE";
+// Current date and time
+const CURRENT_DATE_TIME = "2025-05-31 17:47:10";
+const CURRENT_USER = "VanshSharmaSDEChange";
 
 const Dashboard = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
-  const [loading, setLoading] = useState(true);
-  const location = useLocation();
-  
-  // Check if in full-screen mode (competition or code editor)
-  const isFullScreenMode = 
-    location.pathname.includes('/competition/participate') ||
-    location.pathname.includes('/competition/editor');
-  
-  useEffect(() => {
-    // Simulate loading dashboard data
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // Close sidebar on mobile when navigating
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [location, isMobile]);
-  
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-  
-  if (loading) {
-    return <PageLoader />;
-  }
+    const location = useLocation();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [title, setTitle] = useState('Dashboard');
 
-  return (
-    <Box 
-      sx={{
-        display: 'flex',
-        minHeight: '100vh',
-        bgcolor: 'var(--background-color)',
-        color: 'var(--text-color)',
-      }}
-    >
-      {/* Sidebar - Hidden in full-screen mode */}
-      {!isFullScreenMode && (
-        <Sidebar 
-          open={sidebarOpen} 
-          onClose={toggleSidebar}
-          currentPath={location.pathname} 
-          isMobile={isMobile} 
-        />
-      )}
-      
-      {/* Main Content */}
-      <Box 
-        component="main" 
-        sx={{ 
-          flexGrow: 1,
-          transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          ...(sidebarOpen && !isMobile && !isFullScreenMode && {
-            width: `calc(100% - 260px)`,
-            // marginLeft: '260px',
-            transition: theme.transitions.create(['margin', 'width'], {
-              easing: theme.transitions.easing.easeOut,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          }),
-          ...(isFullScreenMode && {
-            width: '100%',
-            marginLeft: 0,
-          })
-        }}
-      >
-        {/* Header - Hidden in full-screen mode */}
-        {!isFullScreenMode && (
-          <Header 
-            toggleSidebar={toggleSidebar} 
-            sidebarOpen={sidebarOpen}
-            isMobile={isMobile}
-            currentDateTime={CURRENT_DATE_TIME}
-            currentUser={CURRENT_USER}
-          />
-        )}
-        
-        {/* Page Content */}
-        <Box 
-          component="div"
-          sx={{ 
-            p: isFullScreenMode ? 0 : { xs: 2, md: 3 }, 
-            mt: isFullScreenMode ? 0 : '70px',
-            minHeight: isFullScreenMode ? '100vh' : 'calc(100vh - 70px)',
-          }}
+    // Update title based on current route
+    useEffect(() => {
+        const path = location.pathname;
+
+        // Regular routes
+        if (path === '/student' || path === '/student/dashboard') {
+            setTitle('Dashboard');
+        } else if (path.includes('/student/profile')) {
+            setTitle('My Profile');
+        }
+        // Competition routes
+        else if (path.includes('/student/competitions/') && path.includes('/exam')) {
+            setTitle('Competition Exam');
+        } else if (path.includes('/student/competitions/') && path.includes('/results')) {
+            setTitle('Competition Results');
+        } else if (path.includes('/student/competitions/')) {
+            setTitle('Competition Details');
+        } else if (path.includes('/student/competitions')) {
+            setTitle('Competitions');
+        }
+        // Results routes
+        else if (path.includes('/student/results/')) {
+            setTitle('Competition Results');
+        } else if (path.includes('/student/results')) {
+            setTitle('Results & Certificates');
+        }
+        // Active competitions specific routes
+        else if (path.includes('/student/active-competitions')) {
+            setTitle('Active Competitions');
+        } else if (path.includes('/student/completed-competitions')) {
+            setTitle('Completed Competitions');
+        }
+    }, [location]);
+
+    // Toggle sidebar
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
+    // Determine if the current route should hide the sidebar and header
+    // For example, during an exam
+    const shouldHideSidebarAndHeader = location.pathname.includes('/exam');
+
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                minHeight: '100vh',
+                backgroundColor: 'var(--background-color)',
+            }}
         >
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<DashboardHome />} />
-              <Route path="/competitions" element={<Competitions />} />
-              <Route path="/results" element={<Results />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/competition/:id" element={<CompetitionDetails />} />
-              <Route path="/competition/waiting/:id" element={<CompetitionWaiting />} />
-              <Route path="/competition/editor/:id" element={<CodeEditorScreen />} />
-              <Route path="/competition/result/:id" element={<CompetitionResult />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </AnimatePresence>
+            {/* Dashboard Sidebar */}
+            {!shouldHideSidebarAndHeader && (
+                <DashboardSidebar
+                    isOpen={isSidebarOpen}
+                    onToggle={toggleSidebar}
+                    currentUser={CURRENT_USER}
+                />
+            )}
+
+            {/* Main Content */}
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    overflow: 'auto',
+                    transition: theme => theme.transitions.create('margin', {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.leavingScreen,
+                    }),
+                    marginLeft: {
+                        xs: 0,
+                        md: shouldHideSidebarAndHeader ? 0 : (isSidebarOpen ? 0 : -240)
+                    },
+                    width: {
+                        xs: '100%',
+                        md: shouldHideSidebarAndHeader ? '100%' : (isSidebarOpen ? 'calc(100% - 240px)' : '100%')
+                    },
+                    marginTop: shouldHideSidebarAndHeader ? 0 : { xs: '64px', md: '64px' }
+                }}
+            >
+                {/* Dashboard Header */}
+                {!shouldHideSidebarAndHeader && (
+                    <DashboardHeader
+                        title={title}
+                        onToggleSidebar={toggleSidebar}
+                        isSidebarOpen={isSidebarOpen}
+                        currentDateTime={CURRENT_DATE_TIME}
+                        currentUser={CURRENT_USER}
+                    />
+                )}
+
+                {/* Dashboard Content */}
+                <Box
+                    sx={{
+                        p: shouldHideSidebarAndHeader ? 0 : { xs: 2, md: 3 },
+                        pt: shouldHideSidebarAndHeader ? 0 : { xs: 10, sm: 11 }
+                    }}
+                >
+                    <Routes>
+                        {/* Dashboard Home */}
+                        <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
+                        <Route
+                            path="/dashboard"
+                            element={
+                                <DashboardHome
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+
+                        {/* Competitions Routes */}
+                        <Route
+                            path="/competitions"
+                            element={
+                                <CompetitionsPage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/active-competitions"
+                            element={
+                                <CompetitionsPage
+                                    activeOnly={true}
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/completed-competitions"
+                            element={
+                                <CompetitionsPage
+                                    completedOnly={true}
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+
+                        {/* Competition Detail Routes */}
+                        <Route
+                            path="/competitions/:id"
+                            element={
+                                <CompetitionDetailPage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/competitions/:id/exam"
+                            element={
+                                <CompetitionExamPage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/competitions/:id/results"
+                            element={
+                                <CompetitionResultsPage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+
+                        {/* Results Routes */}
+                        <Route
+                            path="/results"
+                            element={
+                                <CompetitionsPage
+                                    completedOnly={true}
+                                    resultsView={true}
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/results/:id"
+                            element={
+                                <CompetitionResultsPage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+
+                        <Route
+                            path="/profile"
+                            element={
+                                <ProfilePage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+
+                        {/* Catch All Route */}
+                        <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                </Box>
+            </Box>
         </Box>
-      </Box>
-    </Box>
-  );
+    );
 };
 
 export default Dashboard;

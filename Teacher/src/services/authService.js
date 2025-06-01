@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API requests
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -81,13 +81,13 @@ const authService = {
   
   // Get current teacher profile
   getProfile: async () => {
-    const response = await api.get(`${API_BASE_URL}/teachers/auth/profile`);
+    const response = await api.get(`${API_BASE_URL}/teacher/dashboard/profile`);
     return response.data;
   },
   
   // Update teacher profile
   updateProfile: async (profileData) => {
-    const response = await api.put(`${API_BASE_URL}/teachers/profile`, profileData);
+    const response = await api.put(`${API_BASE_URL}/teacher/dashboard/profile`, profileData);
     
     // Update stored user data
     if (response.data.success) {
@@ -101,7 +101,7 @@ const authService = {
   
   // Update teacher password
   updatePassword: async (currentPassword, newPassword) => {
-    const response = await api.put(`${API_BASE_URL}/teachers/auth/update-password`, {
+    const response = await api.put(`${API_BASE_URL}/teacher/dashboard/password`, {
       currentPassword,
       newPassword,
     });
@@ -132,6 +132,33 @@ const authService = {
   // Get current date and time
   getCurrentDateTime: () => {
     return "2025-05-30 09:10:14";
+  }
+};
+
+/**
+ * Get the auth token from local storage
+ * @returns {string} The auth token
+ */
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
+/**
+ * Handle API errors
+ * @param {Error} error - The error object
+ * @throws {Error} A formatted error message
+ */
+const handleApiError = (error) => {
+  if (error.response) {
+    // Server responded with error status
+    const message = error.response.data?.message || 'An error occurred';
+    throw new Error(message);
+  } else if (error.request) {
+    // Request made but no response
+    throw new Error('Server did not respond. Please check your connection.');
+  } else {
+    // Something else went wrong
+    throw new Error('An error occurred. Please try again.');
   }
 };
 

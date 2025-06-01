@@ -12,16 +12,15 @@ import Leaderboard from './pages/Leaderboard/Leaderboard';
 import SupportPage from './pages/Security/SupportPage';
 import CookiePolicy from './pages/Security/CookiePolicy';
 import SecurityPage from './pages/Security/SecurityPage';
-// import Error404Page from './pages/Error404/Error404Page';
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
-  <Box 
-    sx={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh', 
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
       width: '100%'
     }}
   >
@@ -32,19 +31,20 @@ const PageLoader = () => (
 // ScrollToTop component to scroll to top on route change
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-  
+
   return null;
 };
 
 // AppLayout component to conditionally render Navbar and Footer
 const AppLayout = ({ children }) => {
   const location = useLocation();
-  const isDashboardRoute = location.pathname.startsWith('/dashboard');
-  
+  const isDashboardRoute = location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/student');
+
   return (
     <Box
       className="App"
@@ -59,11 +59,11 @@ const AppLayout = ({ children }) => {
     >
       {/* Only show Navbar if not on dashboard routes */}
       {!isDashboardRoute && <Navbar />}
-      
+
       <Box sx={{ flex: 1 }}>
         {children}
       </Box>
-      
+
       {/* Only show Footer if not on dashboard routes */}
       {!isDashboardRoute && <Footer />}
     </Box>
@@ -83,10 +83,11 @@ const SignupPage = lazy(() => import('./pages/auth/SignupPage'));
 const OTPVerificationPage = lazy(() => import('./components/OTPVerificationPage/OTPVerificationPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
-const Dashboard = lazy(() => import('./pages/Student/Dashboard'));
+const StudentDashboard = lazy(() => import('./pages/Student/Dashboard'));
+const Error404Page = lazy(() => import('./pages/Error404/Error404Page'));
 
 // Protected route component
-const ProtectedRoute = ({ children }) => {
+const ProtectedStudentRoute = ({ children }) => {
   const isAuthenticated = authService.isAuthenticated();
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
@@ -94,7 +95,9 @@ const ProtectedRoute = ({ children }) => {
 // Auth route to redirect authenticated users away from auth pages
 const AuthRoute = ({ children }) => {
   const isAuthenticated = authService.isAuthenticated();
-  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
+
+  if (!isAuthenticated) return children;
+  return <Navigate to="/student/dashboard" />;
 };
 
 function App() {
@@ -108,7 +111,17 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
-              
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfUse />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/security" element={<SecurityPage />} />
+
               {/* Auth routes (redirect to dashboard if already logged in) */}
               <Route path="/login" element={
                 <AuthRoute>
@@ -127,34 +140,29 @@ function App() {
                 </AuthRoute>
               } />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
-              
-              {/* Protected routes (require login) */}
+              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+
+              {/* Student protected routes */}
+              <Route path="/student/*" element={
+                <ProtectedStudentRoute>
+                  <StudentDashboard />
+                </ProtectedStudentRoute>
+              } />
+
+              {/* For backward compatibility */}
               <Route path="/dashboard/*" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
+                <ProtectedStudentRoute>
+                  <StudentDashboard />
+                </ProtectedStudentRoute>
               } />
               <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
+                <ProtectedStudentRoute>
+                  <StudentDashboard />
+                </ProtectedStudentRoute>
               } />
-              
-              {/* Other routes */}
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfUse />} />
-              <Route path="/feedback" element={<Feedback />} />
-              <Route path="/support" element={<SupportPage />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/cookies" element={<CookiePolicy />} />
-              <Route path="/security" element={<SecurityPage />} />
 
-              
               {/* Catch-all route */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Error404Page />} />
             </Routes>
           </AppLayout>
         </Suspense>

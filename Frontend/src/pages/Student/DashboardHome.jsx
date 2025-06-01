@@ -321,6 +321,8 @@ const DashboardHome = () => {
                     borderRadius: 2, 
                     textTransform: 'none',
                     fontWeight: 600,
+                    color:  'white',
+                    borderColor: 'white',
                     px: 3,
                     py: 1.2,
                   }}

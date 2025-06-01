@@ -444,11 +444,11 @@ const CompetitionDetailPage = ({
         </Grid>
         
         {/* Right column with timing and status */}
-        <Grid item xs={12} md={4}>
-          <Card elevation={2} sx={{ mb: 3 }}>
-            <CardContent>
+        <Grid item xs={12} md={4} >
+          <Card elevation={2} >
+            <CardContent >
               <Typography variant="h6" gutterBottom>Competition Status</Typography>
-              <Box sx={{ p: 1 }}>
+              <Box sx={{ p: 1 }} >
                 <Chip 
                   label={competition.status.toUpperCase()}
                   color={

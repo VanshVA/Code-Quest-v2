@@ -59,7 +59,8 @@ import {
   VerifiedUser,
   Bookmark,
   BookmarkBorder,
-  Flag
+  Flag,
+  Assignment
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -668,7 +669,7 @@ const CompetitionPage = ({
       sx={{ 
         backgroundColor: isDark ? 'background.default' : '#f7f9fc',
         minHeight: '100vh',
-        pb: 6
+        pb: 4
       }}
     >
       
@@ -676,8 +677,9 @@ const CompetitionPage = ({
       <Box 
         sx={{ 
           bgcolor: isDark ? 'rgba(9, 9, 9, 0.46)' : 'primary.main',
-          py: { xs: 4, md: 6 },
+          py: { xs: 4, md: 4 },
           mb: 4,
+          fontSize: { xs: '1.5rem', md: '1rem' },
           borderRadius: 2,
           color: isDark ? 'white' : ' white',
           position: 'relative',
@@ -712,8 +714,8 @@ const CompetitionPage = ({
                   component="h1" 
                   sx={{ 
                     fontWeight: 800, 
-                    mb: 1,
-                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    // mb: 1,
+                    fontSize: { xs: '2rem', md: '1.5rem' },
                     background: isDark ? 
                       'linear-gradient(15deg, #bc4037 10%, #f47061 90%)' : 
                       'none',
@@ -782,6 +784,7 @@ const CompetitionPage = ({
           </MotionBox>
         </Container>
       </Box>
+      
       
       <Container maxWidth="lg">
         {/* Filter and Sort Controls */}

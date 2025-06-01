@@ -613,7 +613,7 @@ const ProfilePage = () => {
       animate="visible"
       variants={fadeIn}
     >
-      <Box sx={{ py: 4 }}>
+      <Box sx={{ py: 0 }}>
         {/* Welcome Section */}
         <MotionBox
           initial={{ opacity: 0, y: 20 }}

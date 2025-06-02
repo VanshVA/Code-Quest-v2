@@ -14,7 +14,9 @@ import {
   List,
   ListItem,
   ListItemText,
-  Chip
+  Chip,
+  alpha,
+  useTheme
 } from '@mui/material';
 import {
   CheckCircle as CheckIcon,
@@ -22,14 +24,55 @@ import {
   ArrowBack as BackIcon,
   EmojiEvents as TrophyIcon
 } from '@mui/icons-material';
-import dashboardService from '../../services/dashboardService';
+import { motion } from 'framer-motion';
+
+// Create motion variants for animations
+const MotionBox = motion(Box);
+const MotionCard = motion(Card);
+const MotionPaper = motion(Paper);
+const MotionTypography = motion(Typography);
+const MotionGrid = motion(Grid);
 
 const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [competition, setCompetition] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (custom) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: custom * 0.1,
+        duration: 0.5
+      }
+    })
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: (custom) => ({
+      opacity: 1,
+      scale: 1,
+      transition: {
+        delay: custom * 0.1,
+        duration: 0.4,
+        type: "spring",
+        stiffness: 100
+      }
+    }),
+    hover: {
+      y: -8,
+      boxShadow: "0px 10px 25px rgba(0,0,0,0.1)",
+      transition: { duration: 0.3 }
+    }
+  };
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -68,7 +111,14 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '50vh',
+        backgroundColor: isDark ? 'background.default' : '#f7f9fc', 
+        minHeight: '100vh'
+      }}>
         <CircularProgress />
       </Box>
     );
@@ -76,41 +126,84 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 3 }}>
-        {error}
-        <Button 
-          sx={{ mt: 2 }} 
-          variant="outlined" 
-          onClick={() => navigate('/student/competitions')}
+      <Box sx={{ 
+        backgroundColor: isDark ? 'background.default' : '#f7f9fc',
+        minHeight: '100vh',
+        py: 4,
+        px: 3 
+      }}>
+        <MotionBox
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          Back to Competitions
-        </Button>
-      </Alert>
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            {error}
+            <Button 
+              sx={{ mt: 2 }} 
+              variant="outlined" 
+              onClick={() => navigate('/student/competitions')}
+            >
+              Back to Competitions
+            </Button>
+          </Alert>
+        </MotionBox>
+      </Box>
     );
   }
 
   if (!competition) {
     return (
-      <Alert severity="warning" sx={{ mb: 3 }}>
-        Results not found
-        <Button 
-          sx={{ mt: 2 }} 
-          variant="outlined" 
-          onClick={() => navigate('/student/competitions')}
+      <Box sx={{ 
+        backgroundColor: isDark ? 'background.default' : '#f7f9fc',
+        minHeight: '100vh',
+        py: 4,
+        px: 3 
+      }}>
+        <MotionBox
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          Back to Competitions
-        </Button>
-      </Alert>
+          <Alert severity="warning" sx={{ mb: 3, borderRadius: 2 }}>
+            Results not found
+            <Button 
+              sx={{ mt: 2 }} 
+              variant="outlined" 
+              onClick={() => navigate('/student/competitions')}
+            >
+              Back to Competitions
+            </Button>
+          </Alert>
+        </MotionBox>
+      </Box>
     );
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <Box sx={{ 
+      backgroundColor: isDark ? 'background.default' : '#f7f9fc',
+      minHeight: '100vh',
+      py: 4,
+      px: { xs: 2, md: 4 }
+    }}>
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+      >
         <Box>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+          <MotionTypography 
+            variant="h5" 
+            fontWeight="bold" 
+            gutterBottom
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             {competition.competitionName} - Results
-          </Typography>
+          </MotionTypography>
           <Typography variant="body1" color="text.secondary">
             Competition completed on {formatDate(competition.submissionTime)}
           </Typography>
@@ -119,32 +212,84 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
           variant="outlined"
           startIcon={<BackIcon />}
           onClick={() => navigate('/student/competitions')}
+          sx={{ 
+            borderRadius: 2, 
+            textTransform: 'none',
+            fontWeight: 600,
+            boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.2)' : 'none'
+          }}
         >
           Back to Competitions
         </Button>
-      </Box>
+      </MotionBox>
 
-      <Grid container spacing={3}>
+      <MotionGrid 
+        container 
+        spacing={3}
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+          }
+        }}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Score Card */}
         <Grid item xs={12} md={4}>
-          <Card 
-            elevation={0}
+          <MotionCard 
+            elevation={3}
+            variants={cardVariants}
+            custom={0}
+            whileHover="hover"
             sx={{ 
-              borderRadius: '16px', 
-              border: '1px solid', 
-              borderColor: 'divider',
+              borderRadius: '16px',
               mb: { xs: 3, md: 0 },
-              bgcolor: competition.isGraded ? 'success.light' : 'info.light'
+              overflow: 'hidden',
+              position: 'relative'
             }}
           >
+            <Box
+              sx={{
+                height: 6,
+                width: '100%',
+                bgcolor: competition.isGraded ? 'success.main' : 'info.main',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+              }}
+            />
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <TrophyIcon sx={{ fontSize: 60, color: competition.isGraded ? 'success.main' : 'info.main', mb: 2 }} />
+              <MotionBox
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ 
+                  delay: 0.3,
+                  type: "spring",
+                  stiffness: 100
+                }}
+              >
+                <TrophyIcon sx={{ 
+                  fontSize: 60, 
+                  color: competition.isGraded ? 'success.main' : 'info.main', 
+                  mb: 2 
+                }} />
+              </MotionBox>
               
               {competition.isGraded ? (
                 <>
-                  <Typography variant="h3" fontWeight="bold" gutterBottom>
+                  <MotionTypography 
+                    variant="h3" 
+                    fontWeight="bold" 
+                    gutterBottom
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                  >
                     {Math.round(competition.scorePercentage || 0)}%
-                  </Typography>
+                  </MotionTypography>
                   <Typography variant="h6" gutterBottom>
                     Score: {competition.totalScore || 0}/{competition.maxPossibleScore || 0}
                   </Typography>
@@ -157,9 +302,16 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
                 </>
               ) : (
                 <>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom>
+                  <MotionTypography 
+                    variant="h5" 
+                    fontWeight="bold" 
+                    gutterBottom
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                  >
                     Submitted Successfully
-                  </Typography>
+                  </MotionTypography>
                   <Typography variant="body1" paragraph>
                     Your answers are being reviewed
                   </Typography>
@@ -177,20 +329,35 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
                 </Typography>
               </Box>
             </CardContent>
-          </Card>
+          </MotionCard>
         </Grid>
 
         {/* Results Details */}
         <Grid item xs={12} md={8}>
-          <Paper 
-            elevation={0}
+          <MotionPaper 
+            elevation={3}
+            variants={cardVariants}
+            custom={1}
+            whileHover="hover"
             sx={{ 
               borderRadius: '16px', 
-              border: '1px solid', 
-              borderColor: 'divider',
-              p: 3
+              p: 3,
+              overflow: 'hidden',
+              position: 'relative'
             }}
           >
+            <Box
+              sx={{
+                height: 6,
+                width: '100%',
+                bgcolor: 'secondary.main',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+              }}
+            />
+
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Competition Details
             </Typography>
@@ -235,7 +402,10 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
             </Grid>
             
             {competition.isGraded && competition.competitionType === 'MCQ' && competition.answers && (
-              <>
+              <MotionBox
+                variants={fadeInUp}
+                custom={2}
+              >
                 <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ mt: 3 }}>
                   Question Summary
                 </Typography>
@@ -243,61 +413,74 @@ const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
                 
                 <List>
                   {competition.answers.map((answer, index) => (
-                    <ListItem 
+                    <MotionBox
                       key={index}
-                      sx={{ 
-                        mb: 1, 
-                        bgcolor: answer.isCorrect ? 'success.light' : 'error.light',
-                        borderRadius: 1
-                      }}
+                      variants={fadeInUp}
+                      custom={index * 0.1 + 3}
                     >
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant="body1" fontWeight="medium">
-                              Question {index + 1}:
-                            </Typography>
-                            {answer.isCorrect ? 
-                              <Chip 
-                                label="Correct" 
-                                size="small"
-                                color="success"
-                                icon={<CheckIcon />}
-                                sx={{ ml: 1 }}
-                              /> : 
-                              <Chip 
-                                label="Incorrect" 
-                                size="small"
-                                color="error"
-                                icon={<CancelIcon />}
-                                sx={{ ml: 1 }}
-                              />
-                            }
-                          </Box>
-                        }
-                        secondary={
-                          answer.isCorrect ? 
-                            `Your answer: ${answer.answer}` :
-                            `Your answer: ${answer.answer} | Correct answer: ${answer.correctAnswer}`
-                        }
-                      />
-                    </ListItem>
+                      <ListItem 
+                        sx={{ 
+                          mb: 1, 
+                          bgcolor: answer.isCorrect ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
+                          borderRadius: 2,
+                          border: `1px solid ${answer.isCorrect ? 
+                            alpha(theme.palette.success.main, 0.3) : 
+                            alpha(theme.palette.error.main, 0.3)}`
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant="body1" fontWeight="medium">
+                                Question {index + 1}:
+                              </Typography>
+                              {answer.isCorrect ? 
+                                <Chip 
+                                  label="Correct" 
+                                  size="small"
+                                  color="success"
+                                  icon={<CheckIcon />}
+                                  sx={{ ml: 1 }}
+                                /> : 
+                                <Chip 
+                                  label="Incorrect" 
+                                  size="small"
+                                  color="error"
+                                  icon={<CancelIcon />}
+                                  sx={{ ml: 1 }}
+                                />
+                              }
+                            </Box>
+                          }
+                          secondary={
+                            answer.isCorrect ? 
+                              `Your answer: ${answer.answer}` :
+                              `Your answer: ${answer.answer} | Correct answer: ${answer.correctAnswer}`
+                          }
+                        />
+                      </ListItem>
+                    </MotionBox>
                   ))}
                 </List>
-              </>
+              </MotionBox>
             )}
             
             {(!competition.isGraded || competition.competitionType !== 'MCQ') && (
-              <Alert severity="info" sx={{ mt: 3 }}>
-                {!competition.isGraded ?
-                  'Your answers have been submitted and will be graded soon.' :
-                  'Detailed results for this competition type are not available in this view.'
-                }
-              </Alert>
+              <MotionBox
+                variants={fadeInUp}
+                custom={2}
+              >
+                <Alert severity="info" sx={{ mt: 3, borderRadius: 2 }}>
+                  {!competition.isGraded ?
+                    'Your answers have been submitted and will be graded soon.' :
+                    'Detailed results for this competition type are not available in this view.'
+                  }
+                </Alert>
+              </MotionBox>
             )}
-          </Paper>
+          </MotionPaper>
         </Grid>
-      </Grid>
+      </MotionGrid>
     </Box>
   );
 };

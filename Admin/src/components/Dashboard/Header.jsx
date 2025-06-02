@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
   IconButton,
   Menu,
@@ -18,8 +17,6 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Notifications,
-  AccountCircle,
   Logout,
   PersonOutlined,
   DarkMode,
@@ -41,9 +38,8 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode, setColorMode } = useColorMode();
   
-  // State for user menu and notifications
+  // State for user menu
   const [anchorElUser, setAnchorElUser] = useState(null);
-  const [anchorElNotifications, setAnchorElNotifications] = useState(null);
   
   // State for user information
   const [userInfo, setUserInfo] = useState({
@@ -95,15 +91,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
   
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
-  };
-  
-  // Handle notifications menu open/close
-  const handleOpenNotificationsMenu = (event) => {
-    setAnchorElNotifications(event.currentTarget);
-  };
-  
-  const handleCloseNotificationsMenu = () => {
-    setAnchorElNotifications(null);
   };
   
   // Handle user menu options
@@ -211,118 +198,6 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
               {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
             </MotionBox>
           </Tooltip>
-          
-          {/* Notifications */}
-          <Tooltip title="Notifications">
-            <MotionBox
-              component={IconButton}
-              onClick={handleOpenNotificationsMenu}
-              sx={{ mx: 1 }}
-              variants={iconVariants}
-              whileHover="hover"
-              whileTap="tap"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, duration: 0.3 }}
-            >
-              <Badge badgeContent={4} color="error">
-                <Notifications />
-              </Badge>
-            </MotionBox>
-          </Tooltip>
-          
-          {/* Notifications Menu */}
-          <Menu
-            anchorEl={anchorElNotifications}
-            id="notifications-menu"
-            open={Boolean(anchorElNotifications)}
-            onClose={handleCloseNotificationsMenu}
-            onClick={handleCloseNotificationsMenu}
-            PaperProps={{
-              sx: {
-                width: 320,
-                maxHeight: 480,
-                overflow: 'auto',
-                mt: 1.5,
-                boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                borderRadius: '12px',
-                '&:before': {
-                  content: '""',
-                  display: 'block',
-                  position: 'absolute',
-                  top: 0,
-                  right: 14,
-                  width: 10,
-                  height: 10,
-                  bgcolor: 'background.paper',
-                  transform: 'translateY(-50%) rotate(45deg)',
-                  zIndex: 0,
-                },
-              },
-            }}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Notifications
-              </Typography>
-            </Box>
-            
-            <MenuItem onClick={() => navigate('/dashboard/notifications/1')}>
-              <Box sx={{ width: '100%' }}>
-                <Typography variant="body2" fontWeight="medium">
-                  New teacher registration request
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  A new teacher has registered and requires approval
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                  10 minutes ago
-                </Typography>
-              </Box>
-            </MenuItem>
-            
-            <MenuItem onClick={() => navigate('/dashboard/notifications/2')}>
-              <Box sx={{ width: '100%' }}>
-                <Typography variant="body2" fontWeight="medium">
-                  Competition completed
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Algorithm Challenge competition has ended
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                  1 hour ago
-                </Typography>
-              </Box>
-            </MenuItem>
-            
-            <MenuItem onClick={() => navigate('/dashboard/notifications/3')}>
-              <Box sx={{ width: '100%' }}>
-                <Typography variant="body2" fontWeight="medium">
-                  System update completed
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  The system has been updated to version 2.3.1
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                  1 day ago
-                </Typography>
-              </Box>
-            </MenuItem>
-            
-            <Divider />
-            <Box sx={{ p: 1, textAlign: 'center' }}>
-              <Typography 
-                variant="body2" 
-                color="primary" 
-                sx={{ cursor: 'pointer', fontWeight: 'medium' }}
-                onClick={() => navigate('/dashboard/notifications')}
-              >
-                View all notifications
-              </Typography>
-            </Box>
-          </Menu>
           
           {/* User Menu */}
           <Box sx={{ ml: 1 }}>

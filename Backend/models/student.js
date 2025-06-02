@@ -46,7 +46,7 @@ const studentSchema = new mongoose.Schema({
     provider: {
         type: String
     },
-    registerTime:{
+    registerTime: {
         type: Date,
     },
     loginTime: {
@@ -56,10 +56,6 @@ const studentSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    competitionsJoined: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Competition'
-    }],
 });
 
 studentSchema.pre('save', async function (next) {

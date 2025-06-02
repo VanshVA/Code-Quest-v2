@@ -9,16 +9,13 @@ router.put('/profile', protect, studentDashboardController.updateProfile);
 router.put('/password', protect, studentDashboardController.updatePassword);
 
 //========================= COMPETITION ROUTES ================================//
-router.get('/competitions', protect, studentDashboardController.getAvailableCompetitions);
-router.get('/competitions/:id/overview', protect, studentDashboardController.getCompetitionOverview);
-router.get('/competitions/:id', protect, studentDashboardController.getCompetitionDetails);
+router.get('/competitions/upcoming', protect, studentDashboardController.getUpcomingCompetitions);
+router.get('/competitions/active', protect, studentDashboardController.getActiveCompetitions);
+router.get('/competitions/joined', protect, studentDashboardController.getJoinedCompetitions);
 router.post('/competitions/:id/join', protect, studentDashboardController.joinCompetition);
-router.post('/competitions/:id/save', protect, studentDashboardController.saveCompetitionAnswers);
 router.post('/competitions/:id/submit', protect, studentDashboardController.submitCompetitionAnswers);
-router.get('/competitions/:competitionId/results', protect, studentDashboardController.getCompetitionResults);
-router.get('/competitions/:competitionId/leaderboard', protect, studentDashboardController.getCompetitionLeaderboard);
-
+router.post('/competitions/:id/disqualify', protect, studentDashboardController.disqualifyStudent);
+router.post('/competitions/disqualified', protect, studentDashboardController.getDisqualifiedStudent);
 //========================= DASHBOARD STATISTICS ROUTE ================================//
-router.get('/dashboard-stats', protect, studentDashboardController.getDashboardStatistics);
 
 module.exports = router;

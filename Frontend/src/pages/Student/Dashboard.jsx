@@ -7,13 +7,13 @@ import DashboardHeader from '../../components/Dashboard/Header';
 import DashboardSidebar from '../../components/Dashboard/Sidebar';
 
 // Import Student dashboard pages
-import CompetitionExamPage from './CompetitionExamPage';
 import DashboardHome from './DashboardHome';
-import CompetitionsPage from './CompetitionPage';
-import CompetitionDetailPage from './CompetitionDetailPage';
-import CompetitionResultsPage from './CompetitionResultsPage';
+import CompetitionsPage from './CompetitionListPage';
+import CompetitionExamPage from './CompetitionExamPage';
+import CompetitionResultPage from './CompetitionResultsPage';
 import ProfilePage from './ProfilePage';
 import NotFoundPage from '../Error404/Error404Page';
+
 
 // Current date and time
 const CURRENT_DATE_TIME = "2025-05-31 17:47:10";
@@ -28,34 +28,19 @@ const Dashboard = () => {
     useEffect(() => {
         const path = location.pathname;
 
-        // Regular routes
+        // Simplified route titles
         if (path === '/student' || path === '/student/dashboard') {
             setTitle('Dashboard');
         } else if (path.includes('/student/profile')) {
             setTitle('My Profile');
-        }
-        // Competition routes
-        else if (path.includes('/student/competitions/') && path.includes('/exam')) {
+        } else if (path.includes('/student/competitions/') && path.includes('/exam')) {
             setTitle('Competition Exam');
-        } else if (path.includes('/student/competitions/') && path.includes('/results')) {
-            setTitle('Competition Results');
-        } else if (path.includes('/student/competitions/')) {
-            setTitle('Competition Details');
         } else if (path.includes('/student/competitions')) {
             setTitle('Competitions');
-        }
-        // Results routes
-        else if (path.includes('/student/results/')) {
-            setTitle('Competition Results');
         } else if (path.includes('/student/results')) {
-            setTitle('Results & Certificates');
+            setTitle('Competition Result');
         }
-        // Active competitions specific routes
-        else if (path.includes('/student/active-competitions')) {
-            setTitle('Active Competitions');
-        } else if (path.includes('/student/completed-competitions')) {
-            setTitle('Completed Competitions');
-        }
+
     }, [location]);
 
     // Toggle sidebar
@@ -146,39 +131,10 @@ const Dashboard = () => {
                                 />
                             }
                         />
-                        <Route
-                            path="/active-competitions"
-                            element={
-                                <CompetitionsPage
-                                    activeOnly={true}
-                                    currentDateTime={CURRENT_DATE_TIME}
-                                    currentUser={CURRENT_USER}
-                                />
-                            }
-                        />
-                        <Route
-                            path="/completed-competitions"
-                            element={
-                                <CompetitionsPage
-                                    completedOnly={true}
-                                    currentDateTime={CURRENT_DATE_TIME}
-                                    currentUser={CURRENT_USER}
-                                />
-                            }
-                        />
 
-                        {/* Competition Detail Routes */}
+                        {/* Competition Exam Route */}
                         <Route
-                            path="/competitions/:id"
-                            element={
-                                <CompetitionDetailPage
-                                    currentDateTime={CURRENT_DATE_TIME}
-                                    currentUser={CURRENT_USER}
-                                />
-                            }
-                        />
-                        <Route
-                            path="/competitions/:id/exam"
+                            path="/competition/:id/exam"
                             element={
                                 <CompetitionExamPage
                                     currentDateTime={CURRENT_DATE_TIME}
@@ -186,38 +142,19 @@ const Dashboard = () => {
                                 />
                             }
                         />
-                        <Route
-                            path="/competitions/:id/results"
-                            element={
-                                <CompetitionResultsPage
-                                    currentDateTime={CURRENT_DATE_TIME}
-                                    currentUser={CURRENT_USER}
-                                />
-                            }
-                        />
 
-                        {/* Results Routes */}
+                        {/* Competition Result Route */}
                         <Route
                             path="/results"
                             element={
-                                <CompetitionsPage
-                                    completedOnly={true}
-                                    resultsView={true}
-                                    currentDateTime={CURRENT_DATE_TIME}
-                                    currentUser={CURRENT_USER}
-                                />
-                            }
-                        />
-                        <Route
-                            path="/results/:id"
-                            element={
-                                <CompetitionResultsPage
+                                <CompetitionResultPage
                                     currentDateTime={CURRENT_DATE_TIME}
                                     currentUser={CURRENT_USER}
                                 />
                             }
                         />
 
+                        {/* Profile Page */}
                         <Route
                             path="/profile"
                             element={

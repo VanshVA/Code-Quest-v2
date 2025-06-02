@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const student = require('./student');
 const { Schema } = mongoose;
 
 // Define the schema for questions
@@ -64,6 +65,10 @@ const competitionSchema = new Schema({
     enum: ['upcoming', 'active', 'ended'],
     default: 'upcoming'
   },
+  studentsJoined: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Student'
+  }],
   previousCompetition: { type: Boolean, default: false },
   winner: { type: String, default: null },
   runnerUp: { type: String, default: null },

@@ -22,6 +22,9 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173','http://localhost:5174','http://localhost:5175'], // Adjust as needed
+}));
 
 // Routes
 app.use('/api/students/auth', studentAuthRoutes);

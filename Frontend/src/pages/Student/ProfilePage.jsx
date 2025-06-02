@@ -52,7 +52,6 @@ import {
   Assignment,
   Refresh,
 } from "@mui/icons-material";
-import dashboardService from "../../services/dashboardService";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -367,251 +366,13 @@ const ProfilePage = () => {
     }));
   };
 
-  // Render loading skeleton
-  if (loading) {
-    return (
-      <Container maxWidth="xl">
-        <Box sx={{ py: 4 }}>
-          {/* Header skeleton */}
-          <Paper
-            elevation={2}
-            sx={{
-              p: 2,
-              mb: 3,
-              borderRadius: 2,
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "grey.300",
-                }}
-              />
-              <Box>
-                <Box
-                  sx={{
-                    width: 150,
-                    height: 18,
-                    bgcolor: "grey.300",
-                    borderRadius: 1,
-                    mb: 1,
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 100,
-                    height: 14,
-                    bgcolor: "grey.200",
-                    borderRadius: 1,
-                  }}
-                />
-              </Box>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Box
-                sx={{
-                  width: 180,
-                  height: 20,
-                  bgcolor: "grey.200",
-                  borderRadius: 1,
-                }}
-              />
-            </Box>
-          </Paper>
-
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Paper
-                elevation={2}
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  height: 450,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    mb: 3,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: "50%",
-                      bgcolor: "grey.300",
-                      mb: 2,
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: 160,
-                      height: 24,
-                      bgcolor: "grey.300",
-                      borderRadius: 1,
-                      mb: 1,
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: 130,
-                      height: 16,
-                      bgcolor: "grey.200",
-                      borderRadius: 1,
-                    }}
-                  />
-                </Box>
-                <Box sx={{ mt: 4 }}>
-                  <Box
-                    sx={{
-                      width: "100%",
-                      height: 20,
-                      bgcolor: "grey.300",
-                      borderRadius: 1,
-                      mb: 2,
-                    }}
-                  />
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid item xs={6}>
-                      <Box
-                        sx={{
-                          height: 80,
-                          bgcolor: "grey.200",
-                          borderRadius: 2,
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Box
-                        sx={{
-                          height: 80,
-                          bgcolor: "grey.200",
-                          borderRadius: 2,
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                  <Box
-                    sx={{
-                      width: "100%",
-                      height: 40,
-                      bgcolor: "grey.300",
-                      borderRadius: 2,
-                      mb: 2,
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: "100%",
-                      height: 40,
-                      bgcolor: "grey.200",
-                      borderRadius: 2,
-                    }}
-                  />
-                </Box>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <Paper
-                elevation={2}
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  height: 450,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 2,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 180,
-                      height: 24,
-                      bgcolor: "grey.300",
-                      borderRadius: 1,
-                    }}
-                  />
-                </Box>
-                <Divider sx={{ mb: 3 }} />
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Box key={i} sx={{ mb: 3 }}>
-                        <Box
-                          sx={{
-                            width: 100,
-                            height: 16,
-                            bgcolor: "grey.200",
-                            borderRadius: 1,
-                            mb: 1,
-                          }}
-                        />
-                        <Box
-                          sx={{
-                            width: "80%",
-                            height: 24,
-                            bgcolor: "grey.300",
-                            borderRadius: 1,
-                          }}
-                        />
-                      </Box>
-                    ))}
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      sx={{
-                        width: "100%",
-                        height: 80,
-                        bgcolor: "grey.200",
-                        borderRadius: 2,
-                        mb: 2,
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        width: "100%",
-                        height: 80,
-                        bgcolor: "grey.200",
-                        borderRadius: 2,
-                        mb: 2,
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        width: "100%",
-                        height: 80,
-                        bgcolor: "grey.200",
-                        borderRadius: 2,
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Box>
-      </Container>
-    );
-  }
-
   return (
-    <MotionContainer
-      maxWidth="xl"
-      initial="hidden"
-      animate="visible"
-      variants={fadeIn}
+    <Box sx={{
+      backgroundColor: isDark ? 'background.default' : '#f7f9fc',
+      minHeight: '100vh',
+      pb: 4
+    }}
+
     >
       <Box sx={{ py: 0 }}>
         {/* Welcome Section */}
@@ -668,7 +429,7 @@ const ProfilePage = () => {
                     borderRadius: 2,
                     textTransform: "none",
                     fontWeight: 600,
-                    color:  " white",
+                    color: " white",
                     borderColor: " white",
                     px: 3,
                     py: 1.2,
@@ -784,179 +545,7 @@ const ProfilePage = () => {
                     </MotionBox>
                   </Box>
 
-                  <Divider sx={{ my: 2 }} />
-
-                  {/* Profile Stats */}
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      color="text.secondary"
-                      sx={{
-                        mb: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        fontWeight: 600,
-                      }}
-                    >
-                      <TrophyIcon sx={{ mr: 1, fontSize: 18 }} />
-                      Performance Statistics
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <MotionCard
-                          variant="outlined"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                          sx={{
-                            borderRadius: 3,
-                            height: "100%",
-                            p: 2,
-                            background: isDark
-                              ? "linear-gradient(135deg, rgba(66, 66, 255, 0.08) 0%, rgba(66, 66, 255, 0.04) 100%)"
-                              : "linear-gradient(135deg, rgba(66, 66, 255, 0.05) 0%, rgba(66, 66, 255, 0.03) 100%)",
-                            borderColor: alpha(theme.palette.primary.main, 0.2),
-                            transition: "all 0.3s",
-                            "&:hover": {
-                              borderColor: theme.palette.primary.main,
-                              transform: "translateY(-3px)",
-                            },
-                          }}
-                        >
-                          <Box sx={{ mb: 1 }}>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              gutterBottom
-                            >
-                              Competitions
-                            </Typography>
-                            <Typography
-                              variant="h4"
-                              fontWeight="bold"
-                              color="primary.main"
-                            >
-                              {profile?.stats?.competitionsCount || 0}
-                            </Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={Math.min(
-                              (profile?.stats?.competitionsCount || 0) * 10,
-                              100
-                            )}
-                            sx={{ height: 6, borderRadius: 3 }}
-                          />
-                        </MotionCard>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <MotionCard
-                          variant="outlined"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.4 }}
-                          sx={{
-                            borderRadius: 3,
-                            height: "100%",
-                            p: 2,
-                            background: isDark
-                              ? "linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.04) 100%)"
-                              : "linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(76, 175, 80, 0.03) 100%)",
-                            borderColor: alpha(theme.palette.success.main, 0.2),
-                            transition: "all 0.3s",
-                            "&:hover": {
-                              borderColor: theme.palette.success.main,
-                              transform: "translateY(-3px)",
-                            },
-                          }}
-                        >
-                          <Box sx={{ mb: 1 }}>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              gutterBottom
-                            >
-                              Completed
-                            </Typography>
-                            <Typography
-                              variant="h4"
-                              fontWeight="bold"
-                              color="success.main"
-                            >
-                              {profile?.stats?.completedCompetitionsCount || 0}
-                            </Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={
-                              profile?.stats?.competitionsCount
-                                ? Math.min(
-                                    (profile?.stats
-                                      ?.completedCompetitionsCount /
-                                      profile?.stats?.competitionsCount) *
-                                      100,
-                                    100
-                                  )
-                                : 0
-                            }
-                            color="success"
-                            sx={{ height: 6, borderRadius: 3 }}
-                          />
-                        </MotionCard>
-                      </Grid>
-                    </Grid>
-                  </Box>
-
-                  <Divider sx={{ my: 3 }} />
-
-                  {/* Current session info */}
-                  <Box
-                    sx={{
-                      mb: 3,
-                      p: 2,
-                      borderRadius: 3,
-                      bgcolor: isDark
-                        ? alpha(theme.palette.background.default, 0.3)
-                        : alpha(theme.palette.background.default, 0.5),
-                      border: `1px solid ${
-                        isDark
-                          ? alpha(theme.palette.common.white, 0.05)
-                          : alpha(theme.palette.common.black, 0.05)
-                      }`,
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        mb: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        fontWeight: 600,
-                      }}
-                    >
-                      <HistoryIcon sx={{ mr: 1, fontSize: 16 }} />
-                      Current Session
-                    </Typography>
-                    <Stack spacing={1}>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ display: "flex", alignItems: "center" }}
-                      >
-                        <PersonIcon sx={{ mr: 1, fontSize: 16 }} />
-                        {CURRENT_USER}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ display: "flex", alignItems: "center" }}
-                      >
-                        <ClockIcon sx={{ mr: 1, fontSize: 16 }} />
-                        {CURRENT_DATE_TIME}
-                      </Typography>
-                    </Stack>
-                  </Box>
-
+                  <Divider sx={{ mb: 3 }} />
                   {/* Action Buttons */}
                   <Box>
                     <Button
@@ -1254,18 +843,17 @@ const ProfilePage = () => {
                                   borderRadius: 2,
                                   bgcolor: isDark
                                     ? alpha(
-                                        theme.palette.background.default,
-                                        0.3
-                                      )
+                                      theme.palette.background.default,
+                                      0.3
+                                    )
                                     : alpha(
-                                        theme.palette.background.default,
-                                        0.5
-                                      ),
-                                  border: `1px solid ${
-                                    isDark
+                                      theme.palette.background.default,
+                                      0.5
+                                    ),
+                                  border: `1px solid ${isDark
                                       ? alpha(theme.palette.common.white, 0.05)
                                       : alpha(theme.palette.common.black, 0.05)
-                                  }`,
+                                    }`,
                                 }}
                               >
                                 <Typography
@@ -1287,18 +875,17 @@ const ProfilePage = () => {
                                   borderRadius: 2,
                                   bgcolor: isDark
                                     ? alpha(
-                                        theme.palette.background.default,
-                                        0.3
-                                      )
+                                      theme.palette.background.default,
+                                      0.3
+                                    )
                                     : alpha(
-                                        theme.palette.background.default,
-                                        0.5
-                                      ),
-                                  border: `1px solid ${
-                                    isDark
+                                      theme.palette.background.default,
+                                      0.5
+                                    ),
+                                  border: `1px solid ${isDark
                                       ? alpha(theme.palette.common.white, 0.05)
                                       : alpha(theme.palette.common.black, 0.05)
-                                  }`,
+                                    }`,
                                 }}
                               >
                                 <Typography
@@ -1320,18 +907,17 @@ const ProfilePage = () => {
                                   borderRadius: 2,
                                   bgcolor: isDark
                                     ? alpha(
-                                        theme.palette.background.default,
-                                        0.3
-                                      )
+                                      theme.palette.background.default,
+                                      0.3
+                                    )
                                     : alpha(
-                                        theme.palette.background.default,
-                                        0.5
-                                      ),
-                                  border: `1px solid ${
-                                    isDark
+                                      theme.palette.background.default,
+                                      0.5
+                                    ),
+                                  border: `1px solid ${isDark
                                       ? alpha(theme.palette.common.white, 0.05)
                                       : alpha(theme.palette.common.black, 0.05)
-                                  }`,
+                                    }`,
                                 }}
                               >
                                 <Typography
@@ -1353,18 +939,17 @@ const ProfilePage = () => {
                                   borderRadius: 2,
                                   bgcolor: isDark
                                     ? alpha(
-                                        theme.palette.background.default,
-                                        0.3
-                                      )
+                                      theme.palette.background.default,
+                                      0.3
+                                    )
                                     : alpha(
-                                        theme.palette.background.default,
-                                        0.5
-                                      ),
-                                  border: `1px solid ${
-                                    isDark
+                                      theme.palette.background.default,
+                                      0.5
+                                    ),
+                                  border: `1px solid ${isDark
                                       ? alpha(theme.palette.common.white, 0.05)
                                       : alpha(theme.palette.common.black, 0.05)
-                                  }`,
+                                    }`,
                                 }}
                               >
                                 <Typography
@@ -1386,18 +971,17 @@ const ProfilePage = () => {
                                   borderRadius: 2,
                                   bgcolor: isDark
                                     ? alpha(
-                                        theme.palette.background.default,
-                                        0.3
-                                      )
+                                      theme.palette.background.default,
+                                      0.3
+                                    )
                                     : alpha(
-                                        theme.palette.background.default,
-                                        0.5
-                                      ),
-                                  border: `1px solid ${
-                                    isDark
+                                      theme.palette.background.default,
+                                      0.5
+                                    ),
+                                  border: `1px solid ${isDark
                                       ? alpha(theme.palette.common.white, 0.05)
                                       : alpha(theme.palette.common.black, 0.05)
-                                  }`,
+                                    }`,
                                 }}
                               >
                                 <Typography
@@ -1419,18 +1003,17 @@ const ProfilePage = () => {
                                   borderRadius: 2,
                                   bgcolor: isDark
                                     ? alpha(
-                                        theme.palette.background.default,
-                                        0.3
-                                      )
+                                      theme.palette.background.default,
+                                      0.3
+                                    )
                                     : alpha(
-                                        theme.palette.background.default,
-                                        0.5
-                                      ),
-                                  border: `1px solid ${
-                                    isDark
+                                      theme.palette.background.default,
+                                      0.5
+                                    ),
+                                  border: `1px solid ${isDark
                                       ? alpha(theme.palette.common.white, 0.05)
                                       : alpha(theme.palette.common.black, 0.05)
-                                  }`,
+                                    }`,
                                   display: "flex",
                                   alignItems: "center",
                                 }}
@@ -1545,64 +1128,6 @@ const ProfilePage = () => {
                                 </Typography>
                               </Box>
                             </Button>
-                          </MotionBox>
-
-                          <MotionBox variants={listItemVariants} sx={{ mt: 2 }}>
-                            <Box
-                              sx={{
-                                p: 2,
-                                borderRadius: 2,
-                                textAlign: "center",
-                                position: "relative",
-                                overflow: "hidden",
-                                bgcolor: theme.palette.primary.main,
-                                color: "white",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                              }}
-                            >
-                              <Typography
-                                variant="subtitle1"
-                                fontWeight="bold"
-                                gutterBottom
-                              >
-                                Need Help?
-                              </Typography>
-                              <Typography variant="body2" paragraph>
-                                Our support team is available 24/7 to assist you
-                                with any questions.
-                              </Typography>
-                              <Button
-                                variant="contained"
-                                color="secondary"
-                                endIcon={<ArrowIcon />}
-                                sx={{
-                                  borderRadius: 2,
-                                  bgcolor: "white",
-                                  color: "primary.main",
-                                  "&:hover": {
-                                    bgcolor: "rgba(255,255,255,0.9)",
-                                  },
-                                  textTransform: "none",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Contact Support
-                              </Button>
-
-                              {/* Background pattern */}
-                              <Box
-                                sx={{
-                                  position: "absolute",
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  opacity: 0.1,
-                                  background: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                                  zIndex: 0,
-                                }}
-                              />
-                            </Box>
                           </MotionBox>
                         </Stack>
                       </MotionBox>
@@ -1773,7 +1298,7 @@ const ProfilePage = () => {
           {notification.message}
         </Alert>
       </Snackbar>
-    </MotionContainer>
+    </Box>
   );
 };
 

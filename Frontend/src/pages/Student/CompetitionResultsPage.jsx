@@ -56,6 +56,7 @@ import {
   Print,
   DateRange,
   Score,
+  Assignment,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
@@ -118,6 +119,32 @@ function CompetitionResultsPage() {
   const [sortField, setSortField] = useState('submissionTime');
   const [sortOrder, setSortOrder] = useState('desc');
   const [refreshing, setRefreshing] = useState(false);
+  const resultsDemo = [
+    {
+      id: 1,
+      title: "Test #1",
+      subtitle: "Unit Testing",
+      content: "All test cases passed successfully with 100% coverage.",
+      status: "success",
+      score: 100
+    },
+    {
+      id: 2,
+      title: "Test #2",
+      subtitle: "Integration Testing",
+      content: "2 test cases failed out of 15. Please check the logs for more details.",
+      status: "error",
+      score: 86
+    },
+    {
+      id: 3,
+      title: "Test #3",
+      subtitle: "Performance Testing",
+      content: "Response time is slightly above threshold. Optimization recommended.",
+      status: "warning",
+      score: 75
+    }
+  ];
   
   // Stats for summary cards
   const [stats, setStats] = useState({
@@ -230,80 +257,77 @@ function CompetitionResultsPage() {
       minHeight: '100vh',
       pb: 4
     }}>
-      {loading && results.length === 0 ? (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh' 
-        }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Box sx={{ py: 2, px: isMobile ? 2 : 4 }}>
-          {/* Header Section */}
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            sx={{ mb: 4 }}
-          >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between">
-              <Grid item xs={12} md={6}>
-                <Typography variant="h4" fontWeight="bold" gutterBottom>
-                  Competition Results
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  View your performance across all competitions
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 2 }}>
-                <OutlinedInput
-                  placeholder="Search competitions..."
-                  size="small"
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  onKeyPress={(e) => e.key === 'Enter' && fetchResults()}
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <Search fontSize="small" />
-                    </InputAdornment>
-                  }
-                  sx={{ 
-                    borderRadius: 2, 
-                    backgroundColor: isDark ? alpha(theme.palette.background.paper, 0.1) : alpha(theme.palette.background.paper, 0.7),
-                    width: { xs: '100%', sm: 220 }
-                  }}
-                />
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<Refresh />}
-                  onClick={handleRefresh}
-                  disabled={refreshing}
+        {/* Welcome Section */}
+                <MotionBox
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
                   sx={{
+                    mb: 4,
+                    bgcolor: isDark ? 'rgba(9, 9, 9, 0.67)' : 'primary.main',
                     borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 2
+                    p: 5,
+                    boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.2)' : 'none'
                   }}
                 >
-                  {refreshing ? 'Refreshing...' : 'Refresh'}
-                </Button>
-              </Grid>
-            </Grid>
-          </MotionBox>
-          
-          {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-              {error}
-            </Alert>
-          )}
-
+                  <Grid container spacing={3} alignItems="center">
+                    <Grid item xs={12} md={7}>
+                      <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                          mb: 1,
+                          color: isDark ? '#f47061' : 'white'
+                        }}
+                      > Competition Results
+                        
+                      </Typography>
+                      <Typography variant="body1" color={isDark ? 'text.secondary' : 'rgba(255,255,255,0.9)'}>
+                             View your performance across all competitions
+                      </Typography>
+                      <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                        <Button
+                          variant="contained"
+                          startIcon={<Assignment />}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            px: 3,
+                            py: 1.2,
+                            boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+                          }}
+                          onClick={() => navigate('/student/competitions')}
+                        >
+                          Browse Competitions
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          startIcon={<Refresh />}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            color: isDark ? '#f47061' : 'white',
+                            borderColor: isDark ? '#f47061' : 'white',
+                            px: 3,
+                            py: 1.2,
+                          }}
+                          onClick={handleRefresh}
+                          disabled={refreshing}
+                        >
+                          {refreshing ? 'Refreshing...' : 'Refresh Stats'}
+                        </Button>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </MotionBox>
+     <Box sx={{ py: 2, px: isMobile ? 2 : 4 }}>
+      
           {/* Stats Cards */}
           <Grid container spacing={2} sx={{ mb: 4 }}>
             {/* Total Competitions Card */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} minWidth={280}>
               <MotionCard
                 variants={cardVariants}
                 initial="hidden"
@@ -347,7 +371,7 @@ function CompetitionResultsPage() {
             </Grid>
             
             {/* Average Score Card */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} minWidth={280}>
               <MotionCard
                 variants={cardVariants}
                 initial="hidden"
@@ -391,7 +415,7 @@ function CompetitionResultsPage() {
             </Grid>
             
             {/* Best Score Card */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} minWidth={280}> 
               <MotionCard
                 variants={cardVariants}
                 initial="hidden"
@@ -435,7 +459,7 @@ function CompetitionResultsPage() {
             </Grid>
             
             {/* Last Competition Card */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={3} minWidth={280}>
               <MotionCard
                 variants={cardVariants}
                 initial="hidden"
@@ -508,286 +532,12 @@ function CompetitionResultsPage() {
               }}
             />
             
-            {results.length > 0 ? (
-              <>
-                <TableContainer sx={{ minHeight: 400 }}>
-                  <Table sx={{ minWidth: 650 }}>
-                    <TableHead>
-                      <TableRow sx={{ 
-                        backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
-                        '& th': { 
-                          fontWeight: 700,
-                          color: theme.palette.text.primary,
-                          fontSize: '0.875rem',
-                          px: 2,
-                          py: 1.5
-                        }
-                      }}>
-                        <TableCell>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
-                              cursor: 'pointer' 
-                            }}
-                            onClick={() => handleSort('competitionName')}
-                          >
-                            Competition
-                            {sortField === 'competitionName' && (
-                              <Sort 
-                                fontSize="small" 
-                                sx={{ 
-                                  ml: 0.5,
-                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
-                                }} 
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center',
-                              cursor: 'pointer' 
-                            }}
-                            onClick={() => handleSort('competitionType')}
-                          >
-                            Type
-                            {sortField === 'competitionType' && (
-                              <Sort 
-                                fontSize="small" 
-                                sx={{ 
-                                  ml: 0.5,
-                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
-                                }} 
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center',
-                              cursor: 'pointer' 
-                            }}
-                            onClick={() => handleSort('creatorName')}
-                          >
-                            Creator
-                            {sortField === 'creatorName' && (
-                              <Sort 
-                                fontSize="small" 
-                                sx={{ 
-                                  ml: 0.5,
-                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
-                                }} 
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center',
-                              cursor: 'pointer' 
-                            }}
-                            onClick={() => handleSort('submissionTime')}
-                          >
-                            Submission Date
-                            {sortField === 'submissionTime' && (
-                              <Sort 
-                                fontSize="small" 
-                                sx={{ 
-                                  ml: 0.5,
-                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
-                                }} 
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center',
-                              cursor: 'pointer' 
-                            }}
-                            onClick={() => handleSort('percentageScore')}
-                          >
-                            Score
-                            {sortField === 'percentageScore' && (
-                              <Sort 
-                                fontSize="small" 
-                                sx={{ 
-                                  ml: 0.5,
-                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
-                                }} 
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Box 
-                            sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center',
-                              cursor: 'pointer' 
-                            }}
-                            onClick={() => handleSort('rank')}
-                          >
-                            Rank
-                            {sortField === 'rank' && (
-                              <Sort 
-                                fontSize="small" 
-                                sx={{ 
-                                  ml: 0.5,
-                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
-                                }} 
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody sx={{ '& td': { px: 2, py: 1.5 } }}>
-                      {results.map((result) => (
-                        <TableRow
-                          key={result._id}
-                          hover
-                          sx={{
-                            '&:last-child td, &:last-child th': { border: 0 },
-                            transition: 'background-color 0.2s',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
-                            }
-                          }}
-                          onClick={() => navigate(`/student/competitions/${result.competitionId}/results/${result._id}`)}
-                        >
-                          <TableCell component="th" scope="row">
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 200 }}>
-                                {result.competitionName}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                                <Tooltip title="Questions">
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
-                                    <CheckCircle fontSize="inherit" sx={{ mr: 0.5, fontSize: '0.75rem' }} />
-                                    {result.correctAnswers}/{result.totalQuestions}
-                                  </Typography>
-                                </Tooltip>
-                                <Tooltip title="Time Taken">
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
-                                    <AccessTime fontSize="inherit" sx={{ mr: 0.5, fontSize: '0.75rem' }} />
-                                    {formatDuration(result.timeTaken)}
-                                  </Typography>
-                                </Tooltip>
-                              </Box>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip 
-                              label={result.competitionType || 'MCQ'} 
-                              size="small"
-                              color={result.competitionType === 'Coding' ? 'primary' : 'default'}
-                              sx={{ fontWeight: 500 }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Person fontSize="small" sx={{ mr: 0.5, color: 'text.secondary', fontSize: '1rem' }} />
-                              <Typography variant="body2">{result.creatorName}</Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">{formatDate(result.submissionTime)}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography 
-                                variant="body2" 
-                                fontWeight={600} 
-                                sx={{ 
-                                  color: 
-                                    parseFloat(result.percentageScore) >= 70 ? theme.palette.success.main :
-                                    parseFloat(result.percentageScore) >= 40 ? theme.palette.warning.main :
-                                    theme.palette.error.main
-                                }}
-                              >
-                                {result.percentageScore}%
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            {result.rank ? (
-                              <Chip 
-                                label={`#${result.rank}`} 
-                                size="small" 
-                                color={
-                                  result.rank <= 3 ? 'success' : 
-                                  result.rank <= 10 ? 'primary' : 
-                                  'default'
-                                }
-                                sx={{ fontWeight: 600 }}
-                              />
-                            ) : (
-                              <Typography variant="body2" color="text.secondary">
-                                N/A
-                              </Typography>
-                            )}
-                          </TableCell>
-                          <TableCell align="right">
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              endIcon={<ArrowForwardIcon />}
-                              sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                fontSize: '0.8125rem',
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/student/competitions/${result.competitionId}/results/${result._id}`);
-                              }}
-                            >
-                              Details
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {refreshing && (
-                        <TableRow>
-                          <TableCell colSpan={7}>
-                            <LinearProgress />
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              
-                <TablePagination
-                  component="div"
-                  count={totalResults}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
-                  labelRowsPerPage="Results per page:"
-                  sx={{ 
-                    borderTop: `1px solid ${theme.palette.divider}`,
-                    '.MuiTablePagination-toolbar': {
-                      px: 2
-                    }
-                  }}
-                />
-              </>
-            ) : (
+              {results.length > 0 ? (
+          <>
+           
+          </> 
+        )
+            : (
               <Box
                 sx={{
                   display: 'flex',
@@ -820,7 +570,6 @@ function CompetitionResultsPage() {
             )}
           </MotionPaper>
         </Box>
-      )}
     </Box>
   );
 }

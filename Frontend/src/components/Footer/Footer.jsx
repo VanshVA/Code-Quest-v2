@@ -38,10 +38,8 @@ import { useColorMode } from '../../context/ThemeContext';
 
 const socialLinks = [
   { name: 'Facebook', icon: <Facebook />, url: 'https://facebook.com' },
-  { name: 'Twitter', icon: <Twitter />, url: 'https://twitter.com' },
   { name: 'LinkedIn', icon: <LinkedIn />, url: 'https://linkedin.com' },
-  { name: 'YouTube', icon: <YouTube />, url: 'https://youtube.com' },
-  { name: 'GitHub', icon: <GitHub />, url: 'https://github.com' },
+  { name: 'GitHub', icon: <GitHub />, url: 'https://github.com/VanshVA/Code-Quest-v2' },
 ];
 
 const footerLinks = [
@@ -51,18 +49,17 @@ const footerLinks = [
       { name: 'Features', path: '/features' },
       { name: 'Competitions', path: '/competitions' },
       { name: 'Leaderboard', path: '/leaderboard' },
-      { name: 'Pricing', path: '/pricing' },
-      { name: 'Roadmap', path: '/roadmap' },
+      { name: 'Dashboard', path: '/student/dashboard' },
     ]
   },
   {
     title: 'Resources',
     links: [
       { name: 'Documentation', path: '/docs' },
-      { name: 'Tutorials', path: '/tutorials' },
+  
       { name: 'FAQ', path: '/faq' },
       { name: 'Support', path: '/support' },
-      { name: 'API Access', path: '/api' },
+      { name: 'Refrences', path: '/Refrences' }
     ]
   },
   {
@@ -70,9 +67,8 @@ const footerLinks = [
     links: [
       { name: 'About Us', path: '/about' },
       { name: 'Contact', path: '/contact' },
-      { name: 'Careers', path: '/careers' },
       { name: 'Blog', path: '/blog' },
-      { name: 'Press Kit', path: '/press' },
+      { name: 'Feedback', path: '/feedback' },
     ]
   },
   {
@@ -82,9 +78,9 @@ const footerLinks = [
       { name: 'Privacy Policy', path: '/privacy' },
       { name: 'Cookie Policy', path: '/cookies' },
       { name: 'Security', path: '/security' },
-      { name: 'Accessibility', path: '/accessibility' },
+      // { name: 'Accessibility', path: '/accessibility' },
     ]
-  },
+  }, 
 ];
 
 const Footer = ({ isAuthenticated = false }) => {
@@ -561,7 +557,7 @@ const Footer = ({ isAuthenticated = false }) => {
                   sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
                 />
                 <Typography variant="body2" color="text.secondary">
-                  123 Coding Street, Tech City, 10001
+                Pachokra, Haridwar Road, Moradabad - 244 001 (U.P.) INDIA
                 </Typography>
               </Box>
               
@@ -571,7 +567,7 @@ const Footer = ({ isAuthenticated = false }) => {
                   sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
                 />
                 <Typography variant="body2" color="text.secondary">
-                  contact@code-quest.com
+                  codequest.server@gmail.com
                 </Typography>
               </Box>
               
@@ -581,7 +577,7 @@ const Footer = ({ isAuthenticated = false }) => {
                   sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
                 />
                 <Typography variant="body2" color="text.secondary">
-                  +1 (555) 123-4567
+                  +91 9897868221
                 </Typography>
               </Box>
             </Stack>

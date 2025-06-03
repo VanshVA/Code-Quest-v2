@@ -207,7 +207,7 @@ export const darkTheme = createTheme({
       dashboard: '#1b16168f',
     },
     text: {
-      primary: '#e0e0e0',
+      primary: '#e0e0e0', 
       secondary: '#E5E3E6',
     },
     gradients: {

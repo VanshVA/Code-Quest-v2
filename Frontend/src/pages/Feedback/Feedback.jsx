@@ -42,7 +42,7 @@ import SendIcon from '@mui/icons-material/Send';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
 import { motion } from 'framer-motion';
-import { AccessTime, Apps, Category, CheckCircleOutline, CheckCircleOutlineOutlined, Comment, Email, EventNote, Extension, InfoOutlined, Person, Phone, Schedule, Star, SupportAgent, Update } from '@mui/icons-material';
+import { AccessTime, Apps, AutoAwesome, Category, CheckCircleOutline, CheckCircleOutlineOutlined, Comment, Email, EventNote, Extension, InfoOutlined, Person, Phone, Schedule, Star, SupportAgent, Update } from '@mui/icons-material';
 
 // import { useAuth } from '../contexts/AuthContext';
 // import PageHeader from '../components/common/PageHeader';
@@ -119,6 +119,8 @@ function CustomRating({ value, onChange }) {
 const Feedback = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+    const MotionBox = motion(Box);
+    const MotionTypography = motion(Typography);
   // const { currentUser } = useAuth();
   const currentUser = {
     name: 'Anuj Prajapati'};
@@ -242,6 +244,110 @@ const Feedback = () => {
   
   return (
     <>
+     {/* Hero Section */}
+                <Box 
+                  component="section" 
+                  sx={{ 
+                    position: 'relative',
+                    pt: { xs: '100px', sm: '120px', md: '120px' },
+                    pb: { xs: '60px', sm: '80px', md: '30px' },
+                    overflow: 'hidden',
+                  }}
+                >
+                   {/* Top Badge */}
+                                 
+                  <Container maxWidth="lg"> 
+                           
+                    <Grid 
+                      container 
+                      spacing={{ xs: 4, md: 8 }}
+                      alignItems="center" 
+                      justifyContent="center"
+                    >
+                      <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+                        <MotionBox
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    sx={{ mb: 3, display: 'inline-block',}}
+                                  >
+                                    <Chip 
+                                      label="Feedback CODE-QUEST" 
+                                      color="primary"
+                                      size="small"
+                                      icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                                      sx={{ 
+                                        background: theme.palette.gradients.primary,
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                        letterSpacing: 1.2,
+                                        py: 2.2,
+                                        pl: 1,
+                                        pr: 2,
+                                        borderRadius: '100px',
+                                        boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                                        '& .MuiChip-icon': { 
+                                          color: 'white',
+                                          mr: 0.5
+                                        }
+                                      }}
+                                    />
+                                  </MotionBox> 
+                        <MotionBox>
+                          {/* Page Title */}
+                          <MotionTypography
+                            variant="h1"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            sx={{ 
+                              fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                              fontWeight: 800,
+                              lineHeight: 1.1,
+                              mb: { xs: 3, md: 4 },
+                              letterSpacing: '-0.02em',
+                            }}
+                          >
+                          Tell Us What You Think
+                            <Box 
+                              component="span" 
+                              sx={{
+                                display: 'block',
+                                background: theme.palette.gradients.primary,
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                textFillColor: 'transparent',
+                              }}
+                            >
+                              About Code-Quest
+                            </Box>
+                          </MotionTypography>
+                          
+                          {/* Subheadline */}
+                          <MotionTypography
+                            variant="h5"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            color="textSecondary"
+                            sx={{ 
+                              mb: 5,
+                              fontWeight: 400,
+                              lineHeight: 1.5,
+                              fontSize: { xs: '1.1rem', md: '1.3rem' },
+                              maxWidth: '800px',
+                              mx: 'auto',
+                            }}
+                          >
+                            We appreciate your time and input. Your feedback helps us improve our services and provide you with the best possible experience. Let us know what we're doing well and where we can do better.
+                          </MotionTypography>
+                        </MotionBox>
+                      </Grid>
+                    </Grid>
+                  </Container>
+                </Box>
      <Container maxWidth="lg" sx={{ py: 8 }}>
 
   {feedbackSent ? (

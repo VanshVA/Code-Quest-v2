@@ -75,6 +75,8 @@ import axios from 'axios';
 // Constants for UTC time and current user
 
 // Custom styled components using motion
+
+const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -349,6 +351,9 @@ const CompetitionPage = ({
     };
 
     return (
+      <>
+   
+              
       <MotionCard
         elevation={4}
         variants={cardVariants}
@@ -593,6 +598,7 @@ const CompetitionPage = ({
           </Button>
         </CardActions>
       </MotionCard>
+        </>
     );
   };
 
@@ -807,17 +813,79 @@ const CompetitionPage = ({
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} gutterBottom>
-        Competitions
-      </Typography>
+    <>
+     <Box sx={{
+          backgroundColor: isDark ? 'background.default' : '#f7f9fc',
+          minHeight: '100vh',
+          pb: 4
+        }}>
 
-      {/* Error alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+        <MotionBox
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    sx={{
+                      mb: 4,
+                      bgcolor: isDark ? 'rgba(9, 9, 9, 0.67)' : 'primary.main',
+                      borderRadius: 2,
+                      p: 5,
+                      boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.2)' : 'none'
+                    }}
+                  >
+                    <Grid container spacing={3} alignItems="center">
+                      <Grid item xs={12} md={7}>
+                        <Typography
+                          variant="h4"
+                          fontWeight="bold"
+                          sx={{
+                            mb: 1,
+                            color: isDark ? '#f47061' : 'white'
+                          }}
+                        > Test Your Skills 
+                          
+                        </Typography>
+                        <Typography variant="body1" color={isDark ? 'text.secondary' : 'rgba(255,255,255,0.9)'}>
+                          Explore and participate in various coding competitions to enhance your skills and win exciting prizes!
+                        </Typography>
+                        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                          <Button
+                            variant="contained"
+                            startIcon={<Assignment />}
+                            sx={{
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              px: 3,
+                              py: 1.2,
+                              boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+                            }}
+                            onClick={() => navigate('/student/competitions')}
+                          >
+                            Browse Competitions
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            startIcon={<Refresh />}
+                            sx={{
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              color: isDark ? '#f47061' : 'white',
+                              borderColor: isDark ? '#f47061' : 'white',
+                              px: 3,
+                              py: 1.2,
+                            }}
+                            onClick={handleRefresh}
+                            
+                          >
+                            {'Refresh Stats'}
+                          </Button>
+                        </Stack>
+                      </Grid>
+                    </Grid>
+        </MotionBox>   
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+
 
       {/* Filters and sort options */}
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
@@ -884,6 +952,7 @@ const CompetitionPage = ({
         <Typography variant="body1" fontWeight={500} sx={{ mr: 2 }}>
           Sort by:
         </Typography>
+<div style={{ display: 'flex',  gap:"10px"}} >
 
         <Button
           variant={sortOption === 'newest' ? 'contained' : 'outlined'}
@@ -922,6 +991,7 @@ const CompetitionPage = ({
         >
           Oldest
         </Button>
+</div>
       </Box>
 
       {/* Competition cards container */}
@@ -973,6 +1043,8 @@ const CompetitionPage = ({
       {/* Add the dialog component */}
       {renderCompetitionDialog()}
     </Container>
+        </Box>
+     </>
   );
 };
 

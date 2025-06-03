@@ -12,6 +12,7 @@ import Leaderboard from './pages/Leaderboard/Leaderboard';
 import SupportPage from './pages/Security/SupportPage';
 import CookiePolicy from './pages/Security/CookiePolicy';
 import SecurityPage from './pages/Security/SecurityPage';
+import FeaturePage from './pages/Feature/FeaturePage';
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
@@ -114,6 +115,7 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
+              <Route path="/features" element={<FeaturePage />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/feedback" element={<Feedback />} />

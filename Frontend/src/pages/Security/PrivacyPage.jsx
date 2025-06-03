@@ -5,6 +5,7 @@ import {
   Box,
   Breadcrumbs,
   Button,
+  Chip,
   Container,
   Divider,
   Grid,
@@ -16,6 +17,7 @@ import {
   useTheme,
 } from '@mui/material';
 import {
+  AutoAwesome,
   CheckCircle,
   ChevronRight,
   Download,
@@ -432,85 +434,111 @@ const PrivacyPage = () => {
         />
       </Box>
       
-      {/* Hero Section */}
-      <Box 
-        component="section" 
-        sx={{ 
-          position: 'relative',
-          pt: { xs: '100px', sm: '120px', md: '50px' },
-          pb: { xs: '40px', sm: '60px', md: '0px' },
-          overflow: 'hidden',
-        }}
-      >
-        <Container maxWidth="lg">
-        
-          
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            separator={<NavigateNext fontSize="small" />} 
-            aria-label="breadcrumb"
-            sx={{ mb: 4 }}
-          >
-            <Link 
-              component={RouterLink} 
-              to="/"
-              underline="hover"
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                color: 'text.secondary',
-              }}
-            >
-              <Home sx={{ mr: 0.5, fontSize: '1.1rem' }} />
-              Home
-            </Link>
-            <Typography color="text.primary" sx={{ fontWeight: 500 }}>
-              Privacy Policy
-            </Typography>
-          </Breadcrumbs>
-          
-          {/* Page Title */}
-          <MotionTypography
-            variant="h1"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            sx={{ 
-              fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
-              fontWeight: 800,
-              lineHeight: 1.1,
-              mb: { xs: 2, md: 3 },
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Privacy Policy
-          </MotionTypography>
-          
-          {/* Last Updated */}
-          <MotionTypography
-            variant="subtitle1"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            color="text.secondary"
-            gutterBottom
-            sx={{ 
-              mb: 5,
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <CheckCircle 
-              sx={{ 
-                mr: 1, 
-                color: theme.palette.success.main,
-                fontSize: '1.1rem',
-              }} 
-            />
-            Last updated: {LAST_UPDATED}
-          </MotionTypography>
-        </Container>
-      </Box>
+
+        {/* Hero Section */}
+                      <Box 
+                        component="section" 
+                        sx={{ 
+                          position: 'relative',
+                          pt: { xs: '100px', sm: '120px', md: '120px' },
+                          pb: { xs: '60px', sm: '80px', md: '30px' },
+                          overflow: 'hidden',
+                        }}
+                      >
+                         {/* Top Badge */}
+                                       
+                        <Container maxWidth="lg"> 
+                                 
+                          <Grid 
+                            container 
+                            spacing={{ xs: 4, md: 8 }}
+                            alignItems="center" 
+                            justifyContent="center"
+                          >
+                            <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+                              <MotionBox
+                                          initial={{ opacity: 0, y: -20 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          transition={{ duration: 0.5 }}
+                                          sx={{ mb: 3, display: 'inline-block',}}
+                                        >
+                                          <Chip 
+                                            label="Privacy Policy CODE-QUEST" 
+                                            color="primary"
+                                            size="small"
+                                            icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                                            sx={{ 
+                                              background: theme.palette.gradients.primary,
+                                              color: 'white',
+                                              fontWeight: 600,
+                                              fontSize: '0.7rem',
+                                              letterSpacing: 1.2,
+                                              py: 2.2,
+                                              pl: 1,
+                                              pr: 2,
+                                              borderRadius: '100px',
+                                              boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                                              '& .MuiChip-icon': { 
+                                                color: 'white',
+                                                mr: 0.5
+                                              }
+                                            }}
+                                          />
+                                        </MotionBox> 
+                              <MotionBox>
+                                {/* Page Title */}
+                                <MotionTypography
+                                  variant="h1"
+                                  initial={{ opacity: 0, y: -20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.5, delay: 0.1 }}
+                                  sx={{ 
+                                    fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                                    fontWeight: 800,
+                                    lineHeight: 1.1,
+                                    mb: { xs: 3, md: 4 },
+                                    letterSpacing: '-0.02em',
+                                  }}
+                                >
+                         Privacy Policy
+                                  <Box 
+                                    component="span" 
+                                    sx={{
+                                      display: 'block',
+                                      background: theme.palette.gradients.primary,
+                                      backgroundClip: 'text',
+                                      WebkitBackgroundClip: 'text',
+                                      WebkitTextFillColor: 'transparent',
+                                      textFillColor: 'transparent',
+                                    }}
+                                  >
+                                    Last Updated: {LAST_UPDATED}
+                                  </Box>
+                                </MotionTypography>
+                                
+                                {/* Subheadline */}
+                                <MotionTypography
+                                  variant="h5"
+                                  initial={{ opacity: 0, y: -20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.5, delay: 0.2 }}
+                                  color="textSecondary"
+                                  sx={{ 
+                                    mb: 5,
+                                    fontWeight: 400,
+                                    lineHeight: 1.5,
+                                    fontSize: { xs: '1.1rem', md: '1.3rem' },
+                                    maxWidth: '800px',
+                                    mx: 'auto',
+                                  }}
+                                >
+                                  At Code-Quest, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+                                </MotionTypography>
+                              </MotionBox>
+                            </Grid>
+                          </Grid>
+                        </Container>
+                      </Box>
       
       {/* Privacy Content */}
       <Box 

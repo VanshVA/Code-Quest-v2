@@ -26,6 +26,7 @@ import {
 } from '@mui/material';
 import {
   AccessTime,
+  AutoAwesome,
   Call,
   CheckCircle,
   Email,
@@ -49,16 +50,16 @@ const CURRENT_USER = "Anuj-prajapati-SDE";
 
 // Contact information
 const contactInfo = {
-  email: "support@code-quest.com",
-  phone: "+1 (555) 234-5678",
-  address: "88 Tech Boulevard, Silicon Valley, CA 94043",
+  email: "codequest.server@gmail.com",
+  phone: "+91 9897868221",
+  address: "Pachokra, Haridwar Road, Moradabad",
   officeHours: "Monday - Friday: 9:00 AM - 6:00 PM (PST)",
   socialMedia: [
     { name: "LinkedIn", icon: <LinkedIn />, url: "https://linkedin.com/company/code-quest" },
     { name: "Twitter", icon: <Twitter />, url: "https://twitter.com/codequest" },
-    { name: "GitHub", icon: <GitHub />, url: "https://github.com/code-quest" },
-    { name: "Facebook", icon: <Facebook />, url: "https://facebook.com/codequest" },
-    { name: "Instagram", icon: <Instagram />, url: "https://instagram.com/codequest" }
+    { name: "GitHub", icon: <GitHub />, url: "https://github.com/VanshVA/Code-Quest-v2" },
+
+
   ]
 };
 
@@ -73,6 +74,8 @@ const departments = [
 
 const ContactPage = () => {
   const theme = useTheme();
+  const MotionBox = motion(Box);
+  const MotionTypography = motion(Typography);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
   
@@ -169,38 +172,113 @@ const ContactPage = () => {
   return (
     <Box sx={{ bgcolor: isDark ? 'background.default' : '#f8f9fa', minHeight: '100vh' }}>
       
+       {/* Hero Section */}
+            <Box 
+              component="section" 
+              sx={{ 
+                position: 'relative',
+                pt: { xs: '100px', sm: '120px', md: '140px' },
+                pb: { xs: '60px', sm: '80px', md: '100px' },
+                overflow: 'hidden',
+              }}
+            >
+               {/* Top Badge */}
+                             
+              <Container maxWidth="lg"> 
+                       
+                <Grid 
+                  container 
+                  spacing={{ xs: 4, md: 8 }}
+                  alignItems="center" 
+                  justifyContent="center"
+                >
+                  <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+                    <MotionBox
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                sx={{ mb: 3, display: 'inline-block',}}
+                              >
+                                <Chip 
+                                  label="Contact CODE-QUEST" 
+                                  color="primary"
+                                  size="small"
+                                  icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                                  sx={{ 
+                                    background: theme.palette.gradients.primary,
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    fontSize: '0.7rem',
+                                    letterSpacing: 1.2,
+                                    py: 2.2,
+                                    pl: 1,
+                                    pr: 2,
+                                    borderRadius: '100px',
+                                    boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                                    '& .MuiChip-icon': { 
+                                      color: 'white',
+                                      mr: 0.5
+                                    }
+                                  }}
+                                />
+                              </MotionBox> 
+                    <MotionBox>
+                      {/* Page Title */}
+                      <MotionTypography
+                        variant="h1"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        sx={{ 
+                          fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                          fontWeight: 800,
+                          lineHeight: 1.1,
+                          mb: { xs: 3, md: 4 },
+                          letterSpacing: '-0.02em',
+                        }}
+                      >
+                       Get in Touch with
+                        <Box 
+                          component="span" 
+                          sx={{
+                            display: 'block',
+                            background: theme.palette.gradients.primary,
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            textFillColor: 'transparent',
+                          }}
+                        >
+                           Code-Quest
+                        </Box>
+                      </MotionTypography>
+                      
+                      {/* Subheadline */}
+                      <MotionTypography
+                        variant="h5"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        color="textSecondary"
+                        sx={{ 
+                          mb: 5,
+                          fontWeight: 400,
+                          lineHeight: 1.5,
+                          fontSize: { xs: '1.1rem', md: '1.3rem' },
+                          maxWidth: '800px',
+                          mx: 'auto',
+                        }}
+                      >
+                        Have questions or want to learn more? Our team is here to help with any inquiries you might have.
+                      </MotionTypography>
+                    </MotionBox>
+                  </Grid>
+                </Grid>
+              </Container>
+            </Box>
       {/* Page Header */}
-      <Box 
-        sx={{ 
-          color: isDark ?'white' : '#546E7A', 
-          py: { xs: 5, md: 7 },
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center" justifyContent="space-between">
-            <Grid item xs={12} md={6}>
-              <Typography 
-                variant="h3" 
-                component="h1" 
-                sx={{ 
-                  fontWeight: 800,
-                  mb: 2,
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
-                }}
-              >
-                Get in Touch
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 400, opacity: 0.9, maxWidth: "600px" }}>
-                Have questions or want to learn more? Our team is here to help with any inquiries you might have.
-              </Typography>
-            </Grid>
-            
-          </Grid>
-        </Container>
-      </Box>
-      
+   
+       
       {/* Contact Methods Cards */}
       <Container maxWidth="lg" sx={{ mt: { xs: -3, md: 0 }, mb: { xs: 4, md: 6 }, position: 'relative', zIndex: 2 }}>
         <Grid container spacing={3}>

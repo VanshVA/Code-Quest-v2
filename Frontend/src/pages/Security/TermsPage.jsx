@@ -1,10 +1,11 @@
-import React, { useRef, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useRef, useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Avatar,
   Box,
   Breadcrumbs,
   Button,
+  Chip,
   Container,
   Divider,
   Grid,
@@ -14,16 +15,17 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 import {
+  AutoAwesome,
   CheckCircle,
   ChevronRight,
   Download,
   Home,
   NavigateNext,
   Verified,
-} from '@mui/icons-material';
-import { motion } from 'framer-motion';
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
 
 // Current date and user info from global state
 const CURRENT_DATE_TIME = "2025-05-30 03:33:29";
@@ -37,20 +39,20 @@ const MotionPaper = motion(Paper);
 
 const TermsPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
+  const isDark = theme.palette.mode === "dark";
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  
+
   // Canvas animation for background
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
-    
+
     const resizeCanvas = () => {
       const width = window.innerWidth;
       const height = window.innerHeight * 2;
@@ -60,70 +62,75 @@ const TermsPage = () => {
       canvas.style.height = `${height}px`;
       ctx.scale(dpr, dpr);
     };
-    
-    window.addEventListener('resize', resizeCanvas);
+
+    window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
-    
+
     // Premium gradient orbs class with improved rendering
     class GradientOrb {
       constructor() {
         this.reset();
       }
-      
+
       reset() {
         const width = canvas.width / dpr;
         const height = canvas.height / dpr;
-        
+
         this.x = Math.random() * width;
         this.y = Math.random() * height;
-        this.size = Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
+        this.size =
+          Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
         this.speedX = (Math.random() - 0.5) * 0.4;
         this.speedY = (Math.random() - 0.5) * 0.4;
         this.opacity = Math.random() * 0.12 + 0.04;
-        
+
         // Premium color combinations
         const colorSets = [
-          { start: '#bc4037', end: '#f47061' }, // Primary red
-          { start: '#9a342d', end: '#bd5c55' }, // Dark red
-          { start: '#2C3E50', end: '#4A6572' }, // Dark blue
-          { start: '#3a47d5', end: '#00d2ff' }, // Blue
+          { start: "#bc4037", end: "#f47061" }, // Primary red
+          { start: "#9a342d", end: "#bd5c55" }, // Dark red
+          { start: "#2C3E50", end: "#4A6572" }, // Dark blue
+          { start: "#3a47d5", end: "#00d2ff" }, // Blue
         ];
-        
+
         this.colors = colorSets[Math.floor(Math.random() * colorSets.length)];
       }
-      
+
       update() {
         this.x += this.speedX;
         this.y += this.speedY;
-        
+
         const width = canvas.width / dpr;
         const height = canvas.height / dpr;
-        
+
         // Bounce effect at edges
         if (this.x < -this.size) this.x = width + this.size;
         if (this.x > width + this.size) this.x = -this.size;
         if (this.y < -this.size) this.y = height + this.size;
         if (this.y > height + this.size) this.y = -this.size;
       }
-      
+
       draw() {
         const gradient = ctx.createRadialGradient(
-          this.x, this.y, 0,
-          this.x, this.y, this.size
+          this.x,
+          this.y,
+          0,
+          this.x,
+          this.y,
+          this.size
         );
-        
+
         const startColor = this.hexToRgba(this.colors.start, this.opacity);
         const endColor = this.hexToRgba(this.colors.end, 0);
-        
+
         gradient.addColorStop(0, startColor);
         gradient.addColorStop(1, endColor);
-        
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
       }
-      
+
       hexToRgba(hex, alpha) {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -131,28 +138,30 @@ const TermsPage = () => {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
       }
     }
-    
+
     // Create optimal number of orbs based on screen size
     const orbCount = isMobile ? 6 : 10;
-    const orbs = Array(orbCount).fill().map(() => new GradientOrb());
-    
+    const orbs = Array(orbCount)
+      .fill()
+      .map(() => new GradientOrb());
+
     // Animation loop with performance optimization
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-      
+
       orbs.forEach((orb) => {
         orb.update();
         orb.draw();
       });
-      
+
       animationRef.current = requestAnimationFrame(animate);
     };
-    
+
     animate();
-    
+
     return () => {
       cancelAnimationFrame(animationRef.current);
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, [isMobile, isDark]);
 
@@ -167,7 +176,7 @@ const TermsPage = () => {
         These Terms and Conditions govern your use of the Code-Quest website and services located at www.code-quest.com (collectively referred to as the "Service").
         
         By accessing or using Code-Quest, you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not access the Service.
-      `
+      `,
     },
     {
       id: "definitions",
@@ -180,7 +189,7 @@ const TermsPage = () => {
         "Content" refers to code, text, information, graphics, images, and any other materials uploaded, downloaded, or appearing on the Service.
         
         "Subscription" refers to the payment plans offered by Code-Quest that provide access to premium features.
-      `
+      `,
     },
     {
       id: "account",
@@ -193,7 +202,7 @@ const TermsPage = () => {
         We reserve the right to suspend or terminate accounts that violate these Terms and Conditions or for any other reason at our sole discretion.
         
         Users must be at least 13 years of age to create an account. Users under the age of 18 must have permission from a parent or legal guardian to use the Service.
-      `
+      `,
     },
     {
       id: "subscription",
@@ -206,7 +215,7 @@ const TermsPage = () => {
         Subscription fees are billed in advance on a recurring basis, depending on the billing cycle you select (monthly or annually). You can cancel your subscription at any time, but we do not provide refunds for partial or unused subscription periods.
         
         We reserve the right to change subscription fees upon reasonable notice. Any changes will be communicated to you and will apply to billing cycles starting after the notice.
-      `
+      `,
     },
     {
       id: "content",
@@ -219,7 +228,7 @@ const TermsPage = () => {
         You are solely responsible for your Content and the consequences of posting it. You represent and warrant that you own or have the necessary rights to the Content you submit and that its submission does not violate any third party's intellectual property or other rights.
         
         We reserve the right to remove any Content that violates these Terms or that we find objectionable for any reason, without prior notice.
-      `
+      `,
     },
     {
       id: "conduct",
@@ -238,7 +247,7 @@ const TermsPage = () => {
         • Engaging in any harassment, bullying, or other inappropriate behavior toward other users
         
         Violation of these prohibitions may result in termination of your access to the Service.
-      `
+      `,
     },
     {
       id: "intellectual",
@@ -249,7 +258,7 @@ const TermsPage = () => {
         The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of Code-Quest.
         
         Educational materials, challenge descriptions, and other instructional content provided as part of the Service are licensed to users solely for personal, non-commercial use during the subscription period.
-      `
+      `,
     },
     {
       id: "privacy",
@@ -258,7 +267,7 @@ const TermsPage = () => {
         Your use of Code-Quest is also governed by our Privacy Policy, which can be found at www.code-quest.com/privacy. By using the Service, you consent to the terms of our Privacy Policy.
         
         The Privacy Policy explains how we collect, use, and disclose information that pertains to your privacy, including personal information gathered when you use our Service.
-      `
+      `,
     },
     {
       id: "disclaimer",
@@ -272,7 +281,7 @@ const TermsPage = () => {
         • The Service will be uninterrupted, timely, secure, or error-free
         • The results that may be obtained from the use of the Service will be accurate or reliable
         • The quality of any products, services, information, or other material purchased or obtained by you through the Service will meet your expectations
-      `
+      `,
     },
     {
       id: "limitation",
@@ -286,7 +295,7 @@ const TermsPage = () => {
         • Unauthorized access, use, or alteration of your transmissions or content
         
         This limitation applies whether based in contract, tort (including negligence), strict liability or otherwise, and even if Code-Quest has been advised of the possibility of such damages.
-      `
+      `,
     },
     {
       id: "changes",
@@ -295,7 +304,7 @@ const TermsPage = () => {
         We reserve the right to modify or replace these Terms at any time at our sole discretion. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
         
         By continuing to access or use our Service after any revisions become effective, you agree to be bound by the revised terms. If you do not agree to the new terms, you are no longer authorized to use the Service.
-      `
+      `,
     },
     {
       id: "termination",
@@ -306,7 +315,7 @@ const TermsPage = () => {
         If you wish to terminate your account, you may simply discontinue using the Service or contact our support team for account deletion.
         
         All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.
-      `
+      `,
     },
     {
       id: "governing",
@@ -315,7 +324,7 @@ const TermsPage = () => {
         These Terms shall be governed and construed in accordance with the laws of India, without regard to its conflict of law provisions.
         
         Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect.
-      `
+      `,
     },
     {
       id: "contact",
@@ -328,178 +337,211 @@ const TermsPage = () => {
         Bangalore, 560100, India
         legal@code-quest.com
         +91 80 4567 8901
-      `
-    }
+      `,
+    },
   ];
 
   return (
     <>
-  
-      
       {/* Canvas Background for Premium Gradient Animation */}
-      <Box sx={{ 
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: -1,
-        overflow: 'hidden',
-      }}>
-        <canvas 
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: -1,
+          overflow: "hidden",
+        }}
+      >
+        <canvas
           ref={canvasRef}
           style={{
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
-            width: '100%',
-            height: '100%',
+            width: "100%",
+            height: "100%",
           }}
         />
         {/* Overlay for better text contrast */}
-        <Box 
-          sx={{ 
-            position: 'absolute',
+        <Box
+          sx={{
+            position: "absolute",
             top: 0,
             left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(30px)',
-          }} 
+            width: "100%",
+            height: "100%",
+            backgroundColor: isDark
+              ? "rgba(30, 28, 28, 0.8)"
+              : "rgba(255, 255, 255, 0.8)",
+            backdropFilter: "blur(30px)",
+          }}
         />
       </Box>
-      
-      {/* Hero Section */}
-      <Box 
-        component="section" 
-        sx={{ 
-          position: 'relative',
-          pt: { xs: '100px', sm: '120px', md: '50px' },
-          pb: { xs: '40px', sm: '60px', md: '0px' },
-          overflow: 'hidden',
-        }}
-      >
-        <Container maxWidth="lg">
-          {/* User Badge */}
-        
-          
-          {/* Breadcrumbs */}
-          <Breadcrumbs 
-            separator={<NavigateNext fontSize="small" />} 
-            aria-label="breadcrumb"
-            sx={{ mb: 4 }}
-          >
-            <Link 
-              component={RouterLink} 
-              to="/"
-              underline="hover"
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                color: 'text.secondary',
-              }}
-            >
-              <Home sx={{ mr: 0.5, fontSize: '1.1rem' }} />
-              Home
-            </Link>
-            <Typography color="text.primary" sx={{ fontWeight: 500 }}>
-              Terms & Conditions
-            </Typography>
-          </Breadcrumbs>
-          
-          {/* Page Title */}
-          <MotionTypography
-            variant="h1"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            sx={{ 
-              fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
-              fontWeight: 800,
-              lineHeight: 1.1,
-              mb: { xs: 2, md: 3 },
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Terms and Conditions
-          </MotionTypography>
-          
-          {/* Last Updated */}
-          <MotionTypography
-            variant="subtitle1"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            color="text.secondary"
-            gutterBottom
-            sx={{ 
-              mb: 5,
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <CheckCircle 
-              sx={{ 
-                mr: 1, 
-                color: theme.palette.success.main,
-                fontSize: '1.1rem',
-              }} 
-            />
-            Last updated: {LAST_UPDATED}
-          </MotionTypography>
-        </Container>
-      </Box>
-      
-      {/* Terms Content */}
-      <Box 
-        component="section"
-      
-        sx={{ 
-          pb: { xs: 10, md: 15 },
-          position: 'relative',
 
+       {/* Hero Section */}
+                <Box 
+                  component="section" 
+                  sx={{ 
+                    position: 'relative',
+                    pt: { xs: '100px', sm: '120px', md: '120px' },
+                    pb: { xs: '60px', sm: '80px', md: '30px' },
+                    overflow: 'hidden',
+                  }}
+                >
+                   {/* Top Badge */}
+                                 
+                  <Container maxWidth="lg"> 
+                           
+                    <Grid 
+                      container 
+                      spacing={{ xs: 4, md: 8 }}
+                      alignItems="center" 
+                      justifyContent="center"
+                    >
+                      <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+                        <MotionBox
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    sx={{ mb: 3, display: 'inline-block',}}
+                                  >
+                                    <Chip 
+                                      label="Terms and Conditions CODE-QUEST" 
+                                      color="primary"
+                                      size="small"
+                                      icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                                      sx={{ 
+                                        background: theme.palette.gradients.primary,
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                        letterSpacing: 1.2,
+                                        py: 2.2,
+                                        pl: 1,
+                                        pr: 2,
+                                        borderRadius: '100px',
+                                        boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                                        '& .MuiChip-icon': { 
+                                          color: 'white',
+                                          mr: 0.5
+                                        }
+                                      }}
+                                    />
+                                  </MotionBox> 
+                        <MotionBox>
+                          {/* Page Title */}
+                          <MotionTypography
+                            variant="h1"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            sx={{ 
+                              fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                              fontWeight: 800,
+                              lineHeight: 1.1,
+                              mb: { xs: 3, md: 4 },
+                              letterSpacing: '-0.02em',
+                            }}
+                          >
+                         Terms and Conditions
+                            <Box 
+                              component="span" 
+                              sx={{
+                                display: 'block',
+                                background: theme.palette.gradients.primary,
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                textFillColor: 'transparent',
+                              }}
+                            >
+                              Last Updated: {LAST_UPDATED}
+                            </Box>
+                          </MotionTypography>
+                          
+                          {/* Subheadline */}
+                          <MotionTypography
+                            variant="h5"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            color="textSecondary"
+                            sx={{ 
+                              mb: 5,
+                              fontWeight: 400,
+                              lineHeight: 1.5,
+                              fontSize: { xs: '1.1rem', md: '1.3rem' },
+                              maxWidth: '800px',
+                              mx: 'auto',
+                            }}
+                          >
+                            Welcome to Code-Quest! By using our platform, you agree to our terms and conditions. Please read them carefully to understand your rights and responsibilities.
+                          </MotionTypography>
+                        </MotionBox>
+                      </Grid>
+                    </Grid>
+                  </Container>
+                </Box>
+      {/* Terms Content */}
+      <Box
+        component="section"
+        sx={{
+          pb: { xs: 10, md: 15 },
+          position: "relative",
         }}
       >
-        <Container sx={{ minWidth: { md: '100%' } }} >
-          <Grid container spacing={4}  sx={{
-  display: { md: 'flex' },
-  flexDirection: { md: 'row' },
-  flexWrap: { md: 'nowrap' }
-}}>
+        <Container sx={{ minWidth: { md: "100%" } }}>
+          <Grid
+            container
+            spacing={4}
+            sx={{
+              display: { md: "flex" },
+              flexDirection: { md: "row" },
+              flexWrap: { md: "nowrap" },
+            }}
+          >
             {/* Table of Contents Sidebar */}
-            <Grid item xs={12} md={3}  sx={{ minWidth: { md: '300px' } }}>
+            <Grid item xs={12} md={3} sx={{ minWidth: { md: "300px" } }}>
               <MotionBox
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                sx={{ 
-                  position: { xs: 'static', md: 'sticky' },
+                sx={{
+                  position: { xs: "static", md: "sticky" },
                   top: 120,
                 }}
               >
                 <Paper
-                  sx={{ 
-                    p: 3, 
-                    borderRadius: '24px',
-                    backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(16px)',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
-                    boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
+                  sx={{
+                    p: 3,
+                    borderRadius: "24px",
+                    backgroundColor: isDark
+                      ? "rgba(30, 28, 28, 0.6)"
+                      : "rgba(255, 255, 255, 0.6)",
+                    backdropFilter: "blur(16px)",
+                    border: `1px solid ${
+                      isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"
+                    }`,
+                    boxShadow: isDark
+                      ? "0 15px 35px rgba(0, 0, 0, 0.2)"
+                      : "0 15px 35px rgba(0, 0, 0, 0.05)",
                     mb: { xs: 3, md: 0 },
                   }}
                 >
-                  <Typography 
-                    variant="h6" 
+                  <Typography
+                    variant="h6"
                     gutterBottom
-                    sx={{ 
+                    sx={{
                       fontWeight: 700,
                       mb: 3,
                     }}
                   >
                     Table of Contents
                   </Typography>
-                  
+
                   <Stack spacing={1}>
                     {sections.map((section, index) => (
                       <Button
@@ -509,15 +551,17 @@ const TermsPage = () => {
                         variant="text"
                         color="inherit"
                         sx={{
-                          justifyContent: 'flex-start',
-                          textAlign: 'left',
+                          justifyContent: "flex-start",
+                          textAlign: "left",
                           px: 1,
                           py: 0.7,
-                          borderRadius: '8px',
-                          textTransform: 'none',
+                          borderRadius: "8px",
+                          textTransform: "none",
                           fontWeight: 500,
-                          '&:hover': {
-                            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                          "&:hover": {
+                            backgroundColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "rgba(0,0,0,0.03)",
                             color: theme.palette.primary.main,
                           },
                         }}
@@ -527,19 +571,19 @@ const TermsPage = () => {
                       </Button>
                     ))}
                   </Stack>
-                  
+
                   <Divider sx={{ my: 3 }} />
-                  
+
                   <Button
                     variant="contained"
                     color="primary"
                     fullWidth
                     startIcon={<Download />}
                     sx={{
-                      borderRadius: '8px',
+                      borderRadius: "8px",
                       py: 1,
                       background: theme.palette.gradients.primary,
-                      textTransform: 'none',
+                      textTransform: "none",
                       fontWeight: 600,
                     }}
                   >
@@ -548,57 +592,62 @@ const TermsPage = () => {
                 </Paper>
               </MotionBox>
             </Grid>
-            
+
             {/* Main Content */}
             <Grid item xs={12} md={9}>
               <MotionPaper
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                sx={{ 
-                  p: { xs: 3, md: 5 }, 
-                  borderRadius: '24px',
-                  backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-                  backdropFilter: 'blur(16px)',
-                  border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
-                  boxShadow: isDark ? '0 15px 35px rgba(0, 0, 0, 0.2)' : '0 15px 35px rgba(0, 0, 0, 0.05)',
+                sx={{
+                  p: { xs: 3, md: 5 },
+                  borderRadius: "24px",
+                  backgroundColor: isDark
+                    ? "rgba(30, 28, 28, 0.6)"
+                    : "rgba(255, 255, 255, 0.6)",
+                  backdropFilter: "blur(16px)",
+                  border: `1px solid ${
+                    isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"
+                  }`,
+                  boxShadow: isDark
+                    ? "0 15px 35px rgba(0, 0, 0, 0.2)"
+                    : "0 15px 35px rgba(0, 0, 0, 0.05)",
                 }}
               >
                 {sections.map((section, index) => (
                   <Box key={section.id} id={section.id} sx={{ mb: 5 }}>
-                    <Typography 
-                      variant="h4" 
+                    <Typography
+                      variant="h4"
                       gutterBottom
-                      sx={{ 
+                      sx={{
                         fontWeight: 700,
                         mb: 3,
                       }}
                     >
                       {index + 1}. {section.title}
                     </Typography>
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
-                        whiteSpace: 'pre-line',
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        whiteSpace: "pre-line",
                         lineHeight: 1.8,
                       }}
                     >
                       {section.content}
                     </Typography>
-                    {index < sections.length - 1 && (
-                      <Divider sx={{ mt: 5 }} />
-                    )}
+                    {index < sections.length - 1 && <Divider sx={{ mt: 5 }} />}
                   </Box>
                 ))}
-                
+
                 {/* Agreement Section */}
-                <Box sx={{ mt: 8, textAlign: 'center' }}>
-                  <Typography 
+                <Box sx={{ mt: 8, textAlign: "center" }}>
+                  <Typography
                     variant="subtitle1"
                     sx={{ mb: 3, fontWeight: 500 }}
                   >
-                    By using the Code-Quest platform, you acknowledge that you have read,
-                    understood, and agree to be bound by these Terms and Conditions.
+                    By using the Code-Quest platform, you acknowledge that you
+                    have read, understood, and agree to be bound by these Terms
+                    and Conditions.
                   </Typography>
                   <Button
                     component={RouterLink}
@@ -606,10 +655,10 @@ const TermsPage = () => {
                     variant="outlined"
                     color="primary"
                     sx={{
-                      borderRadius: '8px',
+                      borderRadius: "8px",
                       px: 4,
                       py: 1,
-                      textTransform: 'none',
+                      textTransform: "none",
                       fontWeight: 600,
                     }}
                   >
@@ -621,7 +670,6 @@ const TermsPage = () => {
           </Grid>
         </Container>
       </Box>
-
     </>
   );
 };

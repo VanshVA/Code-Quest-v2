@@ -5,6 +5,7 @@ import {
   Box,
   Breadcrumbs,
   Button,
+  Chip,
   Container,
   Divider,
   Grid,
@@ -24,6 +25,7 @@ import {
 import {
   AccessTime,
   ArrowRight,
+  AutoAwesome,
   CheckCircle,
   Cookie,
   ExpandMore,
@@ -170,102 +172,111 @@ const CookiePolicy = () => {
       }}
     >
       {/* Page Header */}
-      <Box
-        sx={{
-          bgcolor: theme.palette.primary.main,
-          color: "white",
-          py: { xs: 4, md: 6 },
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container alignItems="center" spacing={3}>
-            <Grid item xs={12} md={8}>
-              <Typography
-                variant="h3"
-                component="h1"
-                sx={{
-                  fontWeight: 800,
-                  mb: 2,
-                  fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
-                }}
-              >
-                Cookie Policy
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 400, opacity: 0.9, mb: 3 }}
-              >
-                How we use cookies to enhance your experience on our platform
-              </Typography>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: 1,
-                }}
-              >
-                <Breadcrumbs
-                  separator={
-                    <NavigateNext
-                      fontSize="small"
-                      sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-                    />
-                  }
-                  aria-label="breadcrumb"
-                  sx={{ color: "rgba(255, 255, 255, 0.9)" }}
+        {/* Hero Section */}
+                <Box 
+                  component="section" 
+                  sx={{ 
+                    position: 'relative',
+                    pt: { xs: '100px', sm: '120px', md: '120px' },
+                    pb: { xs: '60px', sm: '80px', md: '30px' },
+                    overflow: 'hidden',
+                  }}
                 >
-                  <Link
-                    component={RouterLink}
-                    to="/"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      color: "rgba(255, 255, 255, 0.9)",
-                      textDecoration: "none",
-                      "&:hover": {
-                        textDecoration: "underline",
-                      },
-                    }}
-                  >
-                    <Home fontSize="small" sx={{ mr: 0.5 }} />
-                    Home
-                  </Link>
-                  <Link
-                    component={RouterLink}
-                    to="/legal"
-                    sx={{
-                      color: "rgba(255, 255, 255, 0.9)",
-                      textDecoration: "none",
-                      "&:hover": {
-                        textDecoration: "underline",
-                      },
-                    }}
-                  >
-                    Legal
-                  </Link>
-                  <Typography sx={{ color: "rgba(255, 255, 255, 0.9)" }}>
-                    Cookie Policy
-                  </Typography>
-                </Breadcrumbs>
-              </Box>
-            </Grid>
-
-            <Grid
-              item
-              xs={12}
-              md={4}
-              sx={{
-                display: { xs: "none", md: "flex" },
-                justifyContent: "center",
-              }}
-            >
-              <Cookie sx={{ fontSize: 180, opacity: 0.3 }} />
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+                   {/* Top Badge */}
+                                 
+                  <Container maxWidth="lg"> 
+                           
+                    <Grid 
+                      container 
+                      spacing={{ xs: 4, md: 8 }}
+                      alignItems="center" 
+                      justifyContent="center"
+                    >
+                      <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+                        <MotionBox
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    sx={{ mb: 3, display: 'inline-block',}}
+                                  >
+                                    <Chip 
+                                      label=" Cookie Policy CODE-QUEST" 
+                                      color="primary"
+                                      size="small"
+                                      icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                                      sx={{ 
+                                        background: theme.palette.gradients.primary,
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                        letterSpacing: 1.2,
+                                        py: 2.2,
+                                        pl: 1,
+                                        pr: 2,
+                                        borderRadius: '100px',
+                                        boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                                        '& .MuiChip-icon': { 
+                                          color: 'white',
+                                          mr: 0.5
+                                        }
+                                      }}
+                                    />
+                                  </MotionBox> 
+                        <MotionBox>
+                          {/* Page Title */}
+                          <MotionTypography
+                            variant="h1"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            sx={{ 
+                              fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                              fontWeight: 800,
+                              lineHeight: 1.1,
+                              mb: { xs: 3, md: 4 },
+                              letterSpacing: '-0.02em',
+                            }}
+                          >
+                       Cookie Policy
+                            <Box 
+                              component="span" 
+                              sx={{
+                                display: 'block',
+                                background: theme.palette.gradients.primary,
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                textFillColor: 'transparent',
+                              }}
+                            >
+                              Your Privacy Matters
+                            </Box>
+                          </MotionTypography>
+                          
+                          {/* Subheadline */}
+                          <MotionTypography
+                            variant="h5"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            color="textSecondary"
+                            sx={{ 
+                              mb: 5,
+                              fontWeight: 400,
+                              lineHeight: 1.5,
+                              fontSize: { xs: '1.1rem', md: '1.3rem' },
+                              maxWidth: '800px',
+                              mx: 'auto',
+                            }}
+                          >
+                            We use cookies to enhance your experience, analyze site traffic, and serve personalized content. By using our site, you agree to our use of cookies as outlined in our Cookie Policy.
+                          </MotionTypography>
+                        </MotionBox>
+                      </Grid>
+                    </Grid>
+                  </Container>
+                </Box>
+      
 
       {/* Main Content */}
       <Container maxWidth="100%" sx={{ py: { xs: 4, md: 6 } }} >

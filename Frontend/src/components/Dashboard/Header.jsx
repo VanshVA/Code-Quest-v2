@@ -34,6 +34,7 @@ const MotionTypography = motion(Typography);
 
 const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTime }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode, setColorMode } = useColorMode();
@@ -200,7 +201,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.3 }}
             >
-              {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
+              {theme.palette.mode === 'dark' ? <LightMode sx={{color: "white"}}/> : <DarkMode />}
             </MotionBox>
           </Tooltip>
 
@@ -285,7 +286,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
               <Divider />
 
               <MenuItem onClick={() => handleUserMenuOption('profile')}>
-                <ListItemIcon>
+                <ListItemIcon sx={{color:isDark ? 'white' : 'black'}}>
                   <PersonOutlined fontSize="small" />
                 </ListItemIcon>
                 Profile

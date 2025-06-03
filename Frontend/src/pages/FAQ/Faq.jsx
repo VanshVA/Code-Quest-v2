@@ -38,6 +38,7 @@ import {
   Verified,
   ThumbUp,
   ThumbDown,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
@@ -328,7 +329,7 @@ const FAQPage = () => {
             backdropFilter: 'blur(30px)',
           }} 
         />
-      </Box>
+      </Box> 
       
       {/* Hero Section */}
       <Box 
@@ -340,7 +341,10 @@ const FAQPage = () => {
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="lg">        
+         {/* Top Badge */}
+                       
+        <Container maxWidth="lg"> 
+                 
           <Grid 
             container 
             spacing={{ xs: 4, md: 8 }}
@@ -348,6 +352,35 @@ const FAQPage = () => {
             justifyContent="center"
           >
             <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+              <MotionBox
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                          sx={{ mb: 3, display: 'inline-block',}}
+                        >
+                          <Chip 
+                            label="FAQ CODE-QUEST" 
+                            color="primary"
+                            size="small"
+                            icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                            sx={{ 
+                              background: theme.palette.gradients.primary,
+                              color: 'white',
+                              fontWeight: 600,
+                              fontSize: '0.7rem',
+                              letterSpacing: 1.2,
+                              py: 2.2,
+                              pl: 1,
+                              pr: 2,
+                              borderRadius: '100px',
+                              boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                              '& .MuiChip-icon': { 
+                                color: 'white',
+                                mr: 0.5
+                              }
+                            }}
+                          />
+                        </MotionBox> 
               <MotionBox>
                 {/* Page Title */}
                 <MotionTypography
@@ -413,7 +446,7 @@ const FAQPage = () => {
         }}
       >
         <Container maxWidth="lg" style={{minWidth: '100%'}}>
-          <Grid container spacing={4}  sx={{
+          <Grid container spacing={4}  sx={{ 
   display: { md: 'flex' },
   flexDirection: { md: 'row' },
   flexWrap: { md: 'nowrap' }
@@ -583,6 +616,7 @@ const FAQPage = () => {
                 transition={{ duration: 0.5 }}
               >
                 {/* FAQs Header */}
+                
                 <Paper
                   sx={{ 
                     p: 3, 

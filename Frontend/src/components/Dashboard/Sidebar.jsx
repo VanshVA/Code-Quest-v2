@@ -61,7 +61,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
 
     // Sidebar content
     const sidebarContent = (
-        <Box sx={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column', }}>
             {/* App Logo and Title */}
             <Box
                 sx={{
@@ -105,7 +105,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
                                 }
                             }}
                         >
-                            <ListItemIcon sx={{ minWidth: 40 }}>
+                            <ListItemIcon sx={{ minWidth: 40 }} style={{ color: isActive(item.path) ? theme.palette.primary.main : 'inherit' }}>
                                 {item.icon}
                             </ListItemIcon>
                             <ListItemText primary={item.name} />

@@ -912,7 +912,7 @@ const AboutPage = () => {
                     sx={{ 
                       fontWeight: 700,
                       mt: 1,
-                      textAlign: 'center',
+                      textAlign: 'center', 
                       bgcolor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.9)',
                       px: 2,
                       py: 0.75,
@@ -1172,7 +1172,7 @@ const AboutPage = () => {
             backdropFilter: 'blur(30px)',
           }} 
         />
-      </Box>
+      </Box> 
       
       {/* Hero Section */}
       <Box 
@@ -1189,7 +1189,7 @@ const AboutPage = () => {
             container 
             spacing={{ xs: 4, md: 8 }}
             alignItems="center"
-            justifyContent="center"
+            justifyContent="center" 
           >
             <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
               <MotionBox>

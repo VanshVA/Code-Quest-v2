@@ -29,6 +29,7 @@ import {
 import {
   AccessTime,
   ArrowForward,
+  AutoAwesome,
   Check,
   ContentCopy,
   Download,
@@ -49,12 +50,13 @@ import {
 import { motion } from 'framer-motion';
 
 // Current date and user info as specified
-const CURRENT_DATE_TIME = "2025-05-30 18:59:16";
-const CURRENT_USER = "Anuj-prajapati-SDE";
+// const CURRENT_DATE_TIME = "2025-05-30 18:59:16";
+// const CURRENT_USER = "Anuj-prajapati-SDE";
 
 // Motion components
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
+const MotionTypography = motion(Typography);
 
 // Security certifications
 const securityCertifications = [
@@ -136,99 +138,113 @@ const SecurityPage = () => {
 
   return (
     <Box sx={{ bgcolor: isDark ? 'background.default' : '#f8f9fa', minHeight: '100vh' }}>
-      {/* Page Header */}
-      <Box 
-        sx={{ 
-         
-          color: isDark ? "white" : "#546E7A",
-          py: { xs: 4, md: 6 },
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        
-        <Container maxWidth="lg">
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={7}>
-              <Typography 
-                variant="h3" 
-                component="h1" 
-                sx={{ 
-                  fontWeight: 800,
-                  mb: 2,
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
-                }}
-              >
-                Security Center
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 400, opacity: 0.9, mb: 3 }}>
-                Learn about our security practices and how we protect your data
-              </Typography>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Breadcrumbs
-                  separator={<NavigateNext fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.7)' }} />}
-                  aria-label="breadcrumb"
-                >
-                  <Link 
-                    component={RouterLink} 
-                    to="/" 
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center',
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      textDecoration: 'none',
-                      '&:hover': {
-                        textDecoration: 'underline'
-                      }
-                    }}
-                  >
-                    <HomeOutlined sx={{ mr: 0.5, fontSize: '1rem' }} />
-                    Home
-                  </Link>
-                  <Typography sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>Security</Typography>
-                </Breadcrumbs>
-              </Box>
-              
-              {/* CTA Buttons */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 4 }}>
-                <Button 
-                  variant="contained" 
-                  color="secondary"
+    
+
+        {/* Hero Section */}
+                <Box 
+                  component="section" 
                   sx={{ 
-                    bgcolor: 'white', 
-                    color: theme.palette.primary.main,
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1.2,
-                    '&:hover': {
-                      bgcolor: 'rgba(255,255,255,0.9)'
-                    }
+                    position: 'relative',
+                    pt: { xs: '100px', sm: '120px', md: '120px' },
+                    pb: { xs: '60px', sm: '80px', md: '100px' },
+                    overflow: 'hidden',
                   }}
                 >
-                  Security Guide
-                </Button>
-                <Button 
-                  variant="outlined" 
-                  sx={{ 
-                    borderColor: 'white', 
-                    color: isDark ?'white ': "#546E7A",
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1.2,
-                    '&:hover': {
-                      borderColor: 'rgba(255,255,255,0.9)',
-                      bgcolor: 'rgba(255,255,255,0.1)'
-                    }
-                  }}
-                >
-                  Report a Vulnerability
-                </Button>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+                   {/* Top Badge */}
+                                 
+                  <Container maxWidth="lg"> 
+                           
+                    <Grid 
+                      container 
+                      spacing={{ xs: 4, md: 8 }}
+                      alignItems="center" 
+                      justifyContent="center"
+                    >
+                      <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+                        <MotionBox
+                                    initial={{ opacity: 0, y: -20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    sx={{ mb: 3, display: 'inline-block',}}
+                                  >
+                                    <Chip 
+                                      label="Security Center CODE-QUEST" 
+                                      color="primary"
+                                      size="small"
+                                      icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                                      sx={{ 
+                                        background: theme.palette.gradients.primary,
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                        letterSpacing: 1.2,
+                                        py: 2.2,
+                                        pl: 1,
+                                        pr: 2,
+                                        borderRadius: '100px',
+                                        boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                                        '& .MuiChip-icon': { 
+                                          color: 'white',
+                                          mr: 0.5
+                                        }
+                                      }}
+                                    />
+                                  </MotionBox> 
+                        <MotionBox>
+                          {/* Page Title */}
+                          <MotionTypography
+                            variant="h1"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            sx={{ 
+                              fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                              fontWeight: 800,
+                              lineHeight: 1.1,
+                              mb: { xs: 3, md: 4 },
+                              letterSpacing: '-0.02em',
+                            }}
+                          >
+                        Security Center
+                            <Box 
+                              component="span" 
+                              sx={{
+                                display: 'block',
+                                background: theme.palette.gradients.primary,
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                textFillColor: 'transparent',
+                              }}
+                            >
+                              Protecting Your Code, Your Data, Your Trust
+                            </Box>
+                          </MotionTypography>
+                          
+                          {/* Subheadline */}
+                          <MotionTypography
+                            variant="h5"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            color="textSecondary"
+                            sx={{ 
+                              mb: 5,
+                              fontWeight: 400,
+                              lineHeight: 1.5,
+                              fontSize: { xs: '1.1rem', md: '1.3rem' },
+                              maxWidth: '800px',
+                              mx: 'auto',
+                            }}
+                          >
+                            Welcome to Code-Quest! By using our platform, you agree to our terms and conditions. Please read them carefully to understand your rights and responsibilities.
+                          </MotionTypography>
+                        </MotionBox>
+                      </Grid>
+                    </Grid>
+                  </Container>
+                </Box>
+      
 
       {/* Certification Cards */}
       <Box sx={{ mt: { xs: -4, md: 0 } }}>
@@ -700,66 +716,6 @@ const SecurityPage = () => {
         </Box>
       </Container>
       
-      {/* Footer */}
-      <Box 
-        sx={{ 
-          bgcolor: theme.palette.background.paper,
-          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'}`,
-          py: 4,
-          position: 'relative',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container spacing={2} justifyContent="space-between">
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Box component="img" src="/assets/logo.png" alt="Code Quest Logo" sx={{ height: 32, mr: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  Code Quest
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary">
-                &copy; {new Date().getFullYear()} Code Quest, Inc. All rights reserved.
-              </Typography>
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, mt: { xs: 2, md: 0 } }}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                  <Link component={RouterLink} to="/security" color="inherit" sx={{ fontWeight: 500 }}>Security</Link>
-                  <Link component={RouterLink} to="/privacy" color="inherit" sx={{ fontWeight: 500 }}>Privacy Policy</Link>
-                  <Link component={RouterLink} to="/terms" color="inherit" sx={{ fontWeight: 500 }}>Terms of Service</Link>
-                </Stack>
-              </Box>
-            </Grid>
-          </Grid>
-          
-          {/* User and timestamp info in footer */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              flexWrap: 'wrap',
-              mt: 3,
-              pt: 3,
-              borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)'}`,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <VerifiedUser fontSize="small" color="primary" />
-              <Typography variant="body2">
-                {CURRENT_USER}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AccessTime fontSize="small" color="action" />
-              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                {CURRENT_DATE_TIME}
-              </Typography>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
     </Box>
   );
 };

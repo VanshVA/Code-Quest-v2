@@ -115,7 +115,7 @@ const AdminHome = () => {
               show: true,
               label: 'Total Users',
               formatter: function (w) {
-                return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                return `${w.globals.seriesTotals.reduce((a, b) => a + b, 0)}%`;
               }
             }
           }
@@ -383,7 +383,7 @@ const AdminHome = () => {
 
       {/* Charts and Lists */}
       <Grid container spacing={3}>
-        {/* Recent Activities */}
+        {/* Recent Registration */}
         <Grid item xs={12} md={7}>
           <Paper
             elevation={0}
@@ -396,7 +396,7 @@ const AdminHome = () => {
           >
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
               <Typography variant="h6" fontWeight="bold">
-                Recent Activities
+                Recent Registration
               </Typography>
             </Box>
             <List sx={{ p: 0 }}>

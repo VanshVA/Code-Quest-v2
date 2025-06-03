@@ -185,15 +185,16 @@ const teacherDashboardController = {
     createCompetition: async (req, res) => {
         try {
             const teacherId = req.teacher._id;
-            const { 
-                competitionName, 
-                competitionType, 
-                questions = [], 
+            const {
+                competitionName,
+                competitionDescription,  // Add description with default empty string
+                competitionType,
+                questions = [],
                 duration = 60,
-                isLive = false, 
-                startTiming = '' 
+                isLive = false,
+                startTiming = '',
+                endTiming = ''  // Add end timing with default empty string
             } = req.body;
-
             // Validate input
             if (!competitionName) {
                 return res.status(400).json({
@@ -216,12 +217,14 @@ const teacherDashboardController = {
             // Create competition
             const newCompetition = new Competition({
                 competitionName,
+                competitionDescription,  // Add description to the competition object
                 competitionType,
                 questions,
                 duration,
                 creatorId: teacherId,
                 isLive,
                 startTiming,
+                endTiming,  // Add end timing to the competition object
                 id: nextId,
                 lastSaved: new Date().toISOString(),
                 previousCompetition: false
@@ -251,11 +254,13 @@ const teacherDashboardController = {
             const { id } = req.params;
             const {
                 competitionName,
+                competitionDescription,  // Add competitionDescription
                 competitionType,
                 questions,
                 duration,
                 isLive,
                 startTiming,
+                endTiming,  // Add endTiming
                 previousCompetition,
                 winner,
                 runnerUp,
@@ -277,6 +282,7 @@ const teacherDashboardController = {
 
             // Update fields if provided
             if (competitionName !== undefined) competition.competitionName = competitionName;
+            if (competitionDescription !== undefined) competition.competitionDescription = competitionDescription;  // Update description
             if (competitionType !== undefined && ['TEXT', 'MCQ', 'CODE'].includes(competitionType)) {
                 competition.competitionType = competitionType;
             }
@@ -284,6 +290,7 @@ const teacherDashboardController = {
             if (duration !== undefined) competition.duration = duration;
             if (isLive !== undefined) competition.isLive = isLive;
             if (startTiming !== undefined) competition.startTiming = startTiming;
+            if (endTiming !== undefined) competition.endTiming = endTiming;  // Update end timing
             if (previousCompetition !== undefined) competition.previousCompetition = previousCompetition;
             if (winner !== undefined) competition.winner = winner;
             if (runnerUp !== undefined) competition.runnerUp = runnerUp;
@@ -304,6 +311,98 @@ const teacherDashboardController = {
             res.status(500).json({
                 success: false,
                 message: 'Failed to update competition',
+                error: error.message
+            });
+        }
+    },
+
+    // Get all competitions created by teacher
+    getCompetitions: async (req, res) => {
+        try {
+            const teacherId = req.teacher._id;
+            const { status, search, sortBy = 'lastSaved', sortOrder = -1 } = req.query;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const skip = (page - 1) * limit;
+
+            // Build filter
+            const filter = { creatorId: teacherId };
+
+            // Filter by status
+            if (status === 'live') {
+                filter.isLive = true;
+            } else if (status === 'draft') {
+                filter.isLive = false;
+            } else if (status === 'archived') {
+                filter.previousCompetition = true;
+            } else if (status === 'current') {
+                filter.previousCompetition = false;
+            }
+
+            // Filter by search term
+            if (search) {
+                filter.competitionName = { $regex: search, $options: 'i' };
+            }
+
+            // Get total count
+            const total = await Competition.countDocuments(filter);
+
+            // Get competitions with pagination and sorting
+            const competitions = await Competition.find(filter)
+                .sort({ [sortBy]: parseInt(sortOrder) })
+                .skip(skip)
+                .limit(limit);
+
+            // Get teacher information once for all competitions
+            const teacher = await Teacher.findById(teacherId)
+                .select('teacherFirstName teacherLastName teacherEmail');
+
+            const creatorName = teacher ?
+                `${teacher.teacherFirstName} ${teacher.teacherLastName}` :
+                'Unknown Teacher';
+
+            // Add statistics to each competition
+            const competitionsWithStats = await Promise.all(competitions.map(async (competition) => {
+                // Get participation stats
+                const participantsCount = await CompetitionResult.distinct('studentId', {
+                    competitionId: competition._id
+                }).countDocuments();
+
+                // Get pending grades count
+                const pendingGradesCount = await CompetitionResult.countDocuments({
+                    competitionId: competition._id,
+                    isSubmitted: true,
+                    isGraded: false
+                });
+
+                return {
+                    ...competition.toObject(),
+                    creatorName: creatorName, // Add teacher name instead of just ID
+                    stats: {
+                        participantsCount,
+                        pendingGradesCount,
+                        questionsCount: competition.questions.length
+                    }
+                };
+            }));
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    competitions: competitionsWithStats,
+                    pagination: {
+                        total,
+                        page,
+                        pages: Math.ceil(total / limit),
+                        limit
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error in getCompetitions:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve competitions',
                 error: error.message
             });
         }
@@ -333,7 +432,7 @@ const teacherDashboardController = {
             try {
                 const teacher = await Teacher.findById(competition.creatorId)
                     .select('teacherFirstName teacherLastName teacherEmail');
-                
+
                 if (teacher) {
                     creator = {
                         id: teacher._id,
@@ -344,17 +443,17 @@ const teacherDashboardController = {
             } catch (err) {
                 console.error('Error fetching creator info:', err);
             }
-            
+
             // If competition has winners, get their info
             let winnerInfo = null;
             let runnerUpInfo = null;
             let secondRunnerUpInfo = null;
-            
+
             if (competition.winner) {
                 try {
                     const winner = await Student.findById(competition.winner)
                         .select('studentFirstName studentLastName studentEmail studentImage');
-                    
+
                     if (winner) {
                         winnerInfo = {
                             id: winner._id,
@@ -367,12 +466,12 @@ const teacherDashboardController = {
                     console.error('Error fetching winner info:', err);
                 }
             }
-            
+
             if (competition.runnerUp) {
                 try {
                     const runnerUp = await Student.findById(competition.runnerUp)
                         .select('studentFirstName studentLastName studentEmail studentImage');
-                    
+
                     if (runnerUp) {
                         runnerUpInfo = {
                             id: runnerUp._id,
@@ -385,12 +484,12 @@ const teacherDashboardController = {
                     console.error('Error fetching runner-up info:', err);
                 }
             }
-            
+
             if (competition.secondRunnerUp) {
                 try {
                     const secondRunnerUp = await Student.findById(competition.secondRunnerUp)
                         .select('studentFirstName studentLastName studentEmail studentImage');
-                    
+
                     if (secondRunnerUp) {
                         secondRunnerUpInfo = {
                             id: secondRunnerUp._id,
@@ -491,10 +590,10 @@ const teacherDashboardController = {
                     topPerformers: topPerformersWithDetails.filter(Boolean)
                 }
             };
-            
+
             // Log the action
             console.log(`[${CURRENT_DATE_TIME}] Teacher ${CURRENT_USER} viewed competition: ${competition.competitionName} (ID: ${competition._id})`);
-            
+
             res.status(200).json({
                 success: true,
                 data: { competition: formattedCompetition }
@@ -504,6 +603,59 @@ const teacherDashboardController = {
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve competition details',
+                error: error.message
+            });
+        }
+    },
+
+    // Toggle competition status (live/draft)
+    toggleCompetitionStatus: async (req, res) => {
+        try {
+            const teacherId = req.teacher._id;
+            const { id } = req.params;
+
+            // Find competition by ID and verify it belongs to the teacher
+            const competition = await Competition.findOne({
+                _id: id,
+                creatorId: teacherId
+            });
+
+            if (!competition) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Competition not found or you do not have permission to modify it'
+                });
+            }
+
+            // Toggle isLive status
+            competition.isLive = !competition.isLive;
+
+            // If setting to live, ensure startTiming is set
+            if (competition.isLive && !competition.startTiming) {
+                competition.startTiming = new Date().toISOString();
+            }
+
+            // Update lastSaved timestamp
+            competition.lastSaved = new Date().toISOString();
+
+            await competition.save();
+
+            res.status(200).json({
+                success: true,
+                message: `Competition set to ${competition.isLive ? 'live' : 'draft'} mode successfully`,
+                data: {
+                    competition: {
+                        _id: competition._id,
+                        competitionName: competition.competitionName,
+                        isLive: competition.isLive
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error in toggleCompetitionStatus:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update competition status',
                 error: error.message
             });
         }
@@ -535,12 +687,14 @@ const teacherDashboardController = {
             // Create a new competition based on the existing one
             const clonedCompetition = new Competition({
                 competitionName: `${competition.competitionName} (Copy)`,
+                competitionDescription: competition.competitionDescription,  // Copy the description
                 competitionType: competition.competitionType,
                 questions: competition.questions,
                 duration: competition.duration,
                 creatorId: teacherId,
                 isLive: false,
                 startTiming: '',
+                endTiming: '',  // Reset end timing in the clone
                 id: nextId,
                 lastSaved: new Date().toISOString(),
                 previousCompetition: false
@@ -563,462 +717,51 @@ const teacherDashboardController = {
         }
     },
 
-    // Get all competitions created by teacher
-    getCompetitions: async (req, res) => {
+    // Toggle competition archive status (archived/unarchived)
+    toggleArchiveStatus: async (req, res) => {
         try {
             const teacherId = req.teacher._id;
-            const { status, search, sortBy = 'lastSaved', sortOrder = -1 } = req.query;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const skip = (page - 1) * limit;
+            const { id } = req.params;
 
-            // Build filter
-            const filter = { creatorId: teacherId };
-
-            // Filter by status
-            if (status === 'live') {
-                filter.isLive = true;
-            } else if (status === 'draft') {
-                filter.isLive = false;
-            } else if (status === 'archived') {
-                filter.previousCompetition = true;
-            } else if (status === 'current') {
-                filter.previousCompetition = false;
-            }
-
-            // Filter by search term
-            if (search) {
-                filter.competitionName = { $regex: search, $options: 'i' };
-            }
-
-            // Get total count
-            const total = await Competition.countDocuments(filter);
-
-            // Get competitions with pagination and sorting
-            const competitions = await Competition.find(filter)
-                .sort({ [sortBy]: parseInt(sortOrder) })
-                .skip(skip)
-                .limit(limit);
-
-            // Add statistics to each competition
-            const competitionsWithStats = await Promise.all(competitions.map(async (competition) => {
-                // Get participation stats
-                const participantsCount = await CompetitionResult.distinct('studentId', {
-                    competitionId: competition._id
-                }).countDocuments();
-
-                // Get pending grades count
-                const pendingGradesCount = await CompetitionResult.countDocuments({
-                    competitionId: competition._id,
-                    isSubmitted: true,
-                    isGraded: false
-                });
-
-                return {
-                    ...competition.toObject(),
-                    stats: {
-                        participantsCount,
-                        pendingGradesCount,
-                        questionsCount: competition.questions.length
-                    }
-                };
-            }));
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    competitions: competitionsWithStats,
-                    pagination: {
-                        total,
-                        page,
-                        pages: Math.ceil(total / limit),
-                        limit
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Error in getCompetitions:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve competitions',
-                error: error.message
-            });
-        }
-    },
-
-    // Get competition results summary
-    getCompetitionResults: async (req, res) => {
-        try {
-            const teacherId = req.teacher._id;
-            const { competitionId } = req.params;
-
-            // Verify the teacher created this competition
+            // Find competition by ID and verify it belongs to the teacher
             const competition = await Competition.findOne({
-                _id: competitionId,
+                _id: id,
                 creatorId: teacherId
             });
 
             if (!competition) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You do not have permission to access this competition'
-                });
-            }
-
-            // Get all student results for this competition
-            const studentResults = await CompetitionResult.aggregate([
-                { $match: { competitionId: new mongoose.Types.ObjectId(competitionId) } },
-                {
-                    $group: {
-                        _id: '$studentId',
-                        totalScore: { $sum: '$totalScore' },
-                        maxPossibleScore: { $sum: '$maxPossibleScore' },
-                        isSubmitted: { $first: '$isSubmitted' },
-                        isGraded: { $first: '$isGraded' },
-                        submissionTime: { $first: '$submissionTime' }
-                    }
-                },
-                { $sort: { totalScore: -1 } }
-            ]);
-
-            // Get student details for each result
-            const resultsWithDetails = await Promise.all(studentResults.map(async (result) => {
-                const student = await Student.findById(result._id)
-                    .select('studentFirstName studentLastName studentEmail studentImage grade school');
-
-                return {
-                    studentId: result._id,
-                    student: student ? {
-                        name: `${student.studentFirstName} ${student.studentLastName}`,
-                        email: student.studentEmail,
-                        image: student.studentImage,
-                        grade: student.grade,
-                        school: student.school
-                    } : { name: 'Unknown Student' },
-                    totalScore: result.totalScore,
-                    maxPossibleScore: result.maxPossibleScore,
-                    scorePercentage: result.maxPossibleScore > 0
-                        ? Math.round((result.totalScore / result.maxPossibleScore) * 100)
-                        : 0,
-                    isSubmitted: result.isSubmitted,
-                    isGraded: result.isGraded,
-                    submissionTime: result.submissionTime
-                };
-            }));
-
-            // Overall competition stats
-            const competitionStats = {
-                totalStudents: resultsWithDetails.length,
-                averageScore: resultsWithDetails.length > 0
-                    ? Math.round(resultsWithDetails.reduce((acc, r) => acc + r.scorePercentage, 0) / resultsWithDetails.length)
-                    : 0,
-                highestScore: resultsWithDetails.length > 0
-                    ? Math.max(...resultsWithDetails.map(r => r.scorePercentage))
-                    : 0,
-                studentsCompleted: resultsWithDetails.filter(r => r.isSubmitted).length,
-                studentsGraded: resultsWithDetails.filter(r => r.isGraded).length
-            };
-
-            // Top performers (top 3)
-            const topPerformers = resultsWithDetails.slice(0, 3).map((result, index) => ({
-                rank: index + 1,
-                ...result
-            }));
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    results: resultsWithDetails,
-                    stats: competitionStats,
-                    topPerformers,
-                    competition: {
-                        _id: competition._id,
-                        id: competition.id,
-                        competitionName: competition.competitionName,
-                        competitionType: competition.competitionType,
-                        duration: competition.duration,
-                        questionsCount: competition.questions.length
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Error in getCompetitionResults:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve competition results',
-                error: error.message
-            });
-        }
-    },
-
-    // Get student submissions for a competition
-    getStudentSubmission: async (req, res) => {
-        try {
-            const teacherId = req.teacher._id;
-            const { competitionId, studentId } = req.params;
-
-            // Verify the teacher created this competition
-            const competition = await Competition.findOne({
-                _id: competitionId,
-                creatorId: teacherId
-            });
-
-            if (!competition) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You do not have permission to access this competition'
-                });
-            }
-
-            // Find result for this student in this competition
-            const result = await CompetitionResult.findOne({
-                competitionId,
-                studentId,
-                creatorId: teacherId
-            });
-
-            if (!result) {
                 return res.status(404).json({
                     success: false,
-                    message: 'No submission found for this student in this competition'
+                    message: 'Competition not found or you do not have permission to modify it'
                 });
             }
 
-            // Get student info
-            const student = await Student.findById(studentId)
-                .select('studentFirstName studentLastName studentEmail studentImage grade school');
+            // Toggle archive status
+            competition.previousCompetition = !competition.previousCompetition;
 
-            if (!student) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Student not found'
-                });
+            // If unarchiving, keep isLive as false
+            // If archive status is being set to true, ensure isLive is false
+            if (competition.previousCompetition) {
+                competition.isLive = false;
             }
+
+            await competition.save();
+
+            const status = competition.previousCompetition ? 'archived' : 'unarchived';
 
             res.status(200).json({
                 success: true,
+                message: `Competition ${status} successfully`,
                 data: {
-                    submission: result,
-                    student: {
-                        _id: student._id,
-                        name: `${student.studentFirstName} ${student.studentLastName}`,
-                        email: student.studentEmail,
-                        image: student.studentImage,
-                        grade: student.grade,
-                        school: student.school
-                    },
-                    competition: {
-                        _id: competition._id,
-                        competitionType: competition.competitionType,
-                        competitionName: competition.competitionName,
-                        questions: competition.questions
-                    }
+                    competition,
+                    isArchived: competition.previousCompetition
                 }
             });
         } catch (error) {
-            console.error('Error in getStudentSubmission:', error);
+            console.error('Error in toggleArchiveStatus:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to retrieve student submission',
-                error: error.message
-            });
-        }
-    },
-
-    // Get all submissions for a competition
-    getAllSubmissionsForCompetition: async (req, res) => {
-        try {
-            const teacherId = req.teacher._id;
-            const { competitionId } = req.params;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const skip = (page - 1) * limit;
-            const { filter = 'all' } = req.query; // 'all', 'graded', 'ungraded'
-
-            // Verify the teacher created this competition
-            const competition = await Competition.findOne({
-                _id: competitionId,
-                creatorId: teacherId
-            });
-
-            if (!competition) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You do not have permission to access this competition'
-                });
-            }
-
-            // Build query
-            const query = {
-                competitionId,
-                creatorId: teacherId
-            };
-
-            // Apply filter
-            if (filter === 'graded') {
-                query.isGraded = true;
-            } else if (filter === 'ungraded') {
-                query.isGraded = false;
-                query.isSubmitted = true;
-            }
-
-            // Get total count
-            const total = await CompetitionResult.countDocuments(query);
-
-            // Find submissions with pagination
-            const submissions = await CompetitionResult.find(query)
-                .sort({ submissionTime: -1 })
-                .skip(skip)
-                .limit(limit);
-
-            // Get student details for each submission
-            const submissionsWithDetails = await Promise.all(submissions.map(async (submission) => {
-                const student = await Student.findById(submission.studentId)
-                    .select('studentFirstName studentLastName studentEmail studentImage grade school');
-
-                return {
-                    _id: submission._id,
-                    competitionId: submission.competitionId,
-                    studentId: submission.studentId,
-                    student: student ? {
-                        name: `${student.studentFirstName} ${student.studentLastName}`,
-                        email: student.studentEmail,
-                        image: student.studentImage,
-                        grade: student.grade,
-                        school: student.school
-                    } : { name: 'Unknown Student' },
-                    submissionTime: submission.submissionTime,
-                    isGraded: submission.isGraded,
-                    totalScore: submission.totalScore,
-                    maxPossibleScore: submission.maxPossibleScore,
-                    scorePercentage: submission.scorePercentage,
-                    answersCount: submission.answers.length
-                };
-            }));
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    competition: {
-                        _id: competition._id,
-                        competitionName: competition.competitionName,
-                        competitionType: competition.competitionType
-                    },
-                    submissions: submissionsWithDetails,
-                    pagination: {
-                        total,
-                        page,
-                        pages: Math.ceil(total / limit),
-                        limit
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Error in getAllSubmissionsForCompetition:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve submissions',
-                error: error.message
-            });
-        }
-    },
-
-    // Get student list for a competition
-    getCompetitionStudents: async (req, res) => {
-        try {
-            const teacherId = req.teacher._id;
-            const { competitionId } = req.params;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const skip = (page - 1) * limit;
-
-            // Verify the teacher created this competition
-            const competition = await Competition.findOne({
-                _id: competitionId,
-                creatorId: teacherId
-            });
-
-            if (!competition) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You do not have permission to access this competition'
-                });
-            }
-
-            // Find students who have participated in this competition
-            const studentIds = await CompetitionResult.distinct('studentId', {
-                competitionId
-            });
-
-            // Get total count
-            const total = studentIds.length;
-
-            // Get paginated student details
-            const students = await Student.find({
-                _id: { $in: studentIds }
-            })
-                .select('studentFirstName studentLastName studentEmail studentImage grade school')
-                .sort({ studentFirstName: 1 })
-                .skip(skip)
-                .limit(limit);
-
-            // Get participation details and results for each student
-            const studentsWithDetails = await Promise.all(students.map(async (student) => {
-                // Get result for this student for this competition
-                const result = await CompetitionResult.findOne({
-                    competitionId,
-                    studentId: student._id
-                });
-
-                // Calculate overall stats
-                const totalScore = result ? result.totalScore : 0;
-                const maxPossibleScore = result ? result.maxPossibleScore : 0;
-                const isCompleted = result ? result.isSubmitted : false;
-                const isGraded = result ? result.isGraded : false;
-
-                return {
-                    _id: student._id,
-                    name: `${student.studentFirstName} ${student.studentLastName}`,
-                    email: student.studentEmail,
-                    image: student.studentImage,
-                    grade: student.grade,
-                    school: student.school,
-                    stats: {
-                        totalScore,
-                        maxPossibleScore,
-                        scorePercentage: maxPossibleScore > 0 ? Math.round((totalScore / maxPossibleScore) * 100) : 0,
-                        isCompleted,
-                        isGraded
-                    },
-                    submission: result ? {
-                        submissionTime: result.submissionTime,
-                        gradedTime: result.gradedTime
-                    } : null
-                };
-            }));
-
-            res.status(200).json({
-                success: true,
-                data: {
-                    students: studentsWithDetails,
-                    competition: {
-                        _id: competition._id,
-                        competitionName: competition.competitionName,
-                        competitionType: competition.competitionType
-                    },
-                    pagination: {
-                        total,
-                        page,
-                        pages: Math.ceil(total / limit),
-                        limit
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Error in getCompetitionStudents:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to retrieve competition students',
+                message: 'Failed to update competition archive status',
                 error: error.message
             });
         }
@@ -1079,306 +822,684 @@ const teacherDashboardController = {
         }
     },
 
-    // Archive competition
-    archiveCompetition: async (req, res) => {
+    //========================= COMPETITION RESULTS ================================//
+
+    // Get all submissions for a specific competition
+    getCompetitionSubmissions: async (req, res) => {
         try {
             const teacherId = req.teacher._id;
-            const { id } = req.params;
+            const { competitionId } = req.params;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 20;
+            const skip = (page - 1) * limit;
+            const { status } = req.query; // Optional filter by status: 'all', 'graded', 'ungraded'
 
-            // Find competition by ID and verify it belongs to the teacher
+            // Verify that the competition belongs to this teacher
             const competition = await Competition.findOne({
-                _id: id,
+                _id: competitionId,
                 creatorId: teacherId
             });
 
             if (!competition) {
-                return res.status(404).json({
+                return res.status(403).json({
                     success: false,
-                    message: 'Competition not found or you do not have permission to modify it'
+                    message: 'Competition not found or you do not have permission to access it'
                 });
             }
 
-            // Update competition to archived state
-            competition.previousCompetition = true;
-            competition.isLive = false;
-            await competition.save();
+            // Build query for submissions
+            const Submission = require('../models/submission');
+
+            // Find all submissions for this competition
+            const query = { competitionId };
+
+            // Get total count
+            const total = await Submission.countDocuments(query);
+
+            // Get submissions with pagination
+            const submissions = await Submission.find(query)
+                .sort({ submissionDate: -1 }) // Most recent first
+                .skip(skip)
+                .limit(limit);
+
+            // Get associated results data (for grading status)
+            const Result = require('../models/result');
+
+            // Format submission data with student information
+            const submissionsWithDetails = await Promise.all(submissions.map(async (submission) => {
+                // Get student details
+                const student = await Student.findById(submission.studentId)
+                    .select('studentFirstName studentLastName studentEmail studentImage grade school');
+
+                // Check if submission has been graded
+                const result = await Result.findOne({
+                    competitionId,
+                    studentId: submission.studentId
+                }).select('isGraded totalScore maxPossibleScore percentageScore');
+
+                return {
+                    _id: submission._id,
+                    submissionDate: submission.submissionDate,
+                    student: student ? {
+                        _id: student._id,
+                        name: `${student.studentFirstName} ${student.studentLastName}`,
+                        email: student.studentEmail,
+                        image: student.studentImage,
+                        grade: student.grade || 'N/A',
+                        school: student.school || 'N/A'
+                    } : { name: 'Unknown Student' },
+                    questionCount: submission.questions.length,
+                    answeredCount: submission.answers.filter(answer => answer && answer.trim().length > 0).length,
+                    result: result ? {
+                        isGraded: result.isGraded,
+                        totalScore: result.totalScore,
+                        maxPossibleScore: result.maxPossibleScore,
+                        percentageScore: result.percentageScore
+                    } : null
+                };
+            }));
+
+            // Filter if status parameter is provided
+            let filteredSubmissions = submissionsWithDetails;
+            if (status === 'graded') {
+                filteredSubmissions = submissionsWithDetails.filter(s => s.result && s.result.isGraded);
+            } else if (status === 'ungraded') {
+                filteredSubmissions = submissionsWithDetails.filter(s => !s.result || !s.result.isGraded);
+            }
+
+            // Get summary statistics
+            const stats = {
+                totalSubmissions: submissionsWithDetails.length,
+                gradedSubmissions: submissionsWithDetails.filter(s => s.result && s.result.isGraded).length,
+                ungradedSubmissions: submissionsWithDetails.filter(s => !s.result || !s.result.isGraded).length,
+                averageScore: submissionsWithDetails
+                    .filter(s => s.result && s.result.isGraded)
+                    .reduce((sum, s) => sum + (s.result.percentageScore || 0), 0) /
+                    (submissionsWithDetails.filter(s => s.result && s.result.isGraded).length || 1)
+            };
+
+            // Log the action
+            console.log(`[${CURRENT_DATE_TIME}] Teacher ${req.teacher.teacherEmail} retrieved submissions for competition: ${competition.competitionName}`);
 
             res.status(200).json({
                 success: true,
-                message: 'Competition archived successfully',
-                data: { competition }
-            });
-        } catch (error) {
-            console.error('Error in archiveCompetition:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to archive competition',
-                error: error.message
-            });
-        }
-    },
-
-    // Toggle competition status (live/draft)
-    toggleCompetitionStatus: async (req, res) => {
-        try {
-            const teacherId = req.teacher._id;
-            const { id } = req.params;
-
-            // Find competition by ID and verify it belongs to the teacher
-            const competition = await Competition.findOne({
-                _id: id,
-                creatorId: teacherId
-            });
-
-            if (!competition) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Competition not found or you do not have permission to modify it'
-                });
-            }
-
-            // Toggle isLive status
-            competition.isLive = !competition.isLive;
-
-            // If setting to live, ensure startTiming is set
-            if (competition.isLive && !competition.startTiming) {
-                competition.startTiming = new Date().toISOString();
-            }
-
-            // Update lastSaved timestamp
-            competition.lastSaved = new Date().toISOString();
-
-            await competition.save();
-
-            res.status(200).json({
-                success: true,
-                message: `Competition set to ${competition.isLive ? 'live' : 'draft'} mode successfully`,
-                data: { 
+                data: {
                     competition: {
                         _id: competition._id,
-                        competitionName: competition.competitionName,
-                        isLive: competition.isLive
+                        name: competition.competitionName,
+                        type: competition.competitionType,
+                        totalQuestions: competition.questions.length,
+                        isLive: competition.isLive,
+                        isArchived: competition.previousCompetition
+                    },
+                    submissions: filteredSubmissions,
+                    stats,
+                    pagination: {
+                        page,
+                        limit,
+                        total,
+                        pages: Math.ceil(total / limit)
                     }
                 }
             });
         } catch (error) {
-            console.error('Error in toggleCompetitionStatus:', error);
+            console.error('Error in getCompetitionSubmissions:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to update competition status',
+                message: 'Failed to retrieve competition submissions',
                 error: error.message
             });
         }
     },
 
-    // Get dashboard statistics
-    getDashboardStatistics: async (req, res) => {
+    // Get a specific submission detail
+    getSubmissionDetail: async (req, res) => {
+        try {
+            const teacherId = req.teacher._id;
+            const { submissionId } = req.params;
+            // Find the submission
+            const Submission = require('../models/submission');
+
+            const submission = await Submission.findById(submissionId);
+
+            if (!submission) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Submission not found'
+                });
+            }
+
+            // Get the competition
+            const competition = await Competition.findById(submission.competitionId);
+
+            if (!competition) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Associated competition not found'
+                });
+            }
+
+            // Verify the teacher owns this competition
+            if (competition.creatorId.toString() !== teacherId.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have permission to access this submission'
+                });
+            }
+
+            // Get student details
+            const student = await Student.findById(submission.studentId)
+                .select('studentFirstName studentLastName studentEmail studentImage grade school');
+
+            if (!student) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Student information not found'
+                });
+            }
+
+            // Get result if available
+            const Result = require('../models/result');
+            const result = await Result.findOne({
+                competitionId: submission.competitionId,
+                studentId: submission.studentId
+            });
+
+            // Format answers with full question details
+            const answers = [];
+            for (let i = 0; i < submission.questions.length; i++) {
+                const questionId = submission.questions[i];
+                const answer = submission.answers[i] || '';
+
+                // Find the question details - get the complete question object
+                const questionDetail = competition.questions.find(q => q._id.toString() === questionId);
+
+                if (questionDetail) {
+                    // Include the complete question details
+                    let answerInfo = {
+                        questionId,
+                        question: questionDetail, // Include the full question object
+                        questionType: competition.competitionType,
+                        studentAnswer: answer,
+                    };
+
+                    // Add grading information if result exists
+                    if (result) {
+                        const resultItem = result.results.find(r => r.questionId.toString() === questionId);
+                        if (resultItem) {
+                            answerInfo.isCorrect = resultItem.isCorrect;
+                            answerInfo.teacherFeedback = resultItem.teacherFeedback;
+                        }
+                    }
+
+                    answers.push(answerInfo);
+                }
+            }
+
+            // Log the action
+            console.log(`[${CURRENT_DATE_TIME}] Teacher ${req.teacher.teacherEmail} viewed submission detail (ID: ${submissionId}) from student: ${student.studentEmail}`);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    submission: {
+                        _id: submission._id,
+                        submissionDate: submission.submissionDate,
+                        totalQuestions: submission.questions.length,
+                        answeredQuestions: submission.answers.filter(a => a && a.trim().length > 0).length
+                    },
+                    student: {
+                        _id: student._id,
+                        name: `${student.studentFirstName} ${student.studentLastName}`,
+                        email: student.studentEmail,
+                        image: student.studentImage,
+                        grade: student.grade || 'N/A',
+                        school: student.school || 'N/A'
+                    },
+                    competition: {
+                        _id: competition._id,
+                        name: competition.competitionName,
+                        type: competition.competitionType,
+                        questionsCount: competition.questions.length
+                    },
+                    result: result ? {
+                        _id: result._id,
+                        isGraded: result.isGraded,
+                        totalScore: result.totalScore,
+                        maxPossibleScore: result.maxPossibleScore,
+                        percentageScore: result.percentageScore
+                    } : null,
+                    answers
+                }
+            });
+        } catch (error) {
+            console.error('Error in getSubmissionDetail:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve submission details',
+                error: error.message
+            });
+        }
+    },
+
+    // Evaluate submission and assign results (for teachers)
+    evaluateSubmission: async (req, res) => {
+        try {
+            const teacherId = req.teacher._id;
+            const { submissionId } = req.params;
+
+            // Find the submission
+            const Submission = require('../models/submission');
+            const Result = require('../models/result');
+
+            const submission = await Submission.findById(submissionId);
+
+            if (!submission) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Submission not found'
+                });
+            }
+
+            // Get the competition details
+            const competition = await Competition.findById(submission.competitionId);
+            if (!competition) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Associated competition not found'
+                });
+            }
+
+            // Verify that the teacher owns this competition
+            if (competition.creatorId.toString() !== teacherId.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have permission to evaluate this submission'
+                });
+            }
+
+            // Check if result already exists
+            const existingResult = await Result.findOne({
+                studentId: submission.studentId,
+                competitionId: submission.competitionId
+            });
+
+            if (existingResult) {
+                // Return existing result instead of error
+                return res.status(200).json({
+                    success: true,
+                    message: 'Results already exist for this submission',
+                    data: {
+                        submissionId: submissionId,
+                        resultId: existingResult._id,
+                        totalScore: existingResult.totalScore,
+                        percentageScore: existingResult.percentageScore,
+                        isExisting: true
+                    }
+                });
+            }
+
+            // Calculate results
+            const results = [];
+            let totalCorrect = 0;
+            let gradableQuestions = 0;
+
+            for (let i = 0; i < submission.questions.length; i++) {
+                const questionId = submission.questions[i];
+                const studentAnswer = submission.answers[i] || '';
+
+                // Find the original question from the competition
+                const originalQuestion = competition.questions.find(q => q._id.toString() === questionId);
+
+                if (!originalQuestion) continue;
+
+                // Determine correctness based on competition type
+                let isCorrect = false;
+
+                if (competition.competitionType === 'MCQ') {
+                    // For MCQ, we can automatically check answer
+                    isCorrect = originalQuestion.answer === studentAnswer;
+                    if (isCorrect) totalCorrect++;
+                    gradableQuestions++;
+                } else {
+                    // For TEXT or CODE, set as false initially (requires manual grading)
+                    isCorrect = false;
+                    // Only count as gradable if student provided an answer
+                    if (studentAnswer.trim().length > 0) {
+                        gradableQuestions++;
+                    }
+                }
+
+                results.push({
+                    questionId: questionId,
+                    questionType: competition.competitionType,
+                    studentAnswer: studentAnswer,
+                    correctAnswer: competition.competitionType === 'MCQ' ? originalQuestion.answer : undefined,
+                    isCorrect: isCorrect
+                });
+            }
+
+            const totalQuestions = results.length;
+            const percentageScore = gradableQuestions > 0 ? (totalCorrect / gradableQuestions) * 100 : 0;
+
+            // Create and save the result
+            const newResult = new Result({
+                studentId: submission.studentId,
+                competitionId: submission.competitionId,
+                creatorId: teacherId, // Add teacher ID as creator
+                results: results,
+                totalScore: totalCorrect,
+                percentageScore: percentageScore,
+                scoreAssignedTime: new Date(),
+                submissionId: submissionId,
+                maxPossibleScore: gradableQuestions, // Add max possible score
+                isGraded: competition.competitionType === 'MCQ', // Auto-grade MCQs
+                isSubmitted: true,
+                submissionTime: submission.submissionDate || new Date()
+            });
+
+            await newResult.save();
+
+            // Get student information for response
+            const student = await Student.findById(submission.studentId)
+                .select('studentFirstName studentLastName studentEmail');
+
+            // Log the action
+            console.log(`[${CURRENT_DATE_TIME}] Teacher ${req.teacher.teacherEmail} evaluated submission (ID: ${submission._id}), student: ${student ? student.studentEmail : submission.studentId}, score: ${totalCorrect}/${totalQuestions}`);
+
+            // Return appropriate data based on competition type
+            const responseData = {
+                submissionId: submission._id,
+                resultId: newResult._id,
+                studentId: submission.studentId,
+                studentInfo: student ? {
+                    name: `${student.studentFirstName} ${student.studentLastName}`,
+                    email: student.studentEmail
+                } : { name: 'Unknown Student' },
+                competitionId: submission.competitionId,
+                competitionInfo: {
+                    name: competition.competitionName,
+                    type: competition.competitionType
+                },
+                totalScore: totalCorrect,
+                totalQuestions: totalQuestions,
+                percentageScore: percentageScore,
+                requiresManualGrading: competition.competitionType !== 'MCQ',
+                isAutoGraded: competition.competitionType === 'MCQ'
+            };
+
+            // Add question details for MCQ type
+            if (competition.competitionType === 'MCQ') {
+                responseData.questions = results.map(r => {
+                    const question = competition.questions.find(q => q._id.toString() === r.questionId.toString());
+                    return {
+                        questionId: r.questionId,
+                        questionText: question ? question.questionText : 'Question not found',
+                        studentAnswer: r.studentAnswer,
+                        correctAnswer: r.correctAnswer,
+                        isCorrect: r.isCorrect,
+                        options: question ? question.options : []
+                    };
+                });
+            }
+
+            res.status(201).json({
+                success: true,
+                message: 'Submission evaluation completed successfully',
+                data: responseData
+            });
+        } catch (error) {
+            console.error('Error in evaluateSubmission:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to evaluate submission',
+                error: error.message
+            });
+        }
+    },
+
+    // Get detailed result for a specific submission
+    getResultDetails: async (req, res) => {
+        try {
+            const teacherId = req.teacher._id;
+            const { resultId } = req.params;
+            const { submissionId } = req.params; // Get submissionId from query parameters
+
+            const Result = require('../models/result');
+
+            // Find result by resultId or by submissionId
+            let result;
+            if (submissionId) {
+                // If submissionId is provided, search by submissionId field
+                result = await Result.findOne({ submissionId: submissionId });
+                if (!result) {
+                    // Try to find by resultId as fallback
+                    result = await Result.findById(resultId);
+                }
+            } else {
+                // If no submissionId, use standard resultId search
+                result = await Result.findById(resultId);
+            }
+
+            if (!result) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Result not found'
+                });
+            }
+
+            // Get competition and student details
+            const competition = await Competition.findById(result.competitionId);
+            
+            // Verify that the teacher owns this competition
+            if (!competition || competition.creatorId.toString() !== teacherId.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Competition not found or you do not have permission to access this result'
+                });
+            }
+            
+            const student = await Student.findById(result.studentId)
+                .select('studentFirstName studentLastName studentEmail grade school');
+
+            if (!student) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Associated student not found'
+                });
+            }
+
+            // Format detailed question and answer data
+            const questionDetails = await Promise.all(result.results.map(async (item) => {
+                // Find the original question
+                const originalQuestion = competition.questions.find(
+                    q => q._id.toString() === item.questionId.toString()
+                );
+
+                return {
+                    questionId: item.questionId,
+                    questionType: item.questionType,
+                    questionText: originalQuestion ? originalQuestion.questionText : 'Question not found',
+                    studentAnswer: item.studentAnswer,
+                    correctAnswer: item.correctAnswer,
+                    isCorrect: item.isCorrect,
+                    teacherFeedback: item.teacherFeedback, // Include teacher feedback
+                    options: originalQuestion && originalQuestion.options ? originalQuestion.options : [],
+                };
+            }));
+
+            // Log the action
+            console.log(`[${CURRENT_DATE_TIME}] Teacher ${req.teacher.teacherEmail} viewed result details (ID: ${result._id}) for student: ${student.studentEmail}`);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    result: {
+                        _id: result._id,
+                        submissionId: result.submissionId,
+                        totalScore: result.totalScore,
+                        percentageScore: result.percentageScore,
+                        maxPossibleScore: result.maxPossibleScore,
+                        isGraded: result.isGraded,
+                        scoreAssignedTime: result.scoreAssignedTime,
+                        submissionTime: result.submissionTime,
+                        overallFeedback: result.overallFeedback,
+                        createdAt: result.createdAt,
+                        updatedAt: result.updatedAt
+                    },
+                    competition: {
+                        _id: competition._id,
+                        name: competition.competitionName,
+                        type: competition.competitionType,
+                        totalQuestions: competition.questions.length,
+                        isArchived: competition.previousCompetition
+                    },
+                    student: {
+                        _id: student._id,
+                        name: `${student.studentFirstName} ${student.studentLastName}`,
+                        email: student.studentEmail,
+                        grade: student.grade || 'N/A',
+                        school: student.school || 'N/A'
+                    },
+                    questionDetails
+                }
+            });
+        } catch (error) {
+            console.error('Error in getResultDetails:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve result details',
+                error: error.message
+            });
+        }
+    },
+
+    //========================== DASHBOARD STATISTICS ================================//
+
+    // Get teacher dashboard statistics
+    getDashboardStats: async (req, res) => {
         try {
             const teacherId = req.teacher._id;
 
-            // Get competitions stats
+            // Get basic counts for this teacher
             const totalCompetitions = await Competition.countDocuments({ creatorId: teacherId });
+
+            // Get participating students count (unique students who've participated in teacher's competitions)
+            // Count unique students across all competitions by this teacher
+            const teacherCompetitions = await Competition.find({ creatorId: teacherId });
+
+            // Create a Set to track unique student IDs
+            const uniqueStudentIds = new Set();
+
+            // Add all student IDs from all competitions' studentJoined arrays
+            teacherCompetitions.forEach(competition => {
+                if (competition.studentsJoined && Array.isArray(competition.studentJoined)) {
+                    competition.studentsJoined.forEach(studentId => {
+                        uniqueStudentIds.add(studentId.toString());
+                    });
+                }
+            });
+
+            const participatingStudentIds = Array.from(uniqueStudentIds);
+            const totalParticipatingStudents = participatingStudentIds.length;
+
+            // Get submissions count
+            const totalSubmissions = await CompetitionResult.countDocuments({ creatorId: teacherId });
+
+            // Get active competitions count
             const activeCompetitions = await Competition.countDocuments({
                 creatorId: teacherId,
                 isLive: true,
                 previousCompetition: false
             });
-            const archivedCompetitions = await Competition.countDocuments({
+
+            // Get pending grades count
+            const pendingGrades = await CompetitionResult.countDocuments({
                 creatorId: teacherId,
-                previousCompetition: true
             });
-            const draftCompetitions = await Competition.countDocuments({
+
+            // Get upcoming competitions with details
+            const upcomingCompetitions = await Competition.find({
                 creatorId: teacherId,
-                isLive: false,
-                previousCompetition: false
-            });
-
-            // Get competition type distribution
-            const competitionTypeStats = await Competition.aggregate([
-                { $match: { creatorId: teacherId.toString() } },
-                { $group: {
-                    _id: '$competitionType',
-                    count: { $sum: 1 }
-                  }
-                }
-            ]);
-
-            // Format competition type data
-            const typeStats = {
-                MCQ: 0,
-                TEXT: 0,
-                CODE: 0
-            };
-            
-            competitionTypeStats.forEach(stat => {
-                if (stat._id) {
-                    typeStats[stat._id] = stat.count;
-                }
-            });
-
-            // Get student stats
-            const uniqueStudentIds = await CompetitionResult.distinct('studentId', {
-                creatorId: teacherId
-            });
-            const totalStudents = uniqueStudentIds.length;
-
-            // Get average student performance
-            const studentPerformance = await CompetitionResult.aggregate([
-                { $match: { 
-                    creatorId: teacherId.toString(),
-                    isGraded: true
-                }},
-                { $group: {
-                    _id: '$studentId',
-                    avgScore: { $avg: { $divide: ['$totalScore', '$maxPossibleScore'] } }
-                  }
-                },
-                { $group: {
-                    _id: null,
-                    overallAvg: { $avg: '$avgScore' }
-                  }
-                }
-            ]);
-
-            const averagePerformance = studentPerformance.length > 0 
-                ? Math.round(studentPerformance[0].overallAvg * 100) 
-                : 0;
-
-            // Get submission stats
-            const totalSubmissions = await CompetitionResult.countDocuments({
-                creatorId: teacherId
-            });
-            const ungradedSubmissions = await CompetitionResult.countDocuments({
-                creatorId: teacherId,
-                isSubmitted: true,
-                isGraded: false
-            });
-            const gradedSubmissions = await CompetitionResult.countDocuments({
-                creatorId: teacherId,
-                isGraded: true
-            });
+                status: 'upcoming',
+            })
+                .select('competitionName startTiming competitionType duration')
+                .sort({ startTiming: 1 })
+                .limit(5);
 
             // Get recent competitions
-            const recentCompetitions = await Competition.find({ creatorId: teacherId })
+            const recentCompetitions = await Competition.find({
+                creatorId: teacherId
+            })
+                .select('competitionName lastSaved isLive')
                 .sort({ lastSaved: -1 })
                 .limit(5);
 
-            // Get recent submissions
-            const recentSubmissions = await CompetitionResult.find({ creatorId: teacherId })
-                .sort({ submissionTime: -1 })
-                .limit(5);
+            // Get teacher's login history
+            const teacher = await Teacher.findById(teacherId);
 
-            // Get submission details
-            const recentSubmissionsWithDetails = await Promise.all(recentSubmissions.map(async (submission) => {
-                const student = await Student.findById(submission.studentId)
-                    .select('studentFirstName studentLastName');
+            // Format both login and registration times for recent activity
+            const recentActivity = [];
 
-                const competitionName = await Competition.findById(submission.competitionId)
-                    .select('competitionName competitionType');
+            if (teacher) {
+                // Add registration time if available
+                if (teacher.registerTime) {
+                    recentActivity.push({
+                        type: 'registration',
+                        action: 'Account created',
+                        user: `${teacher.teacherFirstName} ${teacher.teacherLastName}`,
+                        email: teacher.teacherEmail,
+                        timestamp: teacher.registerTime,
+                        formattedTime: new Date(teacher.registerTime).toLocaleString()
+                    });
+                }
 
-                return {
-                    _id: submission._id,
-                    studentId: submission.studentId,
-                    studentName: student ? `${student.studentFirstName} ${student.studentLastName}` : 'Unknown Student',
-                    competitionId: submission.competitionId,
-                    competitionName: competitionName ? competitionName.competitionName : 'Unknown Competition',
-                    competitionType: competitionName ? competitionName.competitionType : 'Unknown',
-                    submissionTime: submission.submissionTime,
-                    isGraded: submission.isGraded,
-                    totalScore: submission.totalScore,
-                    maxPossibleScore: submission.maxPossibleScore,
-                    scorePercentage: submission.maxPossibleScore > 0 
-                        ? Math.round((submission.totalScore / submission.maxPossibleScore) * 100) 
-                        : 0
-                };
-            }));
+                // Add login times if available - using loginTimeArray instead of loginTime
+                if (teacher.loginTimeArray && teacher.loginTimeArray.length > 0) {
+                    // Get last 10 logins
+                    const logins = teacher.loginTimeArray.slice(-10).reverse();
 
-            // Get top performing students
-            const topStudents = await CompetitionResult.aggregate([
-                { $match: { 
-                    creatorId: teacherId.toString(),
-                    isGraded: true
-                }},
-                { $group: {
-                    _id: '$studentId',
-                    totalScore: { $sum: '$totalScore' },
-                    totalMaxScore: { $sum: '$maxPossibleScore' },
-                    submissionsCount: { $sum: 1 }
-                  }
+                    logins.forEach((loginTime) => {
+                        recentActivity.push({
+                            type: 'login',
+                            action: 'Logged in to platform',
+                            user: `${teacher.teacherFirstName} ${teacher.teacherLastName}`,
+                            email: teacher.teacherEmail,
+                            timestamp: loginTime,
+                            formattedTime: new Date(loginTime).toLocaleString()
+                        });
+                    });
+                }
+            }
+
+            // Sort all activities by timestamp (newest first)
+            recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+
+            // Prepare response
+            const dashboardStats = {
+                counts: {
+                    totalCompetitions,
+                    totalParticipatingStudents,
+                    totalSubmissions,
+                    activeCompetitions,
+                    pendingGrades
                 },
-                { $project: {
-                    _id: 1,
-                    totalScore: 1,
-                    totalMaxScore: 1,
-                    submissionsCount: 1,
-                    scorePercentage: { 
-                        $multiply: [
-                            { $divide: ['$totalScore', { $max: ['$totalMaxScore', 1] }] },
-                            100
-                        ]
-                    }
-                  }
-                },
-                { $sort: { scorePercentage: -1 } },
-                { $limit: 5 }
-            ]);
+                upcomingCompetitions,
+                recentCompetitions,
+                recentActivity: recentActivity.slice(0, 10) // Take only top 10 activities
+            };
 
-            // Get student details for top performers
-            const topStudentsWithDetails = await Promise.all(topStudents.map(async (student) => {
-                const studentInfo = await Student.findById(student._id)
-                    .select('studentFirstName studentLastName studentEmail studentImage');
-                
-                if (!studentInfo) return null;
-
-                return {
-                    studentId: student._id,
-                    name: `${studentInfo.studentFirstName} ${studentInfo.studentLastName}`,
-                    email: studentInfo.studentEmail,
-                    image: studentInfo.studentImage,
-                    totalScore: student.totalScore,
-                    totalMaxScore: student.totalMaxScore,
-                    submissionsCount: student.submissionsCount,
-                    scorePercentage: Math.round(student.scorePercentage)
-                };
-            }));
+            // Log the action
+            console.log(`[${CURRENT_DATE_TIME}] Teacher ${req.teacher.teacherEmail} accessed dashboard statistics`);
 
             res.status(200).json({
                 success: true,
-                data: {
-                    competitions: {
-                        total: totalCompetitions,
-                        active: activeCompetitions,
-                        archived: archivedCompetitions,
-                        draft: draftCompetitions,
-                        byType: typeStats
-                    },
-                    students: {
-                        total: totalStudents,
-                        averagePerformance
-                    },
-                    submissions: {
-                        total: totalSubmissions,
-                        graded: gradedSubmissions,
-                        ungraded: ungradedSubmissions
-                    },
-                    recent: {
-                        competitions: recentCompetitions.map(comp => ({
-                            _id: comp._id,
-                            id: comp.id,
-                            competitionName: comp.competitionName,
-                            competitionType: comp.competitionType,
-                            isLive: comp.isLive,
-                            previousCompetition: comp.previousCompetition,
-                            lastSaved: comp.lastSaved,
-                            questionsCount: comp.questions.length
-                        })),
-                        submissions: recentSubmissionsWithDetails
-                    },
-                    topStudents: topStudentsWithDetails.filter(Boolean)
-                }
+                data: dashboardStats
             });
+
         } catch (error) {
-            console.error('Error in getDashboardStatistics:', error);
+            console.error('Error in getDashboardStats:', error);
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve dashboard statistics',

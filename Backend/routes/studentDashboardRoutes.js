@@ -15,11 +15,12 @@ router.get('/competitions/joined', protect, studentDashboardController.getJoined
 router.post('/competitions/:id/join', protect, studentDashboardController.joinCompetition);
 router.post('/competitions/:id/submit', protect, studentDashboardController.submitCompetitionAnswers);
 router.post('/competitions/:id/disqualify', protect, studentDashboardController.disqualifyStudent);
-router.post('/competitions/disqualified', protect, studentDashboardController.getDisqualifiedStudent);
 
 //========================= STUDENT RESULTS ROUTES ================================//
 router.get('/results/:id', protect, studentDashboardController.  getAllResults);
+router.get('/competitions/:competitionId/results', protect, studentDashboardController.getResultByCompetitionId);
 
 //========================= DASHBOARD STATISTICS ROUTE ================================//
+router.get('/stats', protect, studentDashboardController.getStudentDashboardStats);
 
 module.exports = router;

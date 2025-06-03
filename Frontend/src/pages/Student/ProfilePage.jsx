@@ -169,11 +169,11 @@ const ProfilePage = () => {
 
       // Use dashboardService to fetch profile data
       const response = await dashboardService.getProfile();
-
+      
       if (response.success) {
         // Get the student data from the response
-        const studentData = response.data.student;
-
+        const studentData = response.data;
+        console.log("Fetched student data:", studentData);
         setProfile(studentData);
         setFormData({
           studentFirstName: studentData.studentFirstName || "",
@@ -451,51 +451,9 @@ const ProfilePage = () => {
                   onClick={handleRefresh}
                   disabled={refreshing}
                 >
-                  {refreshing ? "Refreshing..." : "Refresh Stats"}
+                  {refreshing ? "Refreshing..." : "Refresh"}
                 </Button>
               </Stack>
-            </Grid>
-
-            {/* Add Stats Summary */}
-            <Grid item xs={12} md={5}>
-              <Box sx={{
-                bgcolor: alpha(theme.palette.background.paper, 0.1),
-                p: 2,
-                borderRadius: 2
-              }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={4}>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4" fontWeight="bold" color="white">
-                        {stats.competitionsCount}
-                      </Typography>
-                      <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
-                        Competitions
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4" fontWeight="bold" color="white">
-                        {stats.completedCompetitionsCount}
-                      </Typography>
-                      <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
-                        Completed
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4" fontWeight="bold" color="white">
-                        {stats.bestPerformance}%
-                      </Typography>
-                      <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
-                        Best Score
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Box>
             </Grid>
           </Grid>
         </MotionBox>
@@ -696,8 +654,6 @@ const ProfilePage = () => {
                             studentLastName: profile?.studentLastName || "",
                             studentEmail: profile?.studentEmail || "",
                             studentImage: profile?.studentImage || "",
-                            grade: profile?.grade || "",
-                            school: profile?.school || "",
                           });
                         }}
                         sx={{
@@ -775,40 +731,6 @@ const ProfilePage = () => {
                                   startAdornment: (
                                     <InputAdornment position="start">
                                       <EmailIcon color="action" />
-                                    </InputAdornment>
-                                  ),
-                                  sx: { borderRadius: 2 },
-                                }}
-                              />
-                            </MotionBox>
-                            <MotionBox variants={listItemVariants}>
-                              <TextField
-                                fullWidth
-                                label="Grade"
-                                name="grade"
-                                value={formData.grade}
-                                onChange={handleChange}
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position="start">
-                                      <GradeIcon color="action" />
-                                    </InputAdornment>
-                                  ),
-                                  sx: { borderRadius: 2 },
-                                }}
-                              />
-                            </MotionBox>
-                            <MotionBox variants={listItemVariants}>
-                              <TextField
-                                fullWidth
-                                label="School"
-                                name="school"
-                                value={formData.school}
-                                onChange={handleChange}
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position="start">
-                                      <SchoolIcon color="action" />
                                     </InputAdornment>
                                   ),
                                   sx: { borderRadius: 2 },
@@ -1006,70 +928,6 @@ const ProfilePage = () => {
                                     ? alpha(theme.palette.common.white, 0.05)
                                     : alpha(theme.palette.common.black, 0.05)
                                     }`,
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  gutterBottom
-                                >
-                                  Grade
-                                </Typography>
-                                <Typography variant="body1" fontWeight="medium">
-                                  {profile?.grade || "Not specified"}
-                                </Typography>
-                              </Box>
-                            </MotionBox>
-                            <MotionBox variants={listItemVariants}>
-                              <Box
-                                sx={{
-                                  p: 2,
-                                  borderRadius: 2,
-                                  bgcolor: isDark
-                                    ? alpha(
-                                      theme.palette.background.default,
-                                      0.3
-                                    )
-                                    : alpha(
-                                      theme.palette.background.default,
-                                      0.5
-                                    ),
-                                  border: `1px solid ${isDark
-                                    ? alpha(theme.palette.common.white, 0.05)
-                                    : alpha(theme.palette.common.black, 0.05)
-                                    }`,
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  gutterBottom
-                                >
-                                  School
-                                </Typography>
-                                <Typography variant="body1" fontWeight="medium">
-                                  {profile?.school || "Not specified"}
-                                </Typography>
-                              </Box>
-                            </MotionBox>
-                            <MotionBox variants={listItemVariants}>
-                              <Box
-                                sx={{
-                                  p: 2,
-                                  borderRadius: 2,
-                                  bgcolor: isDark
-                                    ? alpha(
-                                      theme.palette.background.default,
-                                      0.3
-                                    )
-                                    : alpha(
-                                      theme.palette.background.default,
-                                      0.5
-                                    ),
-                                  border: `1px solid ${isDark
-                                    ? alpha(theme.palette.common.white, 0.05)
-                                    : alpha(theme.palette.common.black, 0.05)
-                                    }`,
                                   display: "flex",
                                   alignItems: "center",
                                 }}
@@ -1087,8 +945,8 @@ const ProfilePage = () => {
                                     fontWeight="medium"
                                   >
                                     {new Date(
-                                      profile?.createdAt
-                                    ).toLocaleDateString("en-US", {
+                                      profile?.registerTime
+                                    ).toLocaleDateString("en-IN", {
                                       year: "numeric",
                                       month: "long",
                                       day: "numeric",

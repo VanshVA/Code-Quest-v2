@@ -52,6 +52,10 @@ const studentSchema = new mongoose.Schema({
     loginTime: {
         type: Date,
     },
+    loginTimeArray: {
+        type: [Date],
+        default: []
+    },
     blockedStatus: {
         type: Boolean,
         default: false

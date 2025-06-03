@@ -34,6 +34,10 @@ const teacherSchema = new mongoose.Schema({
     loginTime: {
         type: Date,
     },
+    loginTimeArray: {
+        type: [Date],
+        default: []
+    },
 });
 
 teacherSchema.pre('save', async function (next) {

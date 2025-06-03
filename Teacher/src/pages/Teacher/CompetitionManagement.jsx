@@ -308,9 +308,12 @@ const CompetitionManagement = () => {
     try {
       setLoading(true);
       
+      const newStatus = !selectedCompetition.isLive;
+      const actionText = newStatus ? 'live' : 'draft';
+      
       const response = await axios.post(
         `${API_BASE_URL}/competitions/${selectedCompetition._id}/toggle-status`,
-        {},
+        { isLive: newStatus }, // Explicitly send the new status
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -320,20 +323,21 @@ const CompetitionManagement = () => {
       
       if (response.data.success) {
         // Update the competition in the local state
-        const newStatus = response.data.data.isLive;
         setCompetitions(competitions.map(comp => 
           comp._id === selectedCompetition._id ? { ...comp, isLive: newStatus } : comp
         ));
         
         // Show success notification
-        const statusText = newStatus ? 'live' : 'draft';
         setNotification({
           open: true,
           type: 'success',
-          message: `Competition set to ${statusText} mode successfully`
+          message: `Competition set to ${actionText} mode successfully`
         });
+        
+        // Refresh competitions to ensure we have the latest data
+        fetchCompetitions();
       } else {
-        throw new Error(response.data.message || 'Failed to update competition status');
+        throw new Error(response.data.message || `Failed to set competition to ${actionText}`);
       }
       
       handleActionMenuClose();
@@ -349,14 +353,17 @@ const CompetitionManagement = () => {
     }
   };
   
-  // Handle competition archive
+  // Handle competition archive/unarchive
   const handleArchiveCompetition = async () => {
     try {
       setLoading(true);
       
+      const isArchiving = !selectedCompetition.previousCompetition;
+      const actionText = isArchiving ? 'archived' : 'unarchived';
+      
       const response = await axios.post(
         `${API_BASE_URL}/competitions/${selectedCompetition._id}/archive`,
-        {},
+        { archive: isArchiving }, // Explicitly send whether to archive or unarchive
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -368,26 +375,29 @@ const CompetitionManagement = () => {
         // Update the competition in the local state
         setCompetitions(competitions.map(comp => 
           comp._id === selectedCompetition._id ? 
-            { ...comp, previousCompetition: true, isLive: false } : comp
+            { ...comp, previousCompetition: isArchiving, isLive: isArchiving ? false : comp.isLive } : comp
         ));
         
         // Show success notification
         setNotification({
           open: true,
           type: 'success',
-          message: `Competition "${selectedCompetition.competitionName}" archived successfully`
+          message: `Competition "${selectedCompetition.competitionName}" ${actionText} successfully`
         });
+        
+        // Refresh competitions to ensure we have the latest data
+        fetchCompetitions();
       } else {
-        throw new Error(response.data.message || 'Failed to archive competition');
+        throw new Error(response.data.message || `Failed to ${isArchiving ? 'archive' : 'unarchive'} competition`);
       }
       
       handleActionMenuClose();
     } catch (err) {
-      console.error('Error archiving competition:', err);
+      console.error(`Error ${selectedCompetition.previousCompetition ? 'unarchiving' : 'archiving'} competition:`, err);
       setNotification({
         open: true,
         type: 'error',
-        message: err.response?.data?.message || err.message || 'Failed to archive competition'
+        message: err.response?.data?.message || err.message || `Failed to ${selectedCompetition.previousCompetition ? 'unarchive' : 'archive'} competition`
       });
     } finally {
       setLoading(false);
@@ -402,9 +412,11 @@ const CompetitionManagement = () => {
       // Prepare the data in the format expected by the API
       const competitionData = {
         competitionName: formData.competitionName,
-        competitionType: formData.competitionType,
+        competitionType: 'MCQ', // Ensuring we always send MCQ as the type
+        competitionDescription: formData.competitionDescription,
         duration: formData.duration,
         startTiming: formData.startTiming,
+        endTiming: formData.endTiming,
         isLive: formData.isLive,
         questions: formData.questions.map(q => ({
           question: q.question,
@@ -722,10 +734,13 @@ const CompetitionManagement = () => {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Competition Name</TableCell>
-                <TableCell>Status</TableCell>
+                <TableCell>Live Status</TableCell>
+                <TableCell>Active Status</TableCell>
                 <TableCell>Creator</TableCell>
-                <TableCell>Rounds</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Duration</TableCell>
                 <TableCell>Start Time</TableCell>
+                <TableCell>End Time</TableCell>
                 <TableCell>Last Updated</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -738,7 +753,7 @@ const CompetitionManagement = () => {
                     hover
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
-                    <TableCell>{competition.id}</TableCell>
+                    <TableCell>{competition.id || 'N/A'}</TableCell>
                     <TableCell>
                       <Typography variant="body2" fontWeight="medium">
                         {competition.competitionName}
@@ -761,21 +776,54 @@ const CompetitionManagement = () => {
                         size="small"
                         sx={{ borderRadius: '4px', fontWeight: 500 }}
                       />
-                      {competition.previousCompetition && (
+                    </TableCell>
+                    <TableCell>
+                      {competition.status === 'active' && (
+                        <Chip
+                          icon={<PlayArrow sx={{ fontSize: '0.75rem !important' }} />}
+                          label="Active"
+                          size="small"
+                          color="success"
+                          variant="outlined"
+                          sx={{ height: 24 }}
+                        />
+                      )}
+                      {competition.status === 'upcoming' && (
+                        <Chip
+                          icon={<Visibility sx={{ fontSize: '0.75rem !important' }} />}
+                          label="Upcoming"
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ height: 24 }}
+                        />
+                      )}
+                      {competition.status === 'ended' && (
                         <Chip
                           icon={<History sx={{ fontSize: '0.75rem !important' }} />}
-                          label="Archived"
+                          label="Ended"
                           size="small"
-                          color="info"
+                          color="default"
                           variant="outlined"
-                          sx={{ ml: 1, height: 24 }}
+                          sx={{ height: 24 }}
+                        />
+                      )}
+                      {!competition.status && (
+                        <Chip
+                          label="Unknown"
+                          size="small"
+                          color="default"
+                          variant="outlined"
+                          sx={{ height: 24 }}
                         />
                       )}
                     </TableCell>
-                    <TableCell>{competition.creatorName}</TableCell>
-                    <TableCell>{competition.roundsCount}</TableCell>
+                    <TableCell>{competition.creatorName || 'Unknown'}</TableCell>
+                    <TableCell>{competition.competitionType || 'MCQ'}</TableCell>
+                    <TableCell>{competition.duration || 0} min</TableCell>
                     <TableCell>{formatDate(competition.startTiming)}</TableCell>
-                    <TableCell>{formatDate(competition.lastSaved)}</TableCell>
+                    <TableCell>{formatDate(competition.endTiming)}</TableCell>
+                    <TableCell>{formatDate(competition.lastSaved || competition.updatedAt || competition.createdAt)}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="Actions">
                         <IconButton
@@ -791,7 +839,7 @@ const CompetitionManagement = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={11} align="center" sx={{ py: 3 }}>
                     {loading ? (
                       <Typography variant="body2" color="text.secondary">
                         Loading competitions...
@@ -811,7 +859,6 @@ const CompetitionManagement = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
@@ -843,27 +890,31 @@ const CompetitionManagement = () => {
         <MenuItem onClick={handleEditCompetition}>
           <Edit fontSize="small" sx={{ mr: 1 }} /> Edit
         </MenuItem>
-        {selectedCompetition && !selectedCompetition.previousCompetition && (
-          <MenuItem onClick={handleToggleStatus}>
-            {selectedCompetition?.isLive ? (
-              <>
-                <Pause fontSize="small" sx={{ mr: 1 }} /> Set to Draft
-              </>
-            ) : (
-              <>
-                <PlayArrow fontSize="small" sx={{ mr: 1 }} /> Set to Live
-              </>
-            )}
-          </MenuItem>
-        )}
+        <MenuItem onClick={handleToggleStatus}>
+          {selectedCompetition?.isLive ? (
+            <>
+              <Pause fontSize="small" sx={{ mr: 1 }} /> Set to Draft
+            </>
+          ) : (
+            <>
+              <PlayArrow fontSize="small" sx={{ mr: 1 }} /> Set to Live
+            </>
+          )}
+        </MenuItem>
         <MenuItem onClick={handleCloneCompetition}>
           <ContentCopy fontSize="small" sx={{ mr: 1 }} /> Clone
         </MenuItem>
-        {selectedCompetition && !selectedCompetition.previousCompetition && (
-          <MenuItem onClick={handleArchiveCompetition}>
-            <Archive fontSize="small" sx={{ mr: 1 }} /> Archive
-          </MenuItem>
-        )}
+        <MenuItem onClick={handleArchiveCompetition}>
+          {selectedCompetition?.previousCompetition ? (
+            <>
+              <PlayArrow fontSize="small" sx={{ mr: 1 }} /> Unarchive
+            </>
+          ) : (
+            <>
+              <Archive fontSize="small" sx={{ mr: 1 }} /> Archive
+            </>
+          )}
+        </MenuItem>
         <Divider />
         <MenuItem onClick={handleDeleteCompetition} sx={{ color: 'error.main' }}>
           <Delete fontSize="small" sx={{ mr: 1 }} /> Delete
@@ -880,7 +931,7 @@ const CompetitionManagement = () => {
       />
       
       {/* Competition Detail Dialog */}
-      <CompetitionDetail 
+      <CompetitionDetail
         open={detailDialogOpen}
         onClose={() => setDetailDialogOpen(false)}
         competitionId={selectedCompetition?._id}

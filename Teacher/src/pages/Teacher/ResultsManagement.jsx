@@ -1,893 +1,1105 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box,
-    Container,
-    Typography,
-    Paper,
-    Grid,
-    Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TablePagination,
-    Tabs,
-    Tab,
-    Avatar,
-    Tooltip,
-    CircularProgress,
-    LinearProgress,
-    Divider,
-    Chip,
-    Alert,
-    Snackbar,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    useTheme
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Chip,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  InputAdornment,
+  Divider,
+  Tooltip,
+  Alert,
+  Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  CircularProgress,
+  useTheme,
+  LinearProgress,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
-    EmojiEvents as EmojiEventsIcon,
-    School as SchoolIcon,
-    Save as SaveIcon,
-    ArrowBack as ArrowBackIcon,
-    Download as DownloadIcon,
-    Check as CheckIcon,
-    DoNotDisturb as DoNotDisturbIcon
+  Search,
+  FilterList,
+  MoreVert,
+  Visibility,
+  Refresh,
+  EmojiEvents,
+  History,
+  Assessment,
+  Download
 } from '@mui/icons-material';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { format } from 'date-fns';
 import axios from 'axios';
-// import NoDataIllustration from '../../../components/NoDataIllustration';
+import SubmissionDetails from './SubmissionDetails';
 
-// Current date and time
-const CURRENT_DATE_TIME = "2025-05-30 17:00:25";
-const CURRENT_USER = "VanshSharmaSDECreate";
+// API base URL
+const API_BASE_URL = "http://localhost:5000/api/teacher/dashboard";
 
-// Helper component for student result row
-const StudentResultRow = ({ student, index, onSelectWinner }) => {
-    const theme = useTheme();
+function ResultsManagement() {
+  const theme = useTheme();
+  
+  // State for competitions list
+  const [competitions, setCompetitions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+ 
+  // Pagination state for competitions
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalCompetitions, setTotalCompetitions] = useState(0);
+  
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [filterMenuAnchorEl, setFilterMenuAnchorEl] = useState(null);
+  
+  // Selected competition and view state
+  const [selectedCompetition, setSelectedCompetition] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
+  const [submissionError, setSubmissionError] = useState(null);
+  const [submissionStats, setSubmissionStats] = useState(null);
+  
+  // Pagination state for submissions
+  const [submissionsPage, setSubmissionsPage] = useState(0);
+  const [submissionsRowsPerPage, setSubmissionsRowsPerPage] = useState(10);
+  
+  // Submissions search
+  const [submissionSearchTerm, setSubmissionSearchTerm] = useState('');
+  const [submissionFilterMenuAnchorEl, setSubmissionFilterMenuAnchorEl] = useState(null);
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState('all');
+  
+  // Selected submission for detailed view
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [submissionDetailOpen, setSubmissionDetailOpen] = useState(false);
+  
+  // Action menu state
+  const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState(null);
+  
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    type: 'success',
+    message: ''
+  });
+  
+  // Fetch competitions on component mount and when filters change
+  useEffect(() => {
+    fetchCompetitions();
+  }, [page, rowsPerPage, searchTerm, statusFilter, timeFilter]);
+  
+  // Fetch competitions with filtering and pagination
+  const fetchCompetitions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page + 1, // API uses 1-indexed pages
+        limit: rowsPerPage,
+      });
+      
+      if (searchTerm) {
+        params.append('name', searchTerm);
+      }
+      
+      // Apply status filter
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+      
+      // Apply time filter
+      if (timeFilter === 'past') {
+        params.append('isPrevious', 'true');
+      } else if (timeFilter === 'current') {
+        params.append('isPrevious', 'false');
+      }
+      
+      // Make API request
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/competitions?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.data.success) {
+        setCompetitions(response.data.data.competitions);
+        setTotalCompetitions(response.data.data.pagination.total);
+      } else {
+        setError('Failed to load competitions. Please try again.');
+      }
+      
+    } catch (err) {
+      console.error('Error fetching competitions:', err);
+      setError('Failed to load competitions. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch submissions for a selected competition
+  const fetchSubmissions = async (competitionId) => {
+    try {
+      setSubmissionsLoading(true);
+      setSubmissionError(null);
+      
+      // Make API request
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/competitions/${competitionId}/submissions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.data.success) {
+        setSubmissions(response.data.data.submissions);
+        setSubmissionStats(response.data.data.stats);
+        setSelectedCompetition(response.data.data.competition);
+      } else {
+        setSubmissionError('Failed to load submissions. Please try again.');
+      }
+      
+    } catch (err) {
+      console.error('Error fetching submissions:', err);
+      setSubmissionError('Failed to load submissions. Please try again.');
+    } finally {
+      setSubmissionsLoading(false);
+    }
+  };
+  
+  // Handle page change for competitions
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  
+  // Handle rows per page change for competitions
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+  
+  // Handle page change for submissions
+  const handleSubmissionsChangePage = (event, newPage) => {
+    setSubmissionsPage(newPage);
+  };
+  
+  // Handle rows per page change for submissions
+  const handleSubmissionsChangeRowsPerPage = (event) => {
+    setSubmissionsRowsPerPage(parseInt(event.target.value, 10));
+    setSubmissionsPage(0);
+  };
+  
+  // Handle search input change for competitions
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  };
+  
+  // Handle search input change for submissions
+  const handleSubmissionSearchChange = (event) => {
+    setSubmissionSearchTerm(event.target.value);
+    setSubmissionsPage(0);
+  };
+  
+  // Handle status filter change for competitions
+  const handleStatusFilterChange = (value) => {
+    setStatusFilter(value);
+    setPage(0);
+  };
+  
+  // Handle submission status filter change
+  const handleSubmissionStatusFilterChange = (value) => {
+    setSubmissionStatusFilter(value);
+    setSubmissionsPage(0);
+  };
+  
+  // Handle time filter change
+  const handleTimeFilterChange = (value) => {
+    setTimeFilter(value);
+    setPage(0);
+  };
+  
+  // Handle filter menu open for competitions
+  const handleFilterMenuOpen = (event) => {
+    setFilterMenuAnchorEl(event.currentTarget);
+  };
+  
+  // Handle filter menu close for competitions
+  const handleFilterMenuClose = () => {
+    setFilterMenuAnchorEl(null);
+  };
+  
+  // Handle filter menu open for submissions
+  const handleSubmissionFilterMenuOpen = (event) => {
+    setSubmissionFilterMenuAnchorEl(event.currentTarget);
+  };
+  
+  // Handle filter menu close for submissions
+  const handleSubmissionFilterMenuClose = () => {
+    setSubmissionFilterMenuAnchorEl(null);
+  };
+  
+  // Handle click on a competition row
+  const handleCompetitionClick = (competition) => {
+    fetchSubmissions(competition._id);
+  };
+  
+  // Handle view submission details
+  const handleViewSubmissionDetails = () => {
+    setSubmissionDetailOpen(true);
+    handleActionMenuClose();
+  };
+  
+  // Handle action menu open
+  const handleActionMenuOpen = (event, submission) => {
+    event.stopPropagation();
+    setActionMenuAnchorEl(event.currentTarget);
+    setSelectedSubmission(submission);
+  };
+  
+  // Handle action menu close
+  const handleActionMenuClose = () => {
+    setActionMenuAnchorEl(null);
+  };
+  
+  // Close notification
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      open: false
+    });
+  };
+  
+  // Format date
+  const formatDate = (dateString) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy HH:mm');
+    } catch (err) {
+      return 'Invalid date';
+    }
+  };
+  
+  // Filter submissions based on search term and status filter
+  const filteredSubmissions = submissions.filter(submission => {
+    const matchesSearch = submission.student.name.toLowerCase().includes(submissionSearchTerm.toLowerCase()) ||
+                         (submission.student.email && submission.student.email.toLowerCase().includes(submissionSearchTerm.toLowerCase()));
+    
+    if (submissionStatusFilter === 'all') return matchesSearch;
+    if (submissionStatusFilter === 'graded') return matchesSearch && submission.result && submission.result.isGraded;
+    if (submissionStatusFilter === 'ungraded') return matchesSearch && (!submission.result || !submission.result.isGraded);
+    
+    return matchesSearch;
+  });
+  
+  // Handle back button click to return to competitions list
+  const handleBackToCompetitions = () => {
+    setSelectedCompetition(null);
+    setSubmissions([]);
+    setSubmissionStats(null);
+  };
+  
+  // Export submissions as CSV
+  const handleExportSubmissions = () => {
+    if (!submissions.length) return;
+    
+    try {
+      // Create CSV header
+      let csvContent = "Submission ID,Student Name,Student Email,Submission Time,Questions Answered,Total Questions,Score,Status\n";
+      
+      // Add each submission as a row
+      submissions.forEach(submission => {
+        const scoreInfo = submission.result 
+          ? `${submission.result.totalScore}/${submission.result.maxPossibleScore}` 
+          : 'Not graded';
+          
+        csvContent += `${submission._id},${submission.student.name},${submission.student.email || 'N/A'},${formatDate(submission.submissionDate)},${submission.answeredCount},${submission.questionCount},${scoreInfo},${submission.result?.isGraded ? 'Graded' : 'Ungraded'}\n`;
+      });
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${selectedCompetition.name}_submissions.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show success notification
+      setNotification({
+        open: true,
+        type: 'success',
+        message: 'Submissions exported successfully'
+      });
+      
+    } catch (err) {
+      console.error('Error exporting submissions:', err);
+      setNotification({
+        open: true,
+        type: 'error',
+        message: 'Failed to export submissions'
+      });
+    }
+  };
 
-    return (
-        <TableRow hover>
-            <TableCell>
-                <Typography variant="body2">{index + 1}</Typography>
-            </TableCell>
-            <TableCell>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Avatar
-                        src={student.student?.image}
-                        alt={student.student?.name}
-                        sx={{ width: 36, height: 36 }}
-                    >
-                        {student.student?.name?.charAt(0)}
-                    </Avatar>
-                    <Box>
-                        <Typography variant="body2" fontWeight="medium">
-                            {student.student?.name}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            {student.student?.email}
-                        </Typography>
-                    </Box>
-                </Box>
-            </TableCell>
-            <TableCell>
-                <Typography variant="body2">{student.student?.grade || 'N/A'}</Typography>
-            </TableCell>
-            <TableCell>
-                <Typography variant="body2">{student.student?.school || 'N/A'}</Typography>
-            </TableCell>
-            <TableCell align="center">
-                <Typography variant="body2" fontWeight="medium">
-                    {student.roundsCompleted}/{student.totalRounds}
-                </Typography>
-            </TableCell>
-            <TableCell align="center">
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Box sx={{ position: 'relative', display: 'inline-flex', mr: 1 }}>
-                        <CircularProgress
-                            variant="determinate"
-                            value={student.scorePercentage || 0}
-                            size={38}
-                            thickness={4}
-                            sx={{
-                                color: student.scorePercentage >= 80
-                                    ? 'success.main'
-                                    : student.scorePercentage >= 50
-                                        ? 'warning.main'
-                                        : 'error.main'
-                            }}
-                        />
-                        <Box
-                            sx={{
-                                top: 0,
-                                left: 0,
-                                bottom: 0,
-                                right: 0,
-                                position: 'absolute',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <Typography
-                                variant="caption"
-                                component="div"
-                                fontWeight="bold"
-                            >
-                                {`${Math.round(student.scorePercentage || 0)}%`}
-                            </Typography>
-                        </Box>
-                    </Box>
-                    <Typography variant="body2" fontWeight="medium">
-                        {student.totalScore}/{student.maxPossibleScore}
-                    </Typography>
-                </Box>
-            </TableCell>
-            <TableCell align="right">
-                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                    <Button
-                        size="small"
-                        variant="outlined"
-                        sx={{ borderRadius: '8px' }}
-                        component={Link}
-                        to={`student/${student.studentId}`}
-                    >
-                        Details
-                    </Button>
-                    <Button
-                        size="small"
-                        variant="contained"
-                        onClick={() => onSelectWinner(student.studentId, student.student?.name)}
-                        sx={{
-                            borderRadius: '8px',
-                            bgcolor: theme.palette.mode === 'dark' ? 'amber.800' : 'warning.main',
-                            '&:hover': {
-                                bgcolor: theme.palette.mode === 'dark' ? 'amber.700' : 'warning.dark',
-                            }
-                        }}
-                    >
-                        <EmojiEventsIcon sx={{ fontSize: '1.25rem' }} />
-                    </Button>
-                </Box>
-            </TableCell>
-        </TableRow>
-    );
-};
-
-// Results Card Component
-const ResultsCard = ({ title, subtitle, position, student, onRemove, color }) => {
-    const theme = useTheme();
-
-    return (
-        <Paper
+  return (
+    <Box>
+      {/* Page header */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h5" fontWeight="bold">
+          {selectedCompetition ? `Results: ${selectedCompetition.name}` : 'Results Management'}
+        </Typography>
+        
+        {selectedCompetition && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<Download />}
+              onClick={handleExportSubmissions}
+              disabled={!submissions.length}
+              sx={{ borderRadius: '8px' }}
+            >
+              Export Results
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleBackToCompetitions}
+              sx={{ 
+                borderRadius: '8px', 
+                bgcolor: 'var(--theme-color)',
+                '&:hover': {
+                  bgcolor: 'var(--hover-color)'
+                }
+              }}
+            >
+              Back to Competitions
+            </Button>
+          </Box>
+        )}
+      </Box>
+      
+      {!selectedCompetition ? (
+        /* Competitions View */
+        <>
+          {/* Filters and search */}
+          <Paper
             elevation={0}
             sx={{
-                p: 3,
-                borderRadius: '16px',
-                border: '2px solid',
-                borderColor: student ? `${color}.main` : 'divider',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                bgcolor: student ? `${color}.${theme.palette.mode === 'dark' ? '900' : '50'}` : 'transparent',
-                transition: 'all 0.3s ease'
+              p: 2,
+              mb: 3,
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              border: '1px solid',
+              borderColor: 'divider',
             }}
-        >
-            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ textAlign: 'center' }}>
-                {title}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" gutterBottom>
-                {subtitle}
-            </Typography>
-
-            {student ? (
-                <Box sx={{ width: '100%', textAlign: 'center', mt: 2 }}>
-                    <Avatar
-                        src={student.image}
-                        alt={student.name}
-                        sx={{
-                            width: 80,
-                            height: 80,
-                            mx: 'auto',
-                            mb: 2,
-                            border: '3px solid',
-                            borderColor: `${color}.main`
-                        }}
-                    >
-                        {student.name.charAt(0)}
-                    </Avatar>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                        {student.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        {student.email}
-                    </Typography>
-
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                        onClick={onRemove}
-                        startIcon={<DoNotDisturbIcon />}
-                        sx={{ mt: 1, borderRadius: '8px' }}
-                    >
-                        Remove
-                    </Button>
-                </Box>
-            ) : (
-                <Box
-                    sx={{
-                        width: '100%',
-                        mt: 2,
-                        py: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '2px dashed',
-                        borderColor: 'divider',
-                        borderRadius: '8px'
-                    }}
-                >
-                    <EmojiEventsIcon
-                        sx={{
-                            fontSize: '3rem',
-                            color: 'text.disabled',
-                            mb: 1
-                        }}
-                    />
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-                        No student selected
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-                        Select a student from the results table
-                    </Typography>
-                </Box>
-            )}
-        </Paper>
-    );
-};
-
-const ResultsPage = () => {
-    const theme = useTheme();
-    const navigate = useNavigate();
-    const { id } = useParams();
-
-    // Tab state
-    const [tabValue, setTabValue] = useState(0);
-
-    // Competition data and results
-    const [competition, setCompetition] = useState(null);
-    const [results, setResults] = useState([]);
-    const [stats, setStats] = useState(null);
-
-    // Winners state
-    const [winners, setWinners] = useState({
-        winner: null,
-        runnerUp: null,
-        secondRunnerUp: null
-    });
-
-    // Pagination state
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-
-    // UI state
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState(null);
-    const [winnerDialogOpen, setWinnerDialogOpen] = useState(false);
-    const [selectedWinner, setSelectedWinner] = useState({ id: null, name: null, position: null });
-
-    // Notification state
-    const [notification, setNotification] = useState({
-        open: false,
-        message: '',
-        type: 'success'
-    });
-
-    // Fetch competition results
-    useEffect(() => {
-        const fetchResults = async () => {
-            try {
-                setLoading(true);
-                const token = localStorage.getItem('userToken');
-
-                const response = await axios.get(`/api/teacher/competitions/${id}/results`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                if (response.data.success) {
-                    // Set competition data
-                    setCompetition(response.data.data.competition);
-
-                    // Set results
-                    setResults(response.data.data.results);
-
-                    // Set statistics
-                    setStats(response.data.data.stats);
-
-                    // Set winners if they exist
-                    if (response.data.data?.topPerformers?.length > 0) {
-                        // Set existing winners if available in the competition
-                        const competitionData = response.data.data.competition;
-                        const studentData = response.data.data.results;
-
-                        if (competitionData.winner) {
-                            const winnerStudent = studentData.find(student => student.studentId === competitionData.winner);
-                            if (winnerStudent) {
-                                setWinners(prev => ({
-                                    ...prev,
-                                    winner: {
-                                        id: winnerStudent.studentId,
-                                        name: winnerStudent.student.name,
-                                        email: winnerStudent.student.email,
-                                        image: winnerStudent.student.image
-                                    }
-                                }));
-                            }
-                        }
-
-                        if (competitionData.runnerUp) {
-                            const runnerUpStudent = studentData.find(student => student.studentId === competitionData.runnerUp);
-                            if (runnerUpStudent) {
-                                setWinners(prev => ({
-                                    ...prev,
-                                    runnerUp: {
-                                        id: runnerUpStudent.studentId,
-                                        name: runnerUpStudent.student.name,
-                                        email: runnerUpStudent.student.email,
-                                        image: runnerUpStudent.student.image
-                                    }
-                                }));
-                            }
-                        }
-
-                        if (competitionData.secondRunnerUp) {
-                            const secondRunnerUpStudent = studentData.find(student => student.studentId === competitionData.secondRunnerUp);
-                            if (secondRunnerUpStudent) {
-                                setWinners(prev => ({
-                                    ...prev,
-                                    secondRunnerUp: {
-                                        id: secondRunnerUpStudent.studentId,
-                                        name: secondRunnerUpStudent.student.name,
-                                        email: secondRunnerUpStudent.student.email,
-                                        image: secondRunnerUpStudent.student.image
-                                    }
-                                }));
-                            }
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('Error fetching competition results:', err);
-                setError('Failed to load competition results. Please try again.');
-
-                // If unauthorized, redirect to login
-                if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-                    localStorage.removeItem('userToken');
-                    navigate('/login');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchResults();
-    }, [id, navigate]);
-
-    // Handle tab change
-    const handleTabChange = (event, newValue) => {
-        setTabValue(newValue);
-    };
-
-    // Handle page change
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
-    };
-
-    // Handle rows per page change
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
-    };
-
-    // Handle winner selection
-    const handleSelectWinner = (studentId, studentName) => {
-        // First determine which position is available
-        let position = null;
-
-        if (!winners.winner) {
-            position = 'winner';
-        } else if (!winners.runnerUp) {
-            position = 'runnerUp';
-        } else if (!winners.secondRunnerUp) {
-            position = 'secondRunnerUp';
-        } else {
-            // All positions filled, show dialog to replace
-            setWinnerDialogOpen(true);
-            setSelectedWinner({ id: studentId, name: studentName, position: 'winner' });
-            return;
-        }
-
-        if (position) {
-            // Open dialog with the determined position
-            setWinnerDialogOpen(true);
-            setSelectedWinner({ id: studentId, name: studentName, position });
-        }
-    };
-
-    // Handle confirm winner selection
-    const handleConfirmWinner = () => {
-        if (!selectedWinner.id || !selectedWinner.position) return;
-
-        // Find student data
-        const student = results.find(r => r.studentId === selectedWinner.id);
-        if (!student) return;
-
-        // Set winner in state
-        setWinners(prev => ({
-            ...prev,
-            [selectedWinner.position]: {
-                id: student.studentId,
-                name: student.student.name,
-                email: student.student.email,
-                image: student.student.image
-            }
-        }));
-
-        setWinnerDialogOpen(false);
-    };
-
-    // Handle remove winner
-    const handleRemoveWinner = (position) => {
-        setWinners(prev => ({
-            ...prev,
-            [position]: null
-        }));
-    };
-
-    // Save winners to the competition
-    const handleSaveWinners = async () => {
-        try {
-            setSaving(true);
-            const token = localStorage.getItem('userToken');
-
-            const winnersData = {
-                winner: winners.winner?.id || null,
-                runnerUp: winners.runnerUp?.id || null,
-                secondRunnerUp: winners.secondRunnerUp?.id || null
-            };
-
-            const response = await axios.put(`/api/teacher/competitions/${id}/winners`, winnersData, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
-            if (response.data.success) {
-                setNotification({
-                    open: true,
-                    message: 'Competition winners saved successfully',
-                    type: 'success'
-                });
-            }
-        } catch (err) {
-            console.error('Error saving winners:', err);
-
-            setNotification({
-                open: true,
-                message: err.response?.data?.message || 'Failed to save winners',
-                type: 'error'
-            });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    // Close notification
-    const handleCloseNotification = () => {
-        setNotification(prev => ({
-            ...prev,
-            open: false
-        }));
-    };
-
-    // Render results table
-    const renderResultsTable = () => {
-        const displayedResults = results.slice(
-            page * rowsPerPage,
-            page * rowsPerPage + rowsPerPage
-        );
-
-        return (
-            <TableContainer component={Paper} sx={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
-                <Table>
-                    <TableHead sx={{ bgcolor: 'background.default' }}>
-                        <TableRow>
-                            <TableCell width={50}>Rank</TableCell>
-                            <TableCell>Student</TableCell>
-                            <TableCell>Grade</TableCell>
-                            <TableCell>School</TableCell>
-                            <TableCell align="center">Rounds</TableCell>
-                            <TableCell align="center">Score</TableCell>
-                            <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {displayedResults.map((student, index) => (
-                            <StudentResultRow
-                                key={student.studentId}
-                                student={student}
-                                index={page * rowsPerPage + index}
-                                onSelectWinner={handleSelectWinner}
-                            />
-                        ))}
-                    </TableBody>
-                </Table>
-                <TablePagination
-                    component="div"
-                    count={results.length}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    rowsPerPageOptions={[5, 10, 25]}
-                />
-            </TableContainer>
-        );
-    };
-
-    // Render podium - winners section
-    const renderWinners = () => (
-        <Box>
-            <Grid container spacing={3}>
-                {/* Runner-up */}
-                <Grid item xs={12} sm={4}>
-                    <ResultsCard
-                        title="Runner-up"
-                        subtitle="2nd Place"
-                        position="runnerUp"
-                        student={winners.runnerUp}
-                        onRemove={() => handleRemoveWinner('runnerUp')}
-                        color="secondary"
-                    />
-                </Grid>
-
-                {/* Winner */}
-                <Grid item xs={12} sm={4}>
-                    <ResultsCard
-                        title="Winner"
-                        subtitle="1st Place"
-                        position="winner"
-                        student={winners.winner}
-                        onRemove={() => handleRemoveWinner('winner')}
-                        color="warning"
-                    />
-                </Grid>
-
-                {/* Second Runner-up */}
-                <Grid item xs={12} sm={4}>
-                    <ResultsCard
-                        title="2nd Runner-up"
-                        subtitle="3rd Place"
-                        position="secondRunnerUp"
-                        student={winners.secondRunnerUp}
-                        onRemove={() => handleRemoveWinner('secondRunnerUp')}
-                        color="info"
-                    />
-                </Grid>
-            </Grid>
-
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                    onClick={handleSaveWinners}
-                    disabled={saving}
-                    sx={{
-                        px: 4,
-                        py: 1,
-                        borderRadius: '8px',
-                        bgcolor: 'var(--theme-color)',
-                        '&:hover': {
-                            bgcolor: 'var(--hover-color)'
-                        }
-                    }}
-                >
-                    {saving ? 'Saving...' : 'Save Winners & Finalize Competition'}
-                </Button>
-            </Box>
-        </Box>
-    );
-
-    return (
-        <
+          >
+            <TextField
+              placeholder="Search competitions..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              size="small"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search fontSize="small" />
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: '8px' }
+              }}
+              sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 'auto' } }}
+            />
             
-            // subtitle={competition ? competition.competitionName : ''}
-            // backButton={{
-            //     show: true,
-            //     label: 'Back to Competitions',
-            //     onClick: () => navigate('/teacher/competitions')
-            // }}
-        >
-            <Container maxWidth="xl">
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : error ? (
-                    <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
-                ) : results.length === 0 ? (
-                    // <NoDataIllustration
-                    //     title="No results available"
-                    //     description="This competition doesn't have any participants or submissions yet"
-                    //     buttonText="Back to Competitions"
-                    //     buttonAction={() => navigate('/teacher/competitions')}
-                    // />
-                    "No Data Available"
-                ) : (
-                    <Box>
-                        {/* Competition overview */}
-                        <Grid container spacing={3} sx={{ mb: 4 }}>
-                            <Grid item xs={12} md={8}>
-                                <Paper
-                                    elevation={0}
-                                    sx={{
-                                        p: 3,
-                                        borderRadius: '16px',
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                        height: '100%'
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                        <Typography variant="h6" fontWeight="bold">
-                                            Results Overview
-                                        </Typography>
-                                        <Button
-                                            variant="outlined"
-                                            startIcon={<DownloadIcon />}
-                                            size="small"
-                                            sx={{ borderRadius: '8px' }}
-                                        >
-                                            Export Results
-                                        </Button>
-                                    </Box>
-
-                                    <Divider sx={{ mb: 2 }} />
-
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={6} sm={3}>
-                                            <Box>
-                                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                    Participants
-                                                </Typography>
-                                                <Typography variant="h4" fontWeight="bold" color="primary.main">
-                                                    {stats?.totalStudents || 0}
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid item xs={6} sm={3}>
-                                            <Box>
-                                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                    Average Score
-                                                </Typography>
-                                                <Typography variant="h4" fontWeight="bold" color="secondary.main">
-                                                    {stats?.averageScore || 0}%
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid item xs={6} sm={3}>
-                                            <Box>
-                                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                    Highest Score
-                                                </Typography>
-                                                <Typography variant="h4" fontWeight="bold" color="success.main">
-                                                    {stats?.highestScore || 0}%
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-
-                                        <Grid item xs={6} sm={3}>
-                                            <Box>
-                                                <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                    Completed All
-                                                </Typography>
-                                                <Typography variant="h4" fontWeight="bold" color="info.main">
-                                                    {stats?.studentsCompletedAll || 0}
-                                                </Typography>
-                                            </Box>
-                                        </Grid>
-                                    </Grid>
-                                </Paper>
-                            </Grid>
-
-                            <Grid item xs={12} md={4}>
-                                <Paper
-                                    elevation={0}
-                                    sx={{
-                                        p: 3,
-                                        borderRadius: '16px',
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                        height: '100%',
-                                        display: 'flex',
-                                        flexDirection: 'column'
-                                    }}
-                                >
-                                    <Typography variant="h6" fontWeight="bold" gutterBottom>
-                                        Competition Status
-                                    </Typography>
-
-                                    <Divider sx={{ mb: 2 }} />
-
-                                    <Box sx={{ mb: 2 }}>
-                                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                                            Status
-                                        </Typography>
-                                        <Box sx={{ display: 'flex', gap: 1 }}>
-                                            <Chip
-                                                label={competition?.isLive ? "Live" : "Draft"}
-                                                color={competition?.isLive ? "success" : "default"}
-                                                size="small"
-                                            />
-                                            <Chip
-                                                label={competition?.previousCompetition ? "Archived" : "Active"}
-                                                color={competition?.previousCompetition ? "secondary" : "primary"}
-                                                size="small"
-                                            />
-                                        </Box>
-                                    </Box>
-
-                                    <Box sx={{ mb: 2 }}>
-                                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                                            Rounds
-                                        </Typography>
-                                        <Typography variant="body1">
-                                            {competition?.rounds?.length || 0} rounds configured
-                                        </Typography>
-                                    </Box>
-
-                                    <Box sx={{ mt: 'auto' }}>
-                                        <Button
-                                            fullWidth
-                                            variant="outlined"
-                                            startIcon={<ArrowBackIcon />}
-                                            component={Link}
-                                            to={`/teacher/competitions/${id}/view`}
-                                            sx={{ borderRadius: '8px' }}
-                                        >
-                                            View Competition Details
-                                        </Button>
-                                    </Box>
-                                </Paper>
-                            </Grid>
-                        </Grid>
-
-                        {/* Results Tabs */}
-                        <Box sx={{ mb: 2 }}>
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    borderBottom: 1,
-                                    borderColor: 'divider',
-                                    borderRadius: '12px 12px 0 0',
-                                    overflow: 'hidden'
-                                }}
-                            >
-                                <Tabs
-                                    value={tabValue}
-                                    onChange={handleTabChange}
-                                    variant="fullWidth"
-                                >
-                                    <Tab
-                                        label="Results Table"
-                                        icon={<SchoolIcon />}
-                                        iconPosition="start"
-                                    />
-                                    <Tab
-                                        label="Winners Selection"
-                                        icon={<EmojiEventsIcon />}
-                                        iconPosition="start"
-                                    />
-                                </Tabs>
-                            </Paper>
-                        </Box>
-
-                        <Box sx={{ py: 3 }}>
-                            {tabValue === 0 ? renderResultsTable() : renderWinners()}
-                        </Box>
-                    </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={<FilterList />}
+                onClick={handleFilterMenuOpen}
+                size="medium"
+                sx={{ 
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                }}
+              >
+                Filter
+                {(statusFilter !== 'all' || timeFilter !== 'all') && (
+                  <Box
+                    component="span"
+                    sx={{
+                      ml: 1,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {(statusFilter !== 'all' ? 1 : 0) + (timeFilter !== 'all' ? 1 : 0)}
+                  </Box>
                 )}
-            </Container>
-
-            {/* Winner Selection Dialog */}
-            <Dialog
-                open={winnerDialogOpen}
-                onClose={() => setWinnerDialogOpen(false)}
-            >
-                <DialogTitle>
-                    {selectedWinner.position === 'winner'
-                        ? 'Set Competition Winner'
-                        : selectedWinner.position === 'runnerUp'
-                            ? 'Set Runner-up'
-                            : 'Set Second Runner-up'}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ py: 1 }}>
-                        <Typography variant="body1" gutterBottom>
-                            Are you sure you want to set <strong>{selectedWinner.name}</strong> as the{' '}
-                            {selectedWinner.position === 'winner'
-                                ? 'winner'
-                                : selectedWinner.position === 'runnerUp'
-                                    ? 'runner-up'
-                                    : 'second runner-up'}?
-                        </Typography>
-
-                        {winners[selectedWinner.position] && (
-                            <Alert severity="warning" sx={{ mt: 2 }}>
-                                This will replace the current {selectedWinner.position === 'winner'
-                                    ? 'winner'
-                                    : selectedWinner.position === 'runnerUp'
-                                        ? 'runner-up'
-                                        : 'second runner-up'}: <strong>{winners[selectedWinner.position].name}</strong>.
-                            </Alert>
+              </Button>
+              
+              <Menu
+                anchorEl={filterMenuAnchorEl}
+                open={Boolean(filterMenuAnchorEl)}
+                onClose={handleFilterMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                PaperProps={{
+                  sx: { 
+                    width: 220,
+                    p: 1,
+                    mt: 0.5,
+                  }
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                  Status
+                </Typography>
+                <MenuItem selected={statusFilter === 'all'} onClick={() => handleStatusFilterChange('all')}>
+                  All Status
+                </MenuItem>
+                <MenuItem selected={statusFilter === 'live'} onClick={() => handleStatusFilterChange('live')}>
+                  Live
+                </MenuItem>
+                <MenuItem selected={statusFilter === 'draft'} onClick={() => handleStatusFilterChange('draft')}>
+                  Draft
+                </MenuItem>
+                
+                <Divider sx={{ my: 1 }} />
+                
+                <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                  Time
+                </Typography>
+                <MenuItem selected={timeFilter === 'all'} onClick={() => handleTimeFilterChange('all')}>
+                  All Time
+                </MenuItem>
+                <MenuItem selected={timeFilter === 'current'} onClick={() => handleTimeFilterChange('current')}>
+                  Current Competitions
+                </MenuItem>
+                <MenuItem selected={timeFilter === 'past'} onClick={() => handleTimeFilterChange('past')}>
+                  Past Competitions
+                </MenuItem>
+                
+                <Divider sx={{ my: 1 }} />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      handleStatusFilterChange('all');
+                      handleTimeFilterChange('all');
+                      handleFilterMenuClose();
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </Box>
+              </Menu>
+              
+              <Button
+                variant="outlined"
+                startIcon={<Refresh />}
+                onClick={fetchCompetitions}
+                size="medium"
+                sx={{ 
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                }}
+              >
+                Refresh
+              </Button>
+            </Box>
+          </Paper>
+          
+          {/* Competitions table */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            {loading && (
+              <Box sx={{ width: '100%' }}>
+                <LinearProgress />
+              </Box>
+            )}
+            
+            <TableContainer>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Competition Name</TableCell>
+                    <TableCell>Live Status</TableCell>
+                    <TableCell>Active Status</TableCell>
+                    <TableCell>Questions</TableCell>
+                    <TableCell>Start Time</TableCell>
+                    <TableCell>End Time</TableCell>
+                    <TableCell align="center">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {competitions.length > 0 ? (
+                    competitions.map((competition) => {
+                      const isEnded = new Date(competition.endTiming) < new Date();
+                      return (
+                        <TableRow 
+                          key={competition._id}
+                          hover
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:last-child td, &:last-child th': { border: 0 },
+                            ...(isEnded && { 
+                              bgcolor: theme.palette.mode === 'dark' 
+                                ? 'rgba(255, 255, 255, 0.05)' 
+                                : 'rgba(0, 0, 0, 0.02)' 
+                            })
+                          }}
+                        >
+                          <TableCell>{competition.id || competition._id.substring(0, 8)}</TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              {competition.competitionName}
+                            </Typography>
+                            {competition.hasWinner && (
+                              <Chip
+                                icon={<EmojiEvents sx={{ fontSize: '0.75rem !important' }} />}
+                                label="Has Winners"
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                                sx={{ ml: 1, height: 24 }}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={competition.isLive ? 'Live' : 'Draft'}
+                              color={competition.isLive ? 'success' : 'default'}
+                              size="small"
+                              sx={{ borderRadius: '4px', fontWeight: 500 }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {isEnded ? (
+                              <Chip
+                                icon={<History sx={{ fontSize: '0.75rem !important' }} />}
+                                label="Ended"
+                                size="small"
+                                color="default"
+                                variant="outlined"
+                                sx={{ height: 24 }}
+                              />
+                            ) : (
+                              <Chip
+                                label="Active"
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ height: 24 }}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell>{competition.questions?.length || '—'}</TableCell>
+                          <TableCell>{formatDate(competition.startTiming)}</TableCell>
+                          <TableCell>{formatDate(competition.endTiming)}</TableCell>
+                          <TableCell align="center">
+                            <Button
+                              variant="contained"
+                              startIcon={<Assessment />}
+                              onClick={() => handleCompetitionClick(competition)}
+                              size="small"
+                              sx={{ 
+                                borderRadius: '8px',
+                                bgcolor: 'var(--theme-color)',
+                                '&:hover': {
+                                  bgcolor: 'var(--hover-color)'
+                                }
+                              }}
+                            >
+                              View Results
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                        {loading ? (
+                          <Typography variant="body2" color="text.secondary">
+                            Loading competitions...
+                          </Typography>
+                        ) : error ? (
+                          <Typography variant="body2" color="error">
+                            {error}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No competitions found. Try adjusting your search or filters.
+                          </Typography>
                         )}
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => setWinnerDialogOpen(false)}
-                        color="inherit"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleConfirmWinner}
-                        variant="contained"
-                        startIcon={<CheckIcon />}
-                        sx={{
-                            borderRadius: '8px',
-                            bgcolor: 'var(--theme-color)',
-                            '&:hover': {
-                                bgcolor: 'var(--hover-color)'
-                            }
-                        }}
-                    >
-                        Confirm
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Notification */}
-            <Snackbar
-                open={notification.open}
-                autoHideDuration={6000}
-                onClose={handleCloseNotification}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-                <Alert
-                    onClose={handleCloseNotification}
-                    severity={notification.type}
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    {notification.message}
-                </Alert>
-            </Snackbar>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={totalCompetitions}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Paper>
         </>
-    );
-};
+      ) : (
+        /* Submissions View */
+        <>
+          {/* Competition Stats */}
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '16px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" gutterBottom>Competition Details</Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Competition Type</Typography>
+                    <Chip
+                      label="MCQ"
+                      color="secondary"
+                      size="small"
+                      sx={{ mt: 0.5, borderRadius: '4px' }}
+                    />
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Total Questions</Typography>
+                    <Typography variant="body1">{selectedCompetition.totalQuestions || '—'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Duration</Typography>
+                    <Typography variant="body1">{selectedCompetition.duration || '—'} minutes</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">Period</Typography>
+                    <Typography variant="body1">
+                      {formatDate(selectedCompetition.startTiming)} — {formatDate(selectedCompetition.endTiming)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={8}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '16px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" gutterBottom>Submission Statistics</Typography>
+                <Divider sx={{ mb: 2 }} />
+                {submissionStats ? (
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} sm={6}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          borderRadius: '12px',
+                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <Typography variant="h3" fontWeight="bold" color="primary">
+                          {submissionStats.totalSubmissions}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">Total Submissions</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          borderRadius: '12px',
+                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <Typography variant="h3" fontWeight="bold" color="success.main">
+                          {submissionStats.gradedSubmissions}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">Graded Submissions</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ width: '100%', mt: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography variant="body2">Grading Rate</Typography>
+                          <Typography variant="body2">
+                            {submissionStats.totalSubmissions > 0 
+                              ? Math.round((submissionStats.gradedSubmissions / submissionStats.totalSubmissions) * 100) 
+                              : 0}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={submissionStats.totalSubmissions > 0 
+                            ? (submissionStats.gradedSubmissions / submissionStats.totalSubmissions) * 100
+                            : 0}
+                          sx={{ height: 10, borderRadius: 5, mt: 1 }}
+                        />
+                      </Box>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', py: 4 }}>
+                    {submissionsLoading ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      <Typography color="text.secondary">No statistics available</Typography>
+                    )}
+                  </Box>
+                )}
+              </Paper>
+            </Grid>
+          </Grid>
+          
+          {/* Submissions filters and search */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <TextField
+              placeholder="Search by student name or email..."
+              value={submissionSearchTerm}
+              onChange={handleSubmissionSearchChange}
+              size="small"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search fontSize="small" />
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: '8px' }
+              }}
+              sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 'auto' } }}
+            />
+            
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={<FilterList />}
+                onClick={handleSubmissionFilterMenuOpen}
+                size="medium"
+                sx={{ 
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                }}
+              >
+                Filter
+                {submissionStatusFilter !== 'all' && (
+                  <Box
+                    component="span"
+                    sx={{
+                      ml: 1,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    1
+                  </Box>
+                )}
+              </Button>
+              
+              <Menu
+                anchorEl={submissionFilterMenuAnchorEl}
+                open={Boolean(submissionFilterMenuAnchorEl)}
+                onClose={handleSubmissionFilterMenuClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                PaperProps={{
+                  sx: { 
+                    width: 220,
+                    p: 1,
+                    mt: 0.5,
+                  }
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                  Submission Status
+                </Typography>
+                <MenuItem selected={submissionStatusFilter === 'all'} onClick={() => handleSubmissionStatusFilterChange('all')}>
+                  All Submissions
+                </MenuItem>
+                <MenuItem selected={submissionStatusFilter === 'graded'} onClick={() => handleSubmissionStatusFilterChange('graded')}>
+                  Graded Submissions
+                </MenuItem>
+                <MenuItem selected={submissionStatusFilter === 'ungraded'} onClick={() => handleSubmissionStatusFilterChange('ungraded')}>
+                  Ungraded Submissions
+                </MenuItem>
+                
+                <Divider sx={{ my: 1 }} />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      handleSubmissionStatusFilterChange('all');
+                      handleSubmissionFilterMenuClose();
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </Box>
+              </Menu>
+              
+              <Button
+                variant="outlined"
+                startIcon={<Refresh />}
+                onClick={() => fetchSubmissions(selectedCompetition._id)}
+                size="medium"
+                sx={{ 
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                }}
+              >
+                Refresh
+              </Button>
+            </Box>
+          </Paper>
+          
+          {/* Submissions table */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: '16px',
+              overflow: 'hidden',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            {submissionsLoading && (
+              <Box sx={{ width: '100%' }}>
+                <LinearProgress />
+              </Box>
+            )}
+            
+            <TableContainer>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Submission ID</TableCell>
+                    <TableCell>Student Name</TableCell>
+                    <TableCell>Student Email</TableCell>
+                    <TableCell>Submission Date</TableCell>
+                    <TableCell>Questions Answered</TableCell>
+                    <TableCell>Score</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredSubmissions.length > 0 ? (
+                    filteredSubmissions
+                      .slice(submissionsPage * submissionsRowsPerPage, submissionsPage * submissionsRowsPerPage + submissionsRowsPerPage)
+                      .map((submission) => (
+                        <TableRow 
+                          key={submission._id}
+                          hover
+                          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                        >
+                          <TableCell>{submission._id.substring(0, 8)}...</TableCell>
+                          <TableCell>{submission.student.name}</TableCell>
+                          <TableCell>{submission.student.email || 'N/A'}</TableCell>
+                          <TableCell>{formatDate(submission.submissionDate)}</TableCell>
+                          <TableCell>{`${submission.answeredCount}/${submission.questionCount}`}</TableCell>
+                          <TableCell>
+                            {submission.result ? 
+                              `${submission.result.totalScore}/${submission.result.maxPossibleScore}` : 
+                              'Not graded'}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={submission.result && submission.result.isGraded ? 'Graded' : 'Ungraded'}
+                              color={submission.result && submission.result.isGraded ? 'success' : 'warning'}
+                              size="small"
+                              sx={{ borderRadius: '4px' }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Tooltip title="Actions">
+                              <IconButton
+                                aria-label="actions"
+                                onClick={(e) => handleActionMenuOpen(e, submission)}
+                                size="small"
+                              >
+                                <MoreVert fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                        {submissionsLoading ? (
+                          <Typography variant="body2" color="text.secondary">
+                            Loading submissions...
+                          </Typography>
+                        ) : submissionError ? (
+                          <Typography variant="body2" color="error">
+                            {submissionError}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            No submissions found. Try adjusting your search or filters.
+                          </Typography>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={filteredSubmissions.length}
+              rowsPerPage={submissionsRowsPerPage}
+              page={submissionsPage}
+              onPageChange={handleSubmissionsChangePage}
+              onRowsPerPageChange={handleSubmissionsChangeRowsPerPage}
+            />
+          </Paper>
+        </>
+      )}
+      
+      {/* Action Menu */}
+      <Menu
+        anchorEl={actionMenuAnchorEl}
+        open={Boolean(actionMenuAnchorEl)}
+        onClose={handleActionMenuClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        <MenuItem onClick={handleViewSubmissionDetails}>
+          <Visibility fontSize="small" sx={{ mr: 1 }} /> View Details
+        </MenuItem>
+      </Menu>
+      
+      {/* Submission Detail Dialog */}
+      {selectedSubmission && selectedCompetition && (
+        <SubmissionDetails
+          open={submissionDetailOpen}
+          onClose={() => setSubmissionDetailOpen(false)}
+          submission={selectedSubmission}
+          competition={selectedCompetition}
+        />
+      )}
+      
+      {/* Notifications */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+}
 
-export default ResultsPage;
+export default ResultsManagement;

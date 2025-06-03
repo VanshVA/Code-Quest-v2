@@ -642,7 +642,7 @@ function ResultsManagement() {
                               sx={{ borderRadius: '4px' }}
                             />
                           </TableCell>
-                          <TableCell>{competition.questions?.length || '—'}</TableCell>
+                          <TableCell>{competition.questionsCount || '—'}</TableCell>
                           <TableCell>{formatDate(competition.startTiming)}</TableCell>
                           <TableCell>{formatDate(competition.endTiming)}</TableCell>
                           <TableCell>

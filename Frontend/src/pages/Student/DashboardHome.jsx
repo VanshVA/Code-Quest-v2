@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Avatar,
-  Badge,
   Box,
   Button,
   Card,
   CardContent,
-  CardActionArea,
   Chip,
   CircularProgress,
-  Container,
   Divider,
   Grid,
   IconButton,
@@ -19,7 +16,6 @@ import {
   Stack,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme,
   alpha,
 } from '@mui/material';
@@ -29,75 +25,75 @@ import {
   ArrowForward as ArrowForwardIcon,
   CalendarToday as CalendarIcon,
   AccessTime,
-  VerifiedUser,
   CheckCircle,
   Speed,
-  Star,
-  Assignment,
-  DonutLarge,
   BarChart,
   Refresh,
   ArrowUpward,
   Bookmark,
   BookmarkBorder,
   History,
-  Bolt,
+  Assignment,
+  DonutLarge,
+  Help,
+  HelpOutline,
+  QuestionAnswer,
+  Info,
+  School,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add token to requests if available
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 const DashboardHome = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
 
-  // Demo Data
-  const [loading, setLoading] = useState(false);
+  // State for dashboard data
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [bookmarkedCompetitions, setBookmarkedCompetitions] = useState(['u1']);
-  const [stats, setStats] = useState({
-    competitions: {
-      total: 18,
-      completed: 14,
-      inProgress: 2,
+  const [bookmarkedCompetitions, setBookmarkedCompetitions] = useState([]);
+  const [dashboardData, setDashboardData] = useState({
+    student: {},
+    participation: {
+      totalCompetitionsJoined: 0,
+      competitionsCompleted: 0,
+      competitionsPending: 0,
     },
     performance: {
-      averageScore: 82,
-      bestScore: 97,
+      totalCompetitionsCompleted: 0,
+      averageScore: 0,
+      highestScore: 0,
+      totalScore: 0,
     },
-    recentCompetitions: [
-      {
-        _id: "c1",
-        competitionName: "React Algorithms",
-        completed: true,
-        joinedOn: "2025-06-01T12:30:00Z",
-        score: { percentage: 95 },
-      },
-      {
-        _id: "c2",
-        competitionName: "Node.js Backend",
-        completed: false,
-        joinedOn: "2025-05-28T10:20:00Z",
-        score: { percentage: 80 },
-      }
-    ],
-    upcomingCompetitions: [
-      {
-        _id: "u1",
-        competitionName: "AI Code Challenge",
-        startTiming: "2025-06-03T15:00:00Z",
-        duration: 90,
-        difficulty: "Hard",
-      },
-      {
-        _id: "u2",
-        competitionName: "Frontend Masters",
-        startTiming: "2025-06-05T09:00:00Z",
-        duration: 60,
-        difficulty: "Medium",
-      }
-    ]
+    recentActivity: {},
+    upcomingCompetitions: [],
+    recentResults: [],
   });
 
   // Animation variants
@@ -132,6 +128,34 @@ const DashboardHome = () => {
     })
   };
 
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/student/dashboard/stats');
+      console.log('Dashboard data:', response.data);
+      if (response.data.success) {
+        setDashboardData(response.data.data);
+        // Initialize bookmarks from upcoming competitions
+        const bookmarks = response.data.data.upcomingCompetitions
+          ? response.data.data.upcomingCompetitions
+              .filter((_, index) => index % 2 === 0) // Just for demo purposes
+              .map(comp => comp._id)
+          : [];
+        setBookmarkedCompetitions(bookmarks);
+      } else {
+        console.error('Failed to load dashboard data:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -146,7 +170,9 @@ const DashboardHome = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+    fetchDashboardData().finally(() => {
+      setTimeout(() => setRefreshing(false), 800);
+    });
   };
 
   return (
@@ -157,8 +183,6 @@ const DashboardHome = () => {
         pb: 4
       }}
     >
-     
-
       {loading ? (
         <Box sx={{
           display: 'flex',
@@ -193,7 +217,7 @@ const DashboardHome = () => {
                     color: isDark ? '#f47061' : 'white'
                   }}
                 >
-                  Welcome to CodeQuest Dashboard
+                  Welcome, {dashboardData.student.name || 'Student'}
                 </Typography>
                 <Typography variant="body1" color={isDark ? 'text.secondary' : 'rgba(255,255,255,0.9)'}>
                   Track your progress, join competitions, and improve your coding skills.
@@ -246,10 +270,9 @@ const DashboardHome = () => {
                 animate="visible"
                 whileHover="hover"
                 custom={0}
-
                 elevation={3}
                 sx={{
-                  minWidth:350,
+                  minWidth: 350,
                   borderRadius: '16px',
                   height: '100%',
                   overflow: 'hidden',
@@ -304,7 +327,7 @@ const DashboardHome = () => {
                             mb: 0.5
                           }}
                         >
-                          {stats.competitions.total}
+                          {dashboardData.participation.totalCompetitionsJoined}
                         </Typography>
                         <Typography
                           variant="body2"
@@ -331,7 +354,7 @@ const DashboardHome = () => {
                             mb: 0.5
                           }}
                         >
-                          {stats.competitions.completed}
+                          {dashboardData.participation.competitionsCompleted}
                         </Typography>
                         <Typography
                           variant="body2"
@@ -358,7 +381,7 @@ const DashboardHome = () => {
                             mb: 0.5
                           }}
                         >
-                          {stats.competitions.inProgress}
+                          {dashboardData.participation.competitionsPending}
                         </Typography>
                         <Typography
                           variant="body2"
@@ -383,15 +406,15 @@ const DashboardHome = () => {
                         Completion rate
                       </Typography>
                       <Typography variant="caption" fontWeight={600} color="primary">
-                        {stats.competitions.total > 0
-                          ? Math.round((stats.competitions.completed / stats.competitions.total) * 100)
+                        {dashboardData.participation.totalCompetitionsJoined > 0
+                          ? Math.round((dashboardData.participation.competitionsCompleted / dashboardData.participation.totalCompetitionsJoined) * 100)
                           : 0}%
                       </Typography>
                     </Box>
                     <LinearProgress
                       variant="determinate"
-                      value={stats.competitions.total > 0
-                        ? (stats.competitions.completed / stats.competitions.total) * 100
+                      value={dashboardData.participation.totalCompetitionsJoined > 0
+                        ? (dashboardData.participation.competitionsCompleted / dashboardData.participation.totalCompetitionsJoined) * 100
                         : 0
                       }
                       sx={{
@@ -416,8 +439,8 @@ const DashboardHome = () => {
                 elevation={3}
                 sx={{
                   borderRadius: '16px',
-                    minWidth:350,
-                    padding: 2,
+                  minWidth: 350,
+                  padding: 2,
                   height: '100%',
                   overflow: 'hidden',
                   position: 'relative'
@@ -474,8 +497,8 @@ const DashboardHome = () => {
                             justifyContent: 'center'
                           }}
                         >
-                          {Math.round(stats.performance.averageScore)}%
-                          {stats.performance.averageScore > stats.performance.bestScore * 0.8 && (
+                          {dashboardData.performance.averageScore}%
+                          {dashboardData.performance.averageScore > 70 && (
                             <ArrowUpward color="success" sx={{ ml: 0.5, fontSize: '1rem' }} />
                           )}
                         </Typography>
@@ -504,7 +527,7 @@ const DashboardHome = () => {
                             mb: 0.5
                           }}
                         >
-                          {stats.performance.bestScore}%
+                          {dashboardData.performance.highestScore}%
                         </Typography>
                         <Typography
                           variant="body2"
@@ -515,7 +538,7 @@ const DashboardHome = () => {
                             justifyContent: 'center'
                           }}
                         >
-                          <Star sx={{ fontSize: 12, mr: 0.5 }} />
+                          <ArrowUpward sx={{ fontSize: 12, mr: 0.5 }} />
                           Best
                         </Typography>
                       </Box>
@@ -531,15 +554,15 @@ const DashboardHome = () => {
                       <Typography
                         variant="caption"
                         fontWeight={600}
-                        color={stats.performance.averageScore > 70 ? 'success.main' : 'warning.main'}
+                        color={dashboardData.performance.averageScore > 70 ? 'success.main' : 'warning.main'}
                       >
-                        {stats.performance.averageScore > 70 ? 'Excellent' : 'Good'}
+                        {dashboardData.performance.averageScore > 70 ? 'Excellent' : 'Good'}
                       </Typography>
                     </Box>
                     <LinearProgress
                       variant="determinate"
-                      value={Math.min(stats.performance.averageScore, 100)}
-                      color={stats.performance.averageScore > 70 ? 'success' : 'warning'}
+                      value={Math.min(dashboardData.performance.averageScore, 100)}
+                      color={dashboardData.performance.averageScore > 70 ? 'success' : 'warning'}
                       sx={{
                         height: 6,
                         borderRadius: 1,
@@ -551,7 +574,7 @@ const DashboardHome = () => {
               </MotionCard>
             </Grid>
 
-            {/* Next Competition */}
+            {/* Help Section (replacing Next Competition) */}
             <Grid item xs={12} md={4} padding={2}>
               <MotionCard
                 variants={cardVariants}
@@ -560,9 +583,8 @@ const DashboardHome = () => {
                 whileHover="hover"
                 custom={2}
                 elevation={3}
-             
                 sx={{
-                  minWidth:350,
+                  minWidth: 350,
                   borderRadius: '16px',
                   height: '100%',
                   padding: 2,
@@ -585,7 +607,7 @@ const DashboardHome = () => {
                 <CardContent sx={{ p: 3, pt: 4 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="h6" fontWeight="bold">
-                      Next Competition
+                      Help Center
                     </Typography>
                     <Box
                       sx={{
@@ -598,127 +620,59 @@ const DashboardHome = () => {
                         bgcolor: alpha(theme.palette.info.main, 0.1),
                       }}
                     >
-                      <TimerIcon color="info" sx={{ fontSize: 28 }} />
+                      <HelpOutline color="info" sx={{ fontSize: 28 }} />
                     </Box>
                   </Box>
 
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Your upcoming coding challenge
+                    Get help and learn more about CodeQuest
                   </Typography>
 
-                  {stats.upcomingCompetitions && stats.upcomingCompetitions.length > 0 ? (
-                    <MotionBox
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.4 }}
-                    >
-                      <Paper
-                        elevation={0}
-                        sx={{
-                          p: 2,
-                          borderRadius: 3,
-                          bgcolor: alpha(theme.palette.info.main, 0.05),
-                          border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
-                        }}
-                      >
-                        <Typography variant="h6" fontWeight={600} noWrap>
-                          {stats.upcomingCompetitions[0].competitionName}
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5 }}>
-                          <CalendarIcon fontSize="small" color="info" sx={{ mr: 1 }} />
-                          <Typography variant="body2" color="text.secondary">
-                            {formatDate(stats.upcomingCompetitions[0].startTiming)}
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5 }}>
-                          <Bolt fontSize="small" color="info" sx={{ mr: 1 }} />
-                          <Typography variant="body2" color="text.secondary">
-                            Duration: {stats.upcomingCompetitions[0].duration || 60} minutes
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', mt: 2, gap: 1 }}>
-                          <Button
-                            variant="contained"
-                            color="info"
-                            sx={{
-                              flexGrow: 1,
-                              borderRadius: 2,
-                              py: 1,
-                              fontWeight: 600,
-                              textTransform: 'none',
-                              boxShadow: 'none'
-                            }}
-                            onClick={() => navigate(`/student/competitions/${stats.upcomingCompetitions[0]._id}`)}
-                          >
-                            View Details
-                          </Button>
-
-                          <IconButton
-                            onClick={() => toggleBookmark(stats.upcomingCompetitions[0]._id)}
-                            sx={{
-                              color: bookmarkedCompetitions.includes(stats.upcomingCompetitions[0]._id) ? 'warning.main' : 'action.active',
-                              bgcolor: isDark ? alpha(theme.palette.background.paper, 0.2) : alpha(theme.palette.background.paper, 0.4),
-                            }}
-                          >
-                            {bookmarkedCompetitions.includes(stats.upcomingCompetitions[0]._id) ?
-                              <Bookmark /> :
-                              <BookmarkBorder />
-                            }
-                          </IconButton>
-                        </Box>
-                      </Paper>
-                    </MotionBox>
-                  ) : (
-                    <Box
+                  <Stack spacing={2}>
+                    <Paper
+                      elevation={0}
                       sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        minHeight: '150px',
                         p: 2,
-                        textAlign: 'center',
-                        border: `1px dashed ${alpha(theme.palette.text.secondary, 0.2)}`,
-                        borderRadius: 3
+                        borderRadius: 3,
+                        bgcolor: alpha(theme.palette.info.main, 0.05),
+                        border: `1px solid ${alpha(theme.palette.info.main, 0.1)}`,
                       }}
                     >
-                      <CalendarIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 2 }} />
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        No upcoming competitions
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                        <QuestionAnswer color="info" sx={{ mr: 1.5 }} />
+                        <Typography variant="subtitle1" fontWeight={600}>
+                          Frequently Asked Questions
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {/* Find answers to common questions about competitions, grading, and more. */}
                       </Typography>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        sx={{
-                          mt: 1.5,
-                          borderRadius: 2,
-                          textTransform: 'none'
-                        }}
-                        onClick={() => navigate('/student/competitions')}
+                      <Button 
+                        variant="outlined" 
+                        color="info"
+                        fullWidth
+                        sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                        onClick={() => navigate('/student/faq')}
                       >
-                        Browse Competitions
+                        View FAQs
                       </Button>
-                    </Box>
-                  )}
+                    </Paper>
+                  </Stack>
                 </CardContent>
               </MotionCard>
             </Grid>
           </Grid>
 
-          {/* Recent and Upcoming Competitions */}
+          {/* Recent Results and Recent Activity */}
           <Grid container spacing={3} padding={2}>
-            {/* Recent Competitions */}
-            <Grid item xs={12} md={6} sx={{width: '45%', }}>
+            {/* Recent Results */}
+            <Grid item xs={12} md={6} sx={{ width: '45%' }}>
               <MotionBox
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
                 custom={3}
-               height={'100%'}
+                height={'100%'}
               >
                 <Card
                   elevation={3}
@@ -743,7 +697,7 @@ const DashboardHome = () => {
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                       <Typography variant="h6" fontWeight="bold">
-                        Recent Activities
+                        Recent Results
                       </Typography>
                       <IconButton
                         size="small"
@@ -756,11 +710,11 @@ const DashboardHome = () => {
                     </Box>
                     <Divider sx={{ mb: 3 }} />
 
-                    {stats.recentCompetitions && stats.recentCompetitions.length > 0 ? (
-                      <Stack spacing={2} style={{overflowY: 'auto', maxHeight: '400px'}}>
-                        {stats.recentCompetitions.map((comp, index) => (
+                    {dashboardData.recentResults && dashboardData.recentResults.length > 0 ? (
+                      <Stack spacing={2} style={{ overflowY: 'auto', maxHeight: '400px' }}>
+                        {dashboardData.recentResults.map((result, index) => (
                           <Paper
-                            key={comp._id.toString()}
+                            key={result._id.toString()}
                             elevation={0}
                             sx={{
                               p: 2,
@@ -790,36 +744,34 @@ const DashboardHome = () => {
                                     wordBreak: 'break-word'
                                   }}
                                 >
-                                  {comp.competitionName}
+                                  {result.competitionName}
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                                   <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
                                   <Typography variant="caption" color="text.secondary">
-                                    Joined: {new Date(comp.joinedOn).toLocaleDateString()}
+                                    Date: {formatDate(result.date)}
                                   </Typography>
                                 </Box>
                               </Box>
                               <Chip
-                                label={comp.completed ? 'Completed' : 'In Progress'}
-                                color={comp.completed ? 'success' : 'warning'}
+                                label={result.competitionType}
+                                color={result.competitionType === 'MCQ' ? 'info' : 'secondary'}
                                 size="small"
                                 sx={{ fontWeight: 600 }}
                               />
                             </Box>
 
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-                              {comp.score && (
-                                <Chip
-                                  icon={<BarChart fontSize="small" />}
-                                  label={`Score: ${comp.score.percentage || 0}%`}
-                                  variant="outlined"
-                                  size="small"
-                                  color={
-                                    (comp.score.percentage || 0) >= 70 ? 'success' :
-                                      (comp.score.percentage || 0) >= 40 ? 'primary' : 'default'
-                                  }
-                                />
-                              )}
+                              <Chip
+                                icon={<BarChart fontSize="small" />}
+                                label={`Score: ${result.score}%`}
+                                variant="outlined"
+                                size="small"
+                                color={
+                                  result.score >= 70 ? 'success' :
+                                    result.score >= 40 ? 'primary' : 'default'
+                                }
+                              />
 
                               <Button
                                 variant="text"
@@ -832,28 +784,28 @@ const DashboardHome = () => {
                                     backgroundColor: alpha(theme.palette.primary.main, 0.05)
                                   }
                                 }}
-                                onClick={() => navigate(`/student/competitions/${comp._id}`)}
+                                onClick={() => navigate(`/student/results/${result.competitionId}`)}
                               >
-                                {comp.completed ? 'View Results' : 'Continue'}
+                                View Details
                               </Button>
                             </Box>
 
                             {/* Bookmark button */}
-                            <IconButton
+                            {/* <IconButton
                               size="small"
-                              onClick={() => toggleBookmark(comp._id)}
+                              onClick={() => toggleBookmark(result.competitionId)}
                               sx={{
                                 position: 'absolute',
                                 top: 8,
                                 right: 8,
-                                color: bookmarkedCompetitions.includes(comp._id) ? 'warning.main' : 'action.active',
+                                color: bookmarkedCompetitions.includes(result.competitionId) ? 'warning.main' : 'action.active',
                               }}
                             >
-                              {bookmarkedCompetitions.includes(comp._id) ?
+                              {bookmarkedCompetitions.includes(result.competitionId) ?
                                 <Bookmark fontSize="small" /> :
                                 <BookmarkBorder fontSize="small" />
                               }
-                            </IconButton>
+                            </IconButton> */}
                           </Paper>
                         ))}
                       </Stack>
@@ -873,7 +825,7 @@ const DashboardHome = () => {
                       >
                         <Assignment sx={{ fontSize: 40, color: 'text.disabled', mb: 2 }} />
                         <Typography variant="body1" color="text.secondary" gutterBottom>
-                          No recent activities
+                          No recent results
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                           Join a competition to get started on your coding journey
@@ -891,22 +843,222 @@ const DashboardHome = () => {
                         textTransform: 'none',
                         fontWeight: 600
                       }}
-                      onClick={() => navigate('/student/competitions')}
+                      onClick={() => navigate('/student/results')}
                     >
-                      View All Competitions
+                      View All Results
                     </Button>
                   </CardContent>
                 </Card>
               </MotionBox>
             </Grid>
 
-            {/* Upcoming Competitions */}
-            <Grid item xs={12} md={6} sx={{width: '45%'}}>
+            {/* Recent Activity */}
+            <Grid item xs={12} md={6} sx={{ width: '45%' }}>
               <MotionBox
                 variants={fadeInUp}
                 initial="hidden"
                 animate="visible"
                 custom={4}
+                height={'100%'}
+              >
+                <Card
+                  elevation={3}
+                  sx={{
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    height: '100%',
+                    position: 'relative'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 4,
+                      background: 'linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%)'
+                    }}
+                  />
+
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6" fontWeight="bold">
+                        Recent Activity
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          bgcolor: isDark ? alpha(theme.palette.background.default, 0.3) : alpha(theme.palette.background.default, 0.5),
+                        }}
+                      >
+                        <AccessTime fontSize="small" />
+                      </IconButton>
+                    </Box>
+                    <Divider sx={{ mb: 3 }} />
+
+                    {dashboardData.recentActivity && dashboardData.recentActivity.loginHistory && dashboardData.recentActivity.loginHistory.length > 0 ? (
+                      <Stack spacing={2} style={{ overflowY: 'auto', maxHeight: '400px' }}>
+                        {/* Registration Activity */}
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2,
+                            borderRadius: 3,
+                            bgcolor: isDark ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.success.main, 0.05),
+                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Box sx={{ maxWidth: 'calc(100% - 40px)' }}>
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight={600}
+                                sx={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  wordBreak: 'break-word'
+                                }}
+                              >
+                                Account Registration
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  Date: {formatDate(dashboardData.recentActivity.registrationTime)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Chip
+                              label="Registered"
+                              color="success"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          </Box>
+                        </Paper>
+
+                        {/* Last Login Activity */}
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2,
+                            borderRadius: 3,
+                            bgcolor: isDark ? alpha(theme.palette.info.main, 0.1) : alpha(theme.palette.info.main, 0.05),
+                            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                            position: 'relative',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Box sx={{ maxWidth: 'calc(100% - 40px)' }}>
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight={600}
+                                sx={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  wordBreak: 'break-word'
+                                }}
+                              >
+                                Last Login
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  Date: {formatDate(dashboardData.recentActivity.lastLogin)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                            <Chip
+                              label="Login"
+                              color="info"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          </Box>
+                        </Paper>
+
+                        {/* Login History */}
+                        <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mt: 2 }}>
+                          Recent Login History
+                        </Typography>
+                        
+                        {dashboardData.recentActivity.loginHistory.map((loginTime, index) => (
+                          <Paper
+                            key={index}
+                            elevation={0}
+                            sx={{
+                              p: 2,
+                              borderRadius: 3,
+                              bgcolor: isDark ? alpha(theme.palette.background.paper, 0.3) : alpha(theme.palette.background.paper, 0.7),
+                              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                              position: 'relative',
+                              transition: 'all 0.2s ease',
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <AccessTime sx={{ color: 'text.secondary', fontSize: 16, mr: 1 }} />
+                                <Typography variant="body2">
+                                  {formatDate(loginTime)}
+                                </Typography>
+                              </Box>
+                              <Chip
+                                label={`Login ${index + 1}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+                              />
+                            </Box>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          minHeight: '200px',
+                          textAlign: 'center',
+                          border: `1px dashed ${alpha(theme.palette.text.secondary, 0.2)}`,
+                          borderRadius: 3,
+                          p: 3
+                        }}
+                      >
+                        <AccessTime sx={{ fontSize: 40, color: 'text.disabled', mb: 2 }} />
+                        <Typography variant="body1" color="text.secondary" gutterBottom>
+                          No recent activity
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Your recent login history will appear here
+                        </Typography>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </MotionBox>
+            </Grid>
+          </Grid>
+
+          {/* Upcoming Competitions (Full Width) */}
+          <Grid container spacing={3} padding={2}>
+            <Grid item xs={12}>
+              <MotionBox
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+                custom={5}
                 minHeight={'100%'}
               >
                 <Card
@@ -935,7 +1087,6 @@ const DashboardHome = () => {
                         Upcoming Competitions
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                       
                         <IconButton
                           size="small"
                           sx={{
@@ -948,107 +1099,103 @@ const DashboardHome = () => {
                     </Box>
                     <Divider sx={{ mb: 3 }} />
 
-                    {stats.recentCompetitions && stats.recentCompetitions.length > 0 ? (
-                      <Stack spacing={2} style={{overflowY: 'auto', maxHeight: '400px'}}>
-                        {stats.recentCompetitions.map((comp, index) => (
-                          <Paper
-                            key={comp._id.toString()}
-                            elevation={0}
-                            sx={{
-                              p: 2,
-                              borderRadius: 3,
-                              bgcolor: isDark ? alpha(theme.palette.background.paper, 0.3) : alpha(theme.palette.background.paper, 0.7),
-                              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                              position: 'relative',
-                              transition: 'all 0.2s ease',
-                              '&:hover': {
-                                bgcolor: isDark ? alpha(theme.palette.background.paper, 0.4) : alpha(theme.palette.background.paper, 0.9),
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-                              }
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <Box sx={{ maxWidth: 'calc(100% - 90px)' }}>
-                                <Typography
-                                  variant="subtitle1"
-                                  fontWeight={600}
-                                  sx={{
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 1,
-                                    WebkitBoxOrient: 'vertical',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    wordBreak: 'break-word'
-                                  }}
-                                >
-                                  {comp.competitionName}
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                                  <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
-                                  <Typography variant="caption" color="text.secondary">
-                                    Joined: {new Date(comp.joinedOn).toLocaleDateString()}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                              <Chip
-                                label={comp.completed ? 'Completed' : 'In Progress'}
-                                color={comp.completed ? 'success' : 'warning'}
-                                size="small"
-                                sx={{ fontWeight: 600 }}
-                              />
-                            </Box>
-
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-                              {comp.score && (
-                                <Chip
-                                  icon={<BarChart fontSize="small" />}
-                                  label={`Score: ${comp.score.percentage || 0}%`}
-                                  variant="outlined"
-                                  size="small"
-                                  color={
-                                    (comp.score.percentage || 0) >= 70 ? 'success' :
-                                      (comp.score.percentage || 0) >= 40 ? 'primary' : 'default'
-                                  }
-                                />
-                              )}
-
-                              <Button
-                                variant="text"
-                                endIcon={<ArrowForwardIcon />}
-                                size="small"
-                                sx={{
-                                  color: theme.palette.primary.main,
-                                  fontWeight: 600,
-                                  '&:hover': {
-                                    backgroundColor: alpha(theme.palette.primary.main, 0.05)
-                                  }
-                                }}
-                                onClick={() => navigate(`/student/competitions/${comp._id}`)}
-                              >
-                                {comp.completed ? 'View Results' : 'Continue'}
-                              </Button>
-                            </Box>
-
-                            {/* Bookmark button */}
-                            <IconButton
-                              size="small"
-                              onClick={() => toggleBookmark(comp._id)}
+                    {dashboardData.upcomingCompetitions && dashboardData.upcomingCompetitions.length > 0 ? (
+                      <Grid container spacing={2}>
+                        {dashboardData.upcomingCompetitions.map((comp, index) => (
+                          <Grid item xs={12} md={6} lg={4} key={comp._id.toString()}>
+                            <Paper
+                              elevation={0}
                               sx={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                color: bookmarkedCompetitions.includes(comp._id) ? 'warning.main' : 'action.active',
+                                p: 2,
+                                borderRadius: 3,
+                                bgcolor: isDark ? alpha(theme.palette.background.paper, 0.3) : alpha(theme.palette.background.paper, 0.7),
+                                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                                position: 'relative',
+                                transition: 'all 0.2s ease',
+                                height: '100%',
+                                '&:hover': {
+                                  bgcolor: isDark ? alpha(theme.palette.background.paper, 0.4) : alpha(theme.palette.background.paper, 0.9),
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                                }
                               }}
                             >
-                              {bookmarkedCompetitions.includes(comp._id) ?
-                                <Bookmark fontSize="small" /> :
-                                <BookmarkBorder fontSize="small" />
-                              }
-                            </IconButton>
-                          </Paper>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <Box sx={{ maxWidth: 'calc(100% - 90px)' }}>
+                                  <Typography
+                                    variant="subtitle1"
+                                    fontWeight={600}
+                                    sx={{
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 1,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      wordBreak: 'break-word'
+                                    }}
+                                  >
+                                    {comp.name}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                    <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                                    <Typography variant="caption" color="text.secondary">
+                                      Start: {formatDate(comp.startTime)}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Chip
+                                  label={comp.type}
+                                  color={comp.type === 'MCQ' ? 'info' : 'secondary'}
+                                  size="small"
+                                  sx={{ fontWeight: 600 }}
+                                />
+                              </Box>
+
+                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5 }}>
+                                <AccessTime sx={{ fontSize: 14, mr: 0.5, color: 'info.main' }} />
+                                <Typography variant="body2" color="info.main" fontWeight={500}>
+                                  Starts in {comp.timeUntilStart}
+                                </Typography>
+                              </Box>
+
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 2 }}>
+                                <Button
+                                  variant="text"
+                                  endIcon={<ArrowForwardIcon />}
+                                  size="small"
+                                  sx={{
+                                    color: theme.palette.primary.main,
+                                    fontWeight: 600,
+                                    '&:hover': {
+                                      backgroundColor: alpha(theme.palette.primary.main, 0.05)
+                                    }
+                                  }}
+                                  onClick={() => navigate(`/student/competitions/${comp._id}`)}
+                                >
+                                  View Competition
+                                </Button>
+                              </Box>
+
+                              {/* Bookmark button */}
+                              <IconButton
+                                size="small"
+                                onClick={() => toggleBookmark(comp._id)}
+                                sx={{
+                                  position: 'absolute',
+                                  top: 8,
+                                  right: 8,
+                                  color: bookmarkedCompetitions.includes(comp._id) ? 'warning.main' : 'action.active',
+                                }}
+                              >
+                                {bookmarkedCompetitions.includes(comp._id) ?
+                                  <Bookmark fontSize="small" /> :
+                                  <BookmarkBorder fontSize="small" />
+                                }
+                              </IconButton>
+                            </Paper>
+                          </Grid>
                         ))}
-                      </Stack>
+                      </Grid>
                     ) : (
                       <Box
                         sx={{
@@ -1063,12 +1210,12 @@ const DashboardHome = () => {
                           p: 3
                         }}
                       >
-                        <Assignment sx={{ fontSize: 40, color: 'text.disabled', mb: 2 }} />
+                        <CalendarIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 2 }} />
                         <Typography variant="body1" color="text.secondary" gutterBottom>
-                          No recent activities
+                          No upcoming competitions
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          Join a competition to get started on your coding journey
+                          Check back later for new competitions
                         </Typography>
                       </Box>
                     )}

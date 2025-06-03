@@ -83,6 +83,7 @@ const teacherAuthController = {
 
       // Update login time
       teacher.loginTime = new Date();
+      teacher.loginTimeArray.push(teacher.loginTime);
       await teacher.save();
 
       // Generate token

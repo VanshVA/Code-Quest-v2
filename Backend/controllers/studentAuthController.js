@@ -243,6 +243,7 @@ const studentAuthController = {
 
       // Update login time
       student.loginTime = new Date();
+      student.loginTimeArray.push(student.loginTime);
       await student.save();
 
       // Generate token

@@ -451,7 +451,7 @@ const studentDashboardController = {
       // Only filter by joined competition IDs and live status
       const filter = {
         _id: { $in: joinedCompetitionIds },
-        isLive: true
+        // isLive: true
       };
 
       const totalCompetitions = await Competition.countDocuments(filter);
@@ -844,73 +844,6 @@ const studentDashboardController = {
     }
   },
 
-  // Get disqualified student information
-  getDisqualifiedStudent: async (req, res) => {
-    try {
-      const studentId = req.student._id;
-      const { competitionId } = req.body;
-
-      console.log("studentId:", studentId);
-      console.log("competitionId:", competitionId);
-
-      // Basic validation
-      if (!competitionId || !studentId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Competition ID and student ID are required'
-        });
-      }
-
-      // Check if the disqualification record exists
-      const disqualification = await DisqualifiedStudent.findOne({
-        competitionId,
-        studentId
-      });
-
-      if (!disqualification) {
-        return res.status(404).json({
-          success: false,
-          message: 'No disqualification record found for this student in this competition'
-        });
-      }
-
-      // Get student and competition details for context
-      const [student, competition] = await Promise.all([
-        Student.findById(studentId).select('studentFirstName studentLastName studentEmail'),
-        Competition.findById(competitionId).select('competitionName competitionType')
-      ]);
-
-      res.status(200).json({
-        success: true,
-        data: {
-          disqualification: {
-            id: disqualification._id,
-            studentId: disqualification.studentId,
-            competitionId: disqualification.competitionId,
-            reason: disqualification.disqualificationReason,
-            disqualifiedAt: disqualification.disqualifiedAt,
-            disqualifiedStatus: disqualification.disqualifiedStatus,
-            studentInfo: student ? {
-              name: `${student.studentFirstName || ''} ${student.studentLastName || ''}`.trim(),
-              email: student.studentEmail
-            } : null,
-            competitionInfo: competition ? {
-              name: competition.competitionName,
-              type: competition.competitionType
-            } : null
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Error in getDisqualifiedStudent:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to retrieve disqualification information',
-        error: error.message
-      });
-    }
-  },
-
   // Get all results for a student
   getAllResults: async (req, res) => {
     try {
@@ -950,12 +883,12 @@ const studentDashboardController = {
       // Process the results to include competition details and creator information
       const processedResults = await Promise.all(results.map(async (result) => {
         let creatorInfo = { name: 'Unknown Creator' };
-        
+
         if (result.competitionId && result.competitionId.creatorId) {
           try {
             const teacher = await Teacher.findById(result.competitionId.creatorId)
               .select('teacherFirstName teacherLastName');
-            
+
             if (teacher) {
               creatorInfo = {
                 _id: teacher._id,
@@ -964,7 +897,7 @@ const studentDashboardController = {
             } else {
               const admin = await Admin.findById(result.competitionId.creatorId)
                 .select('adminName');
-              
+
               if (admin) {
                 creatorInfo = {
                   _id: admin._id,
@@ -1015,7 +948,222 @@ const studentDashboardController = {
       });
     }
   },
+
+  // Get result for a specific competition
+  getResultByCompetitionId: async (req, res) => {
+    try {
+      const studentId = req.student._id;
+      const { competitionId } = req.params;
+
+      // Validate competitionId format
+      if (!mongoose.Types.ObjectId.isValid(competitionId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid competition ID format'
+        });
+      }
+
+      // Find the result for this student and competition with more detailed population
+      const result = await CompetitionResult.findOne({
+        studentId,
+        competitionId
+      })
+      .populate({
+        path: 'competitionId',
+        select: 'competitionName competitionType startTiming endTiming duration creatorId'
+      })
+      .populate({
+        path: 'submissionId',
+        select: 'questions answers submissionTime'
+      });
+
+      if (!result) {
+        return res.status(404).json({
+          success: false,
+          message: 'No result found for this student and competition'
+        });
+      }
+
+      // Get creator information
+      let creatorName = 'Unknown Creator';
+      if (result.competitionId?.creatorId) {
+        try {
+          const teacher = await Teacher.findById(result.competitionId.creatorId)
+            .select('teacherFirstName teacherLastName');
+
+          if (teacher) {
+            creatorName = `${teacher.teacherFirstName || ''} ${teacher.teacherLastName || ''}`.trim();
+          } else {
+            const admin = await Admin.findById(result.competitionId.creatorId)
+              .select('adminName');
+            
+            if (admin) {
+              creatorName = admin.adminName || 'Unknown Admin';
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching creator info:', err);
+        }
+      }
+
+      // Format the response to include the result data directly
+      const responseData = {
+        _id: result._id,
+        studentId: result.studentId,
+        competitionId: result.competitionId?._id,
+        competitionName: result.competitionId?.competitionName || 'Unknown Competition',
+        competitionType: result.competitionId?.competitionType || 'Unknown Type',
+        submissionId: result.submissionId?._id,
+        results: result.results || [],
+        totalScore: result.totalScore,
+        percentageScore: result.percentageScore,
+        scoreAssignedTime: result.scoreAssignedTime,
+        creatorName: creatorName,
+        // Include any additional fields needed from result or competition
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt
+      };
+
+      res.status(200).json({
+        success: true,
+        data: responseData
+      });
+    } catch (error) {
+      console.error('Error in getResultByCompetitionId:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve result',
+        error: error.message
+      });
+    }
+  },
+
+  //========================== DASHBOARD STATISTICS ================================//
   
+  // Get student dashboard summary
+  getStudentDashboardStats: async (req, res) => {
+    try {
+      const studentId = req.student._id;
+
+      // Get student details
+      const student = await Student.findById(studentId)
+        .select('-studentPassword')
+        .lean();
+
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student profile not found'
+        });
+      }
+
+      // Get total competitions joined
+      const totalCompetitionsJoined = student.competitionsJoined?.length || 0;
+
+      // Get performance metrics from results
+      const results = await CompetitionResult.find({ studentId })
+        .select('percentageScore totalScore')
+        .lean();
+
+      let performanceMetrics = {
+        totalCompetitionsCompleted: results.length,
+        averageScore: 0,
+        highestScore: 0,
+        totalScore: 0
+      };
+
+      if (results.length > 0) {
+        const scores = results.map(result => result.percentageScore);
+        performanceMetrics.averageScore = +(scores.reduce((acc, val) => acc + val, 0) / scores.length).toFixed(2);
+        performanceMetrics.highestScore = Math.max(...scores);
+        performanceMetrics.totalScore = results.reduce((acc, result) => acc + result.totalScore, 0);
+      }
+
+      // Get recent activity
+      const recentActivity = {
+        registrationTime: student.registerTime,
+        lastLogin: student.loginTimeArray?.length > 0 
+          ? student.loginTimeArray[student.loginTimeArray.length - 1] 
+          : student.loginTime || null,
+        loginHistory: student.loginTimeArray?.slice(-5) || []  // Get last 5 logins
+      };
+
+      // Get upcoming competitions
+      const now = new Date();
+      const upcomingCompetitions = await Competition.find({
+        isLive: true,
+        previousCompetition: false,
+        startTiming: { $gt: now },
+        _id: { $nin: student.competitionsJoined || [] }  // Exclude joined competitions
+      })
+      .select('competitionName startTiming endTiming competitionType')
+      .sort({ startTiming: 1 })
+      .limit(5)
+      .lean();
+
+      // Format upcoming competitions
+      const formattedUpcomingCompetitions = upcomingCompetitions.map(comp => ({
+        _id: comp._id,
+        name: comp.competitionName,
+        type: comp.competitionType,
+        startTime: comp.startTiming,
+        endTime: comp.endTiming,
+        timeUntilStart: formatTimeRemaining(new Date(comp.startTiming) - now)
+      }));
+
+      // Get recent results
+      const recentResults = await CompetitionResult.find({ studentId })
+        .populate({
+          path: 'competitionId',
+          select: 'competitionName competitionType'
+        })
+        .select('percentageScore totalScore scoreAssignedTime')
+        .sort({ scoreAssignedTime: -1 })
+        .limit(5)
+        .lean();
+
+      // Format recent results
+      const formattedRecentResults = recentResults.map(result => ({
+        _id: result._id,
+        competitionId: result.competitionId?._id,
+        competitionName: result.competitionId?.competitionName || 'Unknown Competition',
+        competitionType: result.competitionId?.competitionType || 'Unknown Type',
+        score: result.percentageScore,
+        totalPoints: result.totalScore,
+        date: result.scoreAssignedTime
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: {
+          student: {
+            _id: student._id,
+            name: `${student.studentFirstName} ${student.studentLastName}`,
+            email: student.studentEmail,
+            image: student.studentImage,
+            role: student.role
+          },
+          participation: {
+            totalCompetitionsJoined,
+            competitionsCompleted: performanceMetrics.totalCompetitionsCompleted,
+            competitionsPending: totalCompetitionsJoined - performanceMetrics.totalCompetitionsCompleted
+          },
+          performance: performanceMetrics,
+          recentActivity,
+          upcomingCompetitions: formattedUpcomingCompetitions,
+          recentResults: formattedRecentResults
+        }
+      });
+    } catch (error) {
+      console.error('Error in getStudentDashboardSummary:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve student dashboard summary',
+        error: error.message
+      });
+    }
+  },
+
 };
 
 module.exports = studentDashboardController;

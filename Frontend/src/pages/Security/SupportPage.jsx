@@ -423,7 +423,7 @@ const SupportPage = () => {
                         </Typography>
                         
                         <Stack direction="row" alignItems="center" spacing={1}>
-                          <Article fontSize="small" color="action" />
+                          <Article fontSize="small" color="action" sx={{color:isDark ? 'white' : 'black'}}/>
                           <Typography variant="body2" color="text.secondary">
                             {article.views.toLocaleString()} views
                           </Typography>
@@ -583,7 +583,7 @@ const SupportPage = () => {
                             
                             {'views' in article && (
                               <Stack direction="row" alignItems="center" spacing={1}>
-                                <Article fontSize="small" color="action" />
+                                <Article fontSize="small" color="action" sx={{color:isDark ? 'white' : 'black'}}/>
                                 <Typography variant="body2" color="text.secondary">
                                   {article.views.toLocaleString()} views
                                 </Typography>
@@ -666,7 +666,7 @@ const SupportPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Email />
+                        <Email sx={{color:isDark ? 'white' : 'black'}}/>
                       </InputAdornment>
                     ),
                   }}
@@ -685,7 +685,7 @@ const SupportPage = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start" sx={{ mt: 1.5 }}>
-                        <HelpOutline />
+                        <HelpOutline sx={{color:isDark ? 'white' : 'black'}}/>
                       </InputAdornment>
                     ),
                   }}
@@ -733,7 +733,7 @@ const SupportPage = () => {
               </Box>
             </Grid>
             
-            <Grid item xs={12} md={6} sx={{ display: { xs: 'none', md: 'block' } }}>
+            {/* <Grid item xs={12} md={6} sx={{ display: { xs: 'none', md: 'block' } }}>
               <Box
                 component="img"
                 src="/assets/customer-support.svg"
@@ -745,7 +745,7 @@ const SupportPage = () => {
                   mx: 'auto',
                 }}
               />
-            </Grid>
+            </Grid> */}
           </Grid>
         </Box>
       </Container>

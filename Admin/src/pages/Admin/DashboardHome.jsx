@@ -7,7 +7,7 @@ import {
   Card,
   CardContent,
   Avatar,
-  Divider,
+  Divider, 
   Button,
   List,
   ListItem,
@@ -45,6 +45,7 @@ const API_BASE_URL = "http://localhost:5000/api/admin/dashboard";
 
 const AdminHome = () => {
   const theme = useTheme();
+     const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
 
   // Loading state
@@ -199,18 +200,19 @@ const AdminHome = () => {
       </Box>
 
       {/* Key Stats Cards */}
-      <Grid container spacing={3.4} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={4}>
+      <Grid container spacing={3.4} sx={{ mb: 3 }} >
+        <Grid item xs={12} sm={6} md={4} >
           <Paper
             elevation={0}
             sx={{
               p: 2,
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+              bgcolor:isDark ? '#312f2f' : 'black',
               height: '100%',
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', }} >
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Total Students
@@ -246,6 +248,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+              bgcolor:isDark ? '#312f2f' : 'black',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -284,6 +287,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+              bgcolor:isDark ? '#312f2f' : 'black',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -322,6 +326,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+              bgcolor:isDark ? '#312f2f' : 'black',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -355,6 +360,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+              bgcolor:isDark ? '#312f2f' : 'black'
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -391,6 +397,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+              bgcolor:isDark ? '#312f2f' : 'black',
               overflow: 'hidden',
             }}
           >
@@ -442,6 +449,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+              bgcolor:isDark ? '#312f2f' : 'black'
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -449,7 +457,7 @@ const AdminHome = () => {
                 User Distribution
               </Typography>
               <Tooltip title="This chart shows the distribution of users by type">
-                <IconButton size="small">
+                <IconButton size="small" >
                   <InfoOutlined fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -480,6 +488,7 @@ const AdminHome = () => {
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
               overflow: 'hidden',
+              bgcolor:isDark ? '#312f2f' : 'black'
             }}
           >
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

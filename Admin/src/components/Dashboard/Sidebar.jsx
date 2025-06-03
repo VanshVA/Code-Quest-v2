@@ -43,6 +43,7 @@ const navItems = [
 
 const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
   const theme = useTheme();
+     const isDark = theme.palette.mode === 'dark';
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -108,7 +109,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
                 }
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>
+              <ListItemIcon sx={{ minWidth: 40, color:isDark ? 'white' : 'black'}} >
                 {item.icon}
               </ListItemIcon>
               <ListItemText primary={item.name} />

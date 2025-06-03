@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  router:
+    build: ./router-container
+    ports:
+      - "3000:3000"
+    depends_on:
+      - python
+      - cpp
+      - java
+      - js
+
+  python:
+    build: ./language-containers/python
+    ports:
+      - "5001:5001"
+
+  cpp:
+    build: ./language-containers/cpp
+    ports:
+      - "5002:5002"
+
+  java:
+    build: ./language-containers/java
+    ports:
+      - "5003:5003"
+
+  js:
+    build: ./language-containers/javascript
+    ports:
+      - "5004:5004"
+
+  c:
+    build: ./language-containers/c
+    ports:
+      - "5005:5005"

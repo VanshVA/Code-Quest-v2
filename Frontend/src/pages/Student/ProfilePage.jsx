@@ -54,10 +54,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import dashboardService from '../../services/dashboardService';
 
-// Current date and time
-const CURRENT_DATE_TIME = "2025-06-01 21:22:45";
-const CURRENT_USER = "Anuj-prajapati-SDE";
 
 // Create motion variants for animations
 const MotionContainer = motion(Container);
@@ -83,6 +81,13 @@ const ProfilePage = () => {
     studentImage: "",
     grade: "",
     school: "",
+  });
+
+  // Stats state
+  const [stats, setStats] = useState({
+    competitionsCount: 0,
+    completedCompetitionsCount: 0,
+    bestPerformance: 0,
   });
 
   // UI state
@@ -178,6 +183,15 @@ const ProfilePage = () => {
           grade: studentData.grade || "",
           school: studentData.school || "",
         });
+
+        // Set statistics if available
+        if (studentData.stats) {
+          setStats({
+            competitionsCount: studentData.stats.competitionsCount || 0,
+            completedCompetitionsCount: studentData.stats.completedCompetitionsCount || 0,
+            bestPerformance: studentData.stats.bestPerformance || 0,
+          });
+        }
       } else {
         throw new Error(response.message || "Failed to load profile");
       }
@@ -269,7 +283,7 @@ const ProfilePage = () => {
 
       setNotification({
         open: true,
-        message: err.message || "Failed to update profile",
+        message: err.response?.data?.message || err.message || "Failed to update profile",
         type: "error",
       });
     } finally {
@@ -339,8 +353,8 @@ const ProfilePage = () => {
 
       // Handle common errors
       if (
-        err.message?.includes("incorrect") ||
-        err.response?.data?.message?.includes("incorrect")
+        err.response?.data?.message?.includes("incorrect") ||
+        err.message?.includes("incorrect")
       ) {
         setPasswordErrors({
           ...passwordErrors,
@@ -349,7 +363,7 @@ const ProfilePage = () => {
       } else {
         setNotification({
           open: true,
-          message: err.message || "Failed to update password",
+          message: err.response?.data?.message || err.message || "Failed to update password",
           type: "error",
         });
       }
@@ -440,6 +454,48 @@ const ProfilePage = () => {
                   {refreshing ? "Refreshing..." : "Refresh Stats"}
                 </Button>
               </Stack>
+            </Grid>
+
+            {/* Add Stats Summary */}
+            <Grid item xs={12} md={5}>
+              <Box sx={{
+                bgcolor: alpha(theme.palette.background.paper, 0.1),
+                p: 2,
+                borderRadius: 2
+              }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h4" fontWeight="bold" color="white">
+                        {stats.competitionsCount}
+                      </Typography>
+                      <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
+                        Competitions
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h4" fontWeight="bold" color="white">
+                        {stats.completedCompetitionsCount}
+                      </Typography>
+                      <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
+                        Completed
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h4" fontWeight="bold" color="white">
+                        {stats.bestPerformance}%
+                      </Typography>
+                      <Typography variant="body2" color="white" sx={{ opacity: 0.8 }}>
+                        Best Score
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
             </Grid>
           </Grid>
         </MotionBox>
@@ -851,8 +907,8 @@ const ProfilePage = () => {
                                       0.5
                                     ),
                                   border: `1px solid ${isDark
-                                      ? alpha(theme.palette.common.white, 0.05)
-                                      : alpha(theme.palette.common.black, 0.05)
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : alpha(theme.palette.common.black, 0.05)
                                     }`,
                                 }}
                               >
@@ -883,8 +939,8 @@ const ProfilePage = () => {
                                       0.5
                                     ),
                                   border: `1px solid ${isDark
-                                      ? alpha(theme.palette.common.white, 0.05)
-                                      : alpha(theme.palette.common.black, 0.05)
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : alpha(theme.palette.common.black, 0.05)
                                     }`,
                                 }}
                               >
@@ -915,8 +971,8 @@ const ProfilePage = () => {
                                       0.5
                                     ),
                                   border: `1px solid ${isDark
-                                      ? alpha(theme.palette.common.white, 0.05)
-                                      : alpha(theme.palette.common.black, 0.05)
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : alpha(theme.palette.common.black, 0.05)
                                     }`,
                                 }}
                               >
@@ -947,8 +1003,8 @@ const ProfilePage = () => {
                                       0.5
                                     ),
                                   border: `1px solid ${isDark
-                                      ? alpha(theme.palette.common.white, 0.05)
-                                      : alpha(theme.palette.common.black, 0.05)
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : alpha(theme.palette.common.black, 0.05)
                                     }`,
                                 }}
                               >
@@ -979,8 +1035,8 @@ const ProfilePage = () => {
                                       0.5
                                     ),
                                   border: `1px solid ${isDark
-                                      ? alpha(theme.palette.common.white, 0.05)
-                                      : alpha(theme.palette.common.black, 0.05)
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : alpha(theme.palette.common.black, 0.05)
                                     }`,
                                 }}
                               >
@@ -1011,8 +1067,8 @@ const ProfilePage = () => {
                                       0.5
                                     ),
                                   border: `1px solid ${isDark
-                                      ? alpha(theme.palette.common.white, 0.05)
-                                      : alpha(theme.palette.common.black, 0.05)
+                                    ? alpha(theme.palette.common.white, 0.05)
+                                    : alpha(theme.palette.common.black, 0.05)
                                     }`,
                                   display: "flex",
                                   alignItems: "center",

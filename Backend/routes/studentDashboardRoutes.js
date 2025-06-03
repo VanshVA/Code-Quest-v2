@@ -16,6 +16,10 @@ router.post('/competitions/:id/join', protect, studentDashboardController.joinCo
 router.post('/competitions/:id/submit', protect, studentDashboardController.submitCompetitionAnswers);
 router.post('/competitions/:id/disqualify', protect, studentDashboardController.disqualifyStudent);
 router.post('/competitions/disqualified', protect, studentDashboardController.getDisqualifiedStudent);
+
+//========================= STUDENT RESULTS ROUTES ================================//
+router.get('/results/:id', protect, studentDashboardController.  getAllResults);
+
 //========================= DASHBOARD STATISTICS ROUTE ================================//
 
 module.exports = router;

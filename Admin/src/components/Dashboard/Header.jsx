@@ -142,19 +142,21 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
       }}>
         {/* Left side - Title and Menu Toggle */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <MotionBox
-            component={IconButton}
-            color="inherit"
-            aria-label="open/close sidebar"
-            onClick={onToggleSidebar}
-            edge="start"
-            variants={iconVariants}
-            whileHover="hover"
-            whileTap="tap"
-            sx={{ mr: 1 }}
-          >
-            {isMobile || !isSidebarOpen ? <MenuIcon /> : <ChevronLeft />}
-          </MotionBox>
+          {isMobile && (
+            <MotionBox
+              component={IconButton}
+              color="inherit"
+              aria-label="open/close sidebar"
+              onClick={onToggleSidebar}
+              edge="start"
+              variants={iconVariants}
+              whileHover="hover"
+              whileTap="tap"
+              sx={{ mr: 1 }}
+            >
+              <MenuIcon />
+            </MotionBox>
+          )}
           
           <MotionBox 
             sx={{ display: 'flex', alignItems: 'center' }}
@@ -270,10 +272,10 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
                   {userInfo.name}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                  {userInfo.email}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>
                   {userInfo.role}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" noWrap >
+                  {userInfo.email}
                 </Typography>
               </Box>
               

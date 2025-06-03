@@ -51,6 +51,7 @@ import {
   Send as SendIcon,
   Terminal
 } from '@mui/icons-material';
+import axios from 'axios';
 import { submitCompetitionAnswers } from '../../services/api';
 import CompetitionSuccessPage from '../../pages/Student/CompetitionSuccessPage';
 
@@ -72,24 +73,35 @@ function CodePage({ questions = [], competition = {} }) {
     message: '',
     severity: 'success'
   });
+  const [isRunning, setIsRunning] = useState(false);
   const editorRef = useRef(null);
 
   // Sample starter templates for different languages
   const languageTemplates = {
     javascript: '// Write your JavaScript code here\n\nfunction solution(input) {\n  // Your code here\n  \n  return result;\n}\n\n// Example usage:\n// console.log(solution(input));',
     python: '# Write your Python code here\n\ndef solution(input):\n    # Your code here\n    \n    return result\n\n# Example usage:\n# print(solution(input))',
-    java: 'public class Solution {\n    public static void main(String[] args) {\n        // Example usage\n        System.out.println(solution("input"));\n    }\n    \n    public static String solution(String input) {\n        // Your code here\n        \n        return "result";\n    }\n}',
-    cpp: '#include <iostream>\n#include <string>\n\nusing namespace std;\n\nstring solution(string input) {\n    // Your code here\n    \n    return "result";\n}\n\nint main() {\n    // Example usage\n    cout << solution("input") << endl;\n    return 0;\n}',
-    c: '#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nchar* solution(const char* input) {\n    // Your code here\n    \n    return "result";\n}\n\nint main() {\n    // Example usage\n    printf("%s\\n", solution("input"));\n    return 0;\n}'
+    java: '// WARNING: Do not change the class name "Main" or the file structure\n// You must maintain the main method signature\n\npublic class Main {\n    public static void main(String[] args) {\n        // Your code here\n        // You can call your solution method from here\n        System.out.println(solution("example input"));\n    }\n    \n    public static String solution(String input) {\n        // Your solution logic here\n        \n        return "result";\n    }\n}',
+    cpp: '// WARNING: Do not modify the main function signature or file structure\n// You can add your solution code inside the given structure\n\n#include <iostream>\n#include <string>\n#include <vector>\n#include <algorithm>\n\nusing namespace std;\n\n// Write your solution function here\nstring solution(string input) {\n    // Your code here\n    \n    return "result";\n}\n\nint main() {\n    // DO NOT MODIFY THE MAIN FUNCTION\n    string input;\n    getline(cin, input);\n    \n    string result = solution(input);\n    cout << result << endl;\n    \n    return 0;\n}',
+    c: '// WARNING: Do not modify the main function signature or file structure\n// You can add your solution code inside the given structure\n\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n// Add any additional headers you need here\n\n// Write your solution function here\nchar* solution(const char* input) {\n    // Allocate memory for result (remember to free this in the calling function)\n    char* result = (char*)malloc(100 * sizeof(char));\n    \n    // Your code here\n    strcpy(result, "result");\n    \n    return result;\n}\n\nint main() {\n    // DO NOT MODIFY THE MAIN FUNCTION\n    char input[1000];\n    fgets(input, 1000, stdin);\n    \n    // Remove trailing newline if present\n    size_t len = strlen(input);\n    if (len > 0 && input[len-1] == \'\\n\') {\n        input[len-1] = \'\\0\';\n    }\n    \n    char* result = solution(input);\n    printf("%s\\n", result);\n    \n    // Free allocated memory\n    free(result);\n    \n    return 0;\n}'
   };
 
-  // Language display names
-  const languageNames = {
-    javascript: 'JavaScript',
-    python: 'Python',
-    java: 'Java',
-    cpp: 'C++',
-    c: 'C'
+  // Add a warning to be displayed for file structure-sensitive languages
+  const fileStructureWarning = {
+    java: "Warning: Your code must include a 'Main' class with a 'main' method. Do not change the file structure.",
+    c: "Warning: Your code must include a 'solution' function with the specified signature. Do not modify the main function.",
+    cpp: "Warning: Your code must include a 'solution' function with the specified signature. Do not modify the main function."
+  };
+
+  // Render warning for language - adding the missing function
+  const renderWarningForLanguage = () => {
+    if (fileStructureWarning[language]) {
+      return (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <Typography variant="body2">{fileStructureWarning[language]}</Typography>
+        </Alert>
+      );
+    }
+    return null;
   };
 
   // Set up timer
@@ -108,10 +120,51 @@ function CodePage({ questions = [], competition = {} }) {
     return () => clearInterval(timer);
   }, []);
 
+  // Function to execute code via Docker container
+  const executeCode = async (code, language) => {
+    try {
+      setIsRunning(true);
+      setOutput('Running code, please wait...');
+
+      // Map language to correct format for API
+      let apiLanguage = language.toLowerCase();
+      // Special case for C++
+      if (apiLanguage === 'cpp') {
+        apiLanguage = 'c++';
+      }
+
+      const response = await axios.post('http://localhost:3000/run', {
+        language: apiLanguage,  // Use the mapped language
+        code: code
+      });
+
+      if (response.data) {
+        let resultOutput = '';
+
+        if (response.data.output) {
+          resultOutput += response.data.output;
+        }
+
+        if (response.data.error) {
+          resultOutput += response.data.error ? `\n${response.data.error}` : '';
+        }
+
+        return resultOutput.trim() || 'Code executed with no output';
+      } else {
+        return 'No response from execution server';
+      }
+    } catch (error) {
+      console.error('Error executing code:', error);
+      return `Error: ${error.response?.data?.message || error.message || 'Failed to execute code'}`;
+    } finally {
+      setIsRunning(false);
+    }
+  };
+
   // Handle editor mounting
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
-    
+
     // Load the current code for this question if it exists
     const questionId = questions[currentQuestion]?._id;
     if (questionId && answers[questionId]) {
@@ -125,11 +178,11 @@ function CodePage({ questions = [], competition = {} }) {
   const handleLanguageChange = (event) => {
     const newLanguage = event.target.value;
     setLanguage(newLanguage);
-    
+
     // If there's no saved code for this question, load the template
     const questionId = questions[currentQuestion]?._id;
     const currentAnswer = answers[questionId];
-    
+
     if (currentAnswer && currentAnswer.language === newLanguage) {
       // Use saved code for this language if available
       setCode(currentAnswer.code || languageTemplates[newLanguage]);
@@ -166,7 +219,7 @@ function CodePage({ questions = [], competition = {} }) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -191,10 +244,10 @@ function CodePage({ questions = [], competition = {} }) {
   const loadQuestionCode = (questionIndex) => {
     const question = questions[questionIndex];
     if (!question) return;
-    
+
     const questionId = question._id;
     const savedAnswer = answers[questionId];
-    
+
     if (savedAnswer) {
       setLanguage(savedAnswer.language || 'javascript');
       setCode(savedAnswer.code || languageTemplates[savedAnswer.language || 'javascript']);
@@ -217,46 +270,19 @@ function CodePage({ questions = [], competition = {} }) {
     setOpenSummaryDialog(true);
   };
 
-  // Run code to test
-  const runCode = () => {
+  // Run code to test - Updated to use the Docker container
+  const runCode = async () => {
     if (!editorRef.current) return;
-    
+
     const currentCode = editorRef.current.getValue();
-    console.log('Running code:', currentCode);
-    
-    // Clear previous output
-    setOutput('');
-    
-    // In a real application, you might send this to a backend service to execute
+
     try {
-      // For JavaScript, we can actually run it (be careful with this in production!)
-      if (language === 'javascript') {
-        // Capture console.log output
-        const originalLog = console.log;
-        let outputText = '';
-        
-        console.log = (...args) => {
-          outputText += args.join(' ') + '\n';
-          originalLog(...args);
-        };
-        
-        try {
-          // eslint-disable-next-line no-new-func
-          const result = new Function('return ' + currentCode)();
-          outputText += 'Result: ' + JSON.stringify(result) + '\n';
-        } catch (err) {
-          outputText += 'Error: ' + err.message + '\n';
-        }
-        
-        // Restore console.log
-        console.log = originalLog;
-        setOutput(outputText);
-      } else {
-        setOutput(`Running ${languageNames[language]} code...\nCode execution would happen on the server.\n\nFor this demo, only JavaScript execution is available in the browser.`);
-      }
+      // Execute code using the Docker container API
+      const result = await executeCode(currentCode, language);
+      setOutput(result);
     } catch (error) {
-      console.error('Error executing code:', error);
-      setOutput('Error executing code: ' + error.message);
+      console.error('Error running code:', error);
+      setOutput(`Error: ${error.message || 'An unknown error occurred'}`);
     }
   };
 
@@ -264,51 +290,57 @@ function CodePage({ questions = [], competition = {} }) {
   const handleSubmit = async () => {
     saveCurrentCode(); // Save current code
     setIsSubmitting(true);
-    
+
     try {
       // Format answers for submission
       const questionIds = questions.map(q => q._id);
       // For each question, get the code and language or empty string if not answered
       const answersArray = questionIds.map(qId => {
         if (answers[qId]) {
+          // Map cpp to c++ before submitting
+          let apiLanguage = answers[qId].language || 'javascript';
+          if (apiLanguage === 'cpp') {
+            apiLanguage = 'c++';
+          }
+          
           return JSON.stringify({
             code: answers[qId].code || '',
-            language: answers[qId].language || 'javascript'
+            language: apiLanguage
           });
         }
         return '';
       });
-      
+
       // Make API call to submit answers using the API service
       const response = await submitCompetitionAnswers(
         competition._id,
         questionIds,
         answersArray
       );
-      
+
       setSnackbar({
         open: true,
         message: 'Your code solutions have been submitted successfully!',
         severity: 'success'
       });
-      
+
       console.log("Submission response:", response.data);
-      
+
       // Prepare submission details for success page
       setSubmissionDetails({
         submissionId: response.data?.submissionId || `SUB-${Date.now()}`,
         problem: competition.competitionName,
         submissionDate: new Date().toLocaleString(),
-        completedIn: `${competition.duration - Math.floor(timeLeft/60)}m ${60 - (timeLeft % 60)}s`,
+        completedIn: `${competition.duration - Math.floor(timeLeft / 60)}m ${60 - (timeLeft % 60)}s`,
         score: response.data?.preliminaryScore || "Awaiting evaluation"
       });
-      
+
       // Close dialog and set submission as complete
       setOpenSummaryDialog(false);
       setSubmissionComplete(true);
     } catch (error) {
       console.error('Error submitting code solutions:', error);
-      
+
       setSnackbar({
         open: true,
         message: error.message || 'Failed to submit code solutions. Please try again.',
@@ -338,7 +370,7 @@ function CodePage({ questions = [], competition = {} }) {
     }
 
     const question = questions[currentQuestion];
-    
+
     if (!question) {
       return (
         <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -353,15 +385,15 @@ function CodePage({ questions = [], competition = {} }) {
           <Typography variant="h5" gutterBottom>
             Question {currentQuestion + 1}: {question.question}
           </Typography>
-          
+
           {question.description && (
             <Typography variant="body1" color="textSecondary" paragraph sx={{ mb: 3 }}>
               {question.description}
             </Typography>
           )}
-          
+
           <Divider sx={{ my: 2 }} />
-          
+
           {/* Question details, examples, constraints would go here */}
           {question.examples && (
             <Box sx={{ mt: 2 }}>
@@ -375,7 +407,7 @@ function CodePage({ questions = [], competition = {} }) {
               ))}
             </Box>
           )}
-          
+
           {question.constraints && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" fontWeight={600}>Constraints:</Typography>
@@ -407,7 +439,7 @@ function CodePage({ questions = [], competition = {} }) {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {competition.competitionName || 'Coding Competition'}
           </Typography>
-          
+
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
@@ -423,7 +455,7 @@ function CodePage({ questions = [], competition = {} }) {
             </Typography>
           </Box>
         </Toolbar>
-        
+
         {/* Progress Bar */}
         <LinearProgress
           variant="determinate"
@@ -443,7 +475,7 @@ function CodePage({ questions = [], competition = {} }) {
                   Question Navigator
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
-                
+
                 <Grid container spacing={1}>
                   {questions.map((q, index) => (
                     <Grid item xs={3} sm={2} md={4} key={index}>
@@ -465,7 +497,7 @@ function CodePage({ questions = [], competition = {} }) {
                     </Grid>
                   ))}
                 </Grid>
-                
+
                 <Box sx={{ mt: 3, textAlign: 'center' }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Questions Answered: {answeredQuestions}/{questions.length}
@@ -478,7 +510,7 @@ function CodePage({ questions = [], competition = {} }) {
                 </Box>
               </CardContent>
             </Card>
-            
+
             <Button
               variant="contained"
               color="error"
@@ -490,12 +522,12 @@ function CodePage({ questions = [], competition = {} }) {
               Submit All Solutions
             </Button>
           </Grid>
-          
+
           {/* Right: Question Display and Code Editor */}
           <Grid item xs={12} md={9}>
             {/* Question Display */}
             {renderQuestion()}
-            
+
             {/* Code Editor Controls */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
@@ -512,25 +544,26 @@ function CodePage({ questions = [], competition = {} }) {
                   <MenuItem value="c">C</MenuItem>
                 </Select>
               </FormControl>
-              
+
               <Box>
                 <Tooltip title="Toggle light/dark theme">
                   <IconButton onClick={toggleTheme} sx={{ mr: 1 }}>
                     {theme === 'vs-dark' ? <LightMode /> : <DarkMode />}
                   </IconButton>
                 </Tooltip>
-                
-                <Button 
-                  variant="contained" 
+
+                <Button
+                  variant="contained"
                   color="primary"
-                  startIcon={<PlayArrow />}
+                  startIcon={isRunning ? <CircularProgress size={16} color="inherit" /> : <PlayArrow />}
                   onClick={runCode}
+                  disabled={isRunning}
                   sx={{ mr: 1 }}
                 >
-                  Run Code
+                  {isRunning ? 'Running...' : 'Run Code'}
                 </Button>
-                
-                <Button 
+
+                <Button
                   variant="outlined"
                   startIcon={<Save />}
                   onClick={saveCurrentCode}
@@ -539,11 +572,14 @@ function CodePage({ questions = [], competition = {} }) {
                 </Button>
               </Box>
             </Box>
-            
+
+            {/* Warning for file structure sensitive languages */}
+            {renderWarningForLanguage()}
+
             {/* Monaco Editor */}
-            <Paper 
-              elevation={3} 
-              sx={{ 
+            <Paper
+              elevation={3}
+              sx={{
                 height: 'calc(100vh - 450px)', // Reduced height to make room for output panel
                 minHeight: '300px',
                 overflow: 'hidden',
@@ -565,7 +601,7 @@ function CodePage({ questions = [], competition = {} }) {
                 }}
               />
             </Paper>
-            
+
             {/* Output Panel */}
             <Box sx={{ mt: 2, mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -584,11 +620,16 @@ function CodePage({ questions = [], competition = {} }) {
                   fontFamily: 'Consolas, Monaco, monospace'
                 }}
               >
-                {output ? (
-                  <Typography 
-                    variant="body2" 
+                {isRunning ? (
+                  <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    <Typography variant="body2">Running your code...</Typography>
+                  </Box>
+                ) : output ? (
+                  <Typography
+                    variant="body2"
                     component="pre"
-                    sx={{ 
+                    sx={{
                       fontFamily: 'Consolas, Monaco, monospace',
                       fontSize: '14px',
                       lineHeight: 1.5,
@@ -607,7 +648,7 @@ function CodePage({ questions = [], competition = {} }) {
                 )}
               </Paper>
             </Box>
-            
+
             {/* Navigation Buttons */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1, mb: 3 }}>
               <Button
@@ -619,7 +660,7 @@ function CodePage({ questions = [], competition = {} }) {
               >
                 Previous
               </Button>
-              
+
               <Button
                 variant="contained"
                 endIcon={<ArrowForward />}
@@ -633,7 +674,7 @@ function CodePage({ questions = [], competition = {} }) {
           </Grid>
         </Grid>
       </Container>
-      
+
       {/* Submission Summary Dialog */}
       <Dialog
         open={openSummaryDialog}
@@ -646,7 +687,7 @@ function CodePage({ questions = [], competition = {} }) {
           <DialogContentText>
             You are about to submit all your code solutions. Once submitted, you cannot change them.
           </DialogContentText>
-          
+
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1" gutterBottom>
               Summary:
@@ -658,8 +699,8 @@ function CodePage({ questions = [], competition = {} }) {
               </ListItem>
               <ListItem>
                 <ListItemIcon><Warning color="error" /></ListItemIcon>
-                <ListItemText 
-                  primary={`Questions Unanswered: ${questions.length - answeredQuestions}`} 
+                <ListItemText
+                  primary={`Questions Unanswered: ${questions.length - answeredQuestions}`}
                   secondary={answeredQuestions < questions.length ? "You still have unanswered questions." : ""}
                 />
               </ListItem>
@@ -671,16 +712,16 @@ function CodePage({ questions = [], competition = {} }) {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setOpenSummaryDialog(false)} 
+          <Button
+            onClick={() => setOpenSummaryDialog(false)}
             disabled={isSubmitting}
           >
             Continue Coding
           </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSubmit} 
-            color="primary" 
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            color="primary"
             disabled={isSubmitting}
             startIcon={isSubmitting && <CircularProgress size={20} color="inherit" />}
           >
@@ -688,7 +729,7 @@ function CodePage({ questions = [], competition = {} }) {
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Feedback Snackbar */}
       <Snackbar
         open={snackbar.open}
@@ -696,10 +737,10 @@ function CodePage({ questions = [], competition = {} }) {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
+        <Alert
+          onClose={handleCloseSnackbar}
           severity={snackbar.severity}
-          variant="filled" 
+          variant="filled"
           sx={{ width: '100%' }}
         >
           {snackbar.message}

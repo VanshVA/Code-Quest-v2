@@ -37,7 +37,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode, setColorMode } = useColorMode();
-  
+
   // Get user data from localStorage
   const [userData, setUserData] = useState({
     firstName: '',
@@ -45,7 +45,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
     email: '',
     role: ''
   });
-  
+
   useEffect(() => {
     const userString = localStorage.getItem('user');
     if (userString) {
@@ -62,18 +62,18 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
       }
     }
   }, []);
-  
+
   // State for user menu only
   const [anchorElUser, setAnchorElUser] = useState(null);
-  
+
   // Scroll effects
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 50,
   });
-  
+
   const [scrolled, setScrolled] = useState(false);
-  
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
@@ -86,16 +86,16 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
+
   // Handle user menu open/close
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
-  
+
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-  
+
   // Handle user menu options
   const handleUserMenuOption = (option) => {
     handleCloseUserMenu();
@@ -113,7 +113,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
     hidden: { opacity: 0, y: -5 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
-  
+
   const iconVariants = {
     hover: { scale: 1.1, rotate: 5, transition: { duration: 0.2 } },
     tap: { scale: 0.95 }
@@ -126,8 +126,8 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
       elevation={scrolled ? 2 : 0}
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: scrolled 
-          ? theme.palette.mode === 'dark' 
+        bgcolor: scrolled
+          ? theme.palette.mode === 'dark'
             ? 'rgba(25, 25, 25, 0.8)'
             : 'rgba(255, 255, 255, 0.85)'
           : 'background.paper',
@@ -137,43 +137,45 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
         transition: 'all 0.3s ease',
       }}
     >
-      <Toolbar sx={{ 
-        display: 'flex', 
+      <Toolbar sx={{
+        display: 'flex',
         justifyContent: 'space-between',
-        height: scrolled ? 64 : 70, 
+        height: scrolled ? 64 : 70,
         transition: 'height 0.3s ease'
       }}>
         {/* Left side - Title and Menu Toggle */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {isMobile && (
+            <MotionBox
+              component={IconButton}
+              color="inherit"
+              aria-label="open/close sidebar"
+              onClick={onToggleSidebar}
+              edge="start"
+              variants={iconVariants}
+              whileHover="hover"
+              whileTap="tap"
+              sx={{ mr: 1 }}
+            >
+              <MenuIcon />
+            </MotionBox>
+          )}
+
           <MotionBox
-            component={IconButton}
-            color="inherit"
-            aria-label="open/close sidebar"
-            onClick={onToggleSidebar}
-            edge="start"
-            variants={iconVariants}
-            whileHover="hover"
-            whileTap="tap"
-            sx={{ mr: 1 }}
-          >
-            {isMobile || !isSidebarOpen ? <MenuIcon /> : <ChevronLeft />}
-          </MotionBox>
-          
-          <MotionBox 
             sx={{ display: 'flex', alignItems: 'center' }}
             initial="hidden"
             animate="visible"
             variants={logoVariants}
           >
             <TeacherPanelSettings sx={{ mr: 1, color: 'primary.main' }} />
-            <MotionTypography 
-              variant="h6" 
-              noWrap 
-              component="div" 
+            <MotionTypography
+              variant="h6"
+              noWrap
+              component="div"
               sx={{ fontWeight: 'bold' }}
-              animate={{ 
-                color: scrolled 
-                  ? (theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary) 
+              animate={{
+                color: scrolled
+                  ? (theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary)
                   : theme.palette.text.primary
               }}
               transition={{ duration: 0.5 }}
@@ -182,7 +184,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
             </MotionTypography>
           </MotionBox>
         </Box>
-        
+
         {/* Right side - Actions */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* Theme Toggle */}
@@ -201,7 +203,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
               {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
             </MotionBox>
           </Tooltip>
-          
+
           {/* User Menu */}
           <Box sx={{ ml: 1 }}>
             <Tooltip title="Account settings">
@@ -218,13 +220,13 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                 <Avatar
                   alt={userData.firstName}
                   src="/static/images/avatar/1.jpg"
-                  sx={{ 
-                    width: 32, 
+                  sx={{
+                    width: 32,
                     height: 32,
                     bgcolor: 'primary.main',
                     border: '2px solid',
-                    borderColor: theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.2)' 
+                    borderColor: theme.palette.mode === 'dark'
+                      ? 'rgba(255,255,255,0.2)'
                       : 'rgba(0,0,0,0.1)',
                   }}
                 >
@@ -232,7 +234,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                 </Avatar>
               </MotionBox>
             </Tooltip>
-            
+
             <Menu
               anchorEl={anchorElUser}
               id="account-menu"
@@ -279,18 +281,18 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen, currentDateTim
                   {userData.email}
                 </Typography>
               </Box>
-              
+
               <Divider />
-              
+
               <MenuItem onClick={() => handleUserMenuOption('profile')}>
                 <ListItemIcon>
                   <PersonOutlined fontSize="small" />
                 </ListItemIcon>
                 Profile
               </MenuItem>
-              
+
               <Divider />
-              
+
               <MenuItem onClick={() => handleUserMenuOption('logout')}>
                 <ListItemIcon>
                   <Logout fontSize="small" sx={{ color: 'error.main' }} />

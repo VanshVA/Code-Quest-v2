@@ -45,52 +45,10 @@ const studentDashboardController = {
         });
       }
 
-      // Get count of competitions this student has participated in
-      const competitionsCount = student.competitions ? student.competitions.length : 0;
-
-      // Count completed competitions
-      const completedCompetitionsCount = student.competitions ? student.competitions.filter(comp => comp.completed).length : 0;
-
-      // Get student's best performance
-      const bestScore = await CompetitionResult.aggregate([
-        { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
-        {
-          $group: {
-            _id: '$competitionId',
-            totalScore: { $sum: '$totalScore' },
-            maxPossible: { $sum: '$maxPossibleScore' }
-          }
-        },
-        {
-          $project: {
-            _id: 1,
-            percentage: {
-              $cond: [
-                { $eq: ['$maxPossible', 0] },
-                0,
-                { $multiply: [{ $divide: ['$totalScore', '$maxPossible'] }, 100] }
-              ]
-            }
-          }
-        },
-        { $sort: { percentage: -1 } },
-        { $limit: 1 }
-      ]);
-
-      const bestPerformance = bestScore.length > 0 ? Math.round(bestScore[0].percentage) : 0;
 
       res.status(200).json({
         success: true,
-        data: {
-          student: {
-            ...student.toObject(),
-            stats: {
-              competitionsCount,
-              completedCompetitionsCount,
-              bestPerformance
-            }
-          }
-        }
+        data: student
       });
     } catch (error) {
       console.error('Error in getProfile:', error);
@@ -953,6 +911,111 @@ const studentDashboardController = {
     }
   },
 
+  // Get all results for a student
+  getAllResults: async (req, res) => {
+    try {
+      const studentId = req.student._id;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      // Find all results for this student
+      const totalResults = await CompetitionResult.countDocuments({ studentId });
+
+      const results = await CompetitionResult.find({ studentId })
+        .populate({
+          path: 'competitionId',
+          select: 'competitionName competitionType startTiming endTiming duration creatorId'
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+      if (results.length === 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'No results found for this student',
+          data: {
+            results: [],
+            pagination: {
+              total: 0,
+              page,
+              pages: 0,
+              limit
+            }
+          }
+        });
+      }
+
+      // Process the results to include competition details and creator information
+      const processedResults = await Promise.all(results.map(async (result) => {
+        let creatorInfo = { name: 'Unknown Creator' };
+        
+        if (result.competitionId && result.competitionId.creatorId) {
+          try {
+            const teacher = await Teacher.findById(result.competitionId.creatorId)
+              .select('teacherFirstName teacherLastName');
+            
+            if (teacher) {
+              creatorInfo = {
+                _id: teacher._id,
+                name: `${teacher.teacherFirstName || ''} ${teacher.teacherLastName || ''}`.trim()
+              };
+            } else {
+              const admin = await Admin.findById(result.competitionId.creatorId)
+                .select('adminName');
+              
+              if (admin) {
+                creatorInfo = {
+                  _id: admin._id,
+                  name: admin.adminName || 'Unknown Admin'
+                };
+              }
+            }
+          } catch (err) {
+            console.error('Error fetching creator info:', err);
+          }
+        }
+
+        return {
+          _id: result._id,
+          studentId: result.studentId,
+          competitionId: result.competitionId?._id || null,
+          competitionName: result.competitionId?.competitionName || 'Unknown Competition',
+          competitionType: result.competitionId?.competitionType || 'Unknown Type',
+          score: result.score,
+          rank: result.rank,
+          timeTaken: result.timeTaken,
+          submissionTime: result.submissionTime,
+          correctAnswers: result.correctAnswers,
+          totalQuestions: result.totalQuestions,
+          percentageScore: ((result.correctAnswers / result.totalQuestions) * 100).toFixed(2),
+          creatorName: creatorInfo.name
+        };
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: {
+          results: processedResults,
+          pagination: {
+            total: totalResults,
+            page,
+            pages: Math.ceil(totalResults / limit),
+            limit
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in getAllResults:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve results',
+        error: error.message
+      });
+    }
+  },
+  
 };
 
 module.exports = studentDashboardController;

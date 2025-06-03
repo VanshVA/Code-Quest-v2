@@ -38,12 +38,41 @@ import {
   Settings as SettingsIcon,
   Refresh
 } from '@mui/icons-material';
-import authService from '../../services/authService';
 import moment from 'moment';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-// Current date and time
-const CURRENT_DATE_TIME = "2025-05-31 14:27:36";
-const CURRENT_USER = "VanshSharmaSDEimport";
+// API service for admin
+const adminService = {
+  getProfile: async () => {
+    const response = await axios.get('http://localhost:5000/api/admin/dashboard/profile', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
+  },
+
+  updateProfile: async (profileData) => {
+    const response = await axios.put('http://localhost:5000/api/admin/dashboard/profile', profileData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
+  },
+
+  updatePassword: async (passwordData) => {
+    const response = await axios.put('http://localhost:5000/api/admin/dashboard/password', passwordData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
+  }
+};
+
+
 
 const ProfilePage = () => {
   const theme = useTheme();
@@ -52,6 +81,7 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -86,41 +116,24 @@ const ProfilePage = () => {
       try {
         setLoading(true);
 
-        // In a real app, this would call an API
-        // For now, let's simulate an API response
-        setTimeout(() => {
-          // Mock profile data
-          const mockProfile = {
-            _id: '1',
-            name: 'Admin User',
-            email: 'admin@codequest.com',
-            profileImage: 'https://i.pravatar.cc/300?img=11',
-            role: 'admin',
-            permissions: ['manage_teachers', 'manage_students', 'manage_competitions'],
-            lastLogin: '2025-05-29T14:22:45.567Z'
-          };
+        // Call the API to get profile data
+        const response = await adminService.getProfile();
 
-          setProfile(mockProfile);
+        if (response.success) {
+          const adminData = response.data.admin;
+          setProfile(adminData);
           setFormData({
-            name: mockProfile.name,
-            email: mockProfile.email,
-            profileImage: mockProfile.profileImage || ''
+            name: adminData.name,
+            email: adminData.email,
+            profileImage: adminData.profileImage || ''
           });
-          setLoading(false);
-        }, 1000);
-
-        // In real app, this would be:
-        // const response = await authService.getProfile();
-        // setProfile(response.data.admin);
-        // setFormData({
-        //   name: response.data.admin.name,
-        //   email: response.data.admin.email,
-        //   profileImage: response.data.admin.profileImage || ''
-        // });
-
+        } else {
+          setError(response.message || 'Failed to load profile');
+        }
       } catch (err) {
         console.error('Error fetching profile:', err);
-        setError('Failed to load profile. Please refresh the page.');
+        setError(err.response?.data?.message || 'Failed to load profile. Please refresh the page.');
+      } finally {
         setLoading(false);
       }
     };
@@ -174,32 +187,37 @@ const ProfilePage = () => {
     try {
       setLoading(true);
 
-      // In a real app, this would call an API
-      // await authService.updateProfile(formData);
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Update local profile state with the changes
-      setProfile({
-        ...profile,
+      // Call API to update profile
+      const response = await adminService.updateProfile({
         name: formData.name,
         email: formData.email,
         profileImage: formData.profileImage
       });
 
-      setIsEditing(false);
-      setNotification({
-        open: true,
-        type: 'success',
-        message: 'Profile updated successfully'
-      });
+      if (response.success) {
+        // Update local profile state with the changes
+        setProfile({
+          ...profile,
+          name: response.data.admin.name,
+          email: response.data.admin.email,
+          profileImage: response.data.admin.profileImage
+        });
+
+        setIsEditing(false);
+        setNotification({
+          open: true,
+          type: 'success',
+          message: response.message || 'Profile updated successfully'
+        });
+      } else {
+        throw new Error(response.message || 'Failed to update profile');
+      }
     } catch (err) {
       console.error('Error updating profile:', err);
       setNotification({
         open: true,
         type: 'error',
-        message: err.message || 'Failed to update profile'
+        message: err.response?.data?.message || err.message || 'Failed to update profile'
       });
     } finally {
       setLoading(false);
@@ -255,27 +273,44 @@ const ProfilePage = () => {
     try {
       setLoading(true);
 
-      // In a real app, this would call an API
-      // await authService.updatePassword({
-      //   currentPassword: passwordData.currentPassword,
-      //   newPassword: passwordData.newPassword
-      // });
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      handleClosePasswordDialog();
-      setNotification({
-        open: true,
-        type: 'success',
-        message: 'Password updated successfully'
+      // Call API to update password
+      const response = await adminService.updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
       });
+
+      if (response.success) {
+        handleClosePasswordDialog();
+        setNotification({
+          open: true,
+          type: 'success',
+          message: response.message || 'Password updated successfully'
+        });
+      } else {
+        throw new Error(response.message || 'Failed to update password');
+      }
     } catch (err) {
       console.error('Error updating password:', err);
-      setPasswordErrors({
-        ...passwordErrors,
-        currentPassword: 'Current password is incorrect'
-      });
+
+      // Handle specific error for incorrect current password
+      if (err.response?.status === 401) {
+        setPasswordErrors({
+          ...passwordErrors,
+          currentPassword: 'Current password is incorrect'
+        });
+      } else if (err.response?.status === 400) {
+        // Handle validation errors
+        setPasswordErrors({
+          ...passwordErrors,
+          newPassword: err.response.data.message || 'Invalid password'
+        });
+      } else {
+        setNotification({
+          open: true,
+          type: 'error',
+          message: err.response?.data?.message || err.message || 'Failed to update password'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -774,6 +809,7 @@ const ProfilePage = () => {
                           borderWidth: '2px',
                           height: '100%'
                         }}
+                        onClick={() => navigate('/admin/dashboard')}
                       >
                         <Box sx={{ textAlign: 'left' }}>
                           <Typography variant="subtitle1" fontWeight="bold">
@@ -797,6 +833,7 @@ const ProfilePage = () => {
                           borderWidth: '2px',
                           height: '100%'
                         }}
+                        onClick={() => navigate('/admin/settings')}
                       >
                         <Box sx={{ textAlign: 'left' }}>
                           <Typography variant="subtitle1" fontWeight="bold">
@@ -807,42 +844,6 @@ const ProfilePage = () => {
                           </Typography>
                         </Box>
                       </Button>
-
-                      <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Card
-                          variant="outlined"
-                          sx={{
-                            borderRadius: '12px',
-                            p: 2,
-                            width: '100%',
-                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(var(--primary-color-rgb), 0.02)'
-                          }}
-                        >
-                          <CardContent sx={{ p: 0 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                              <Avatar sx={{
-                                mr: 2,
-                                width: 36,
-                                height: 36,
-                                bgcolor: 'info.main'
-                              }}>
-                                <HistoryIcon fontSize="small" />
-                              </Avatar>
-                              <Typography variant="subtitle1" fontWeight="bold">
-                                Current Session
-                              </Typography>
-                            </Box>
-                            <Stack spacing={1} sx={{ pl: 7 }}>
-                              <Typography variant="body2" color="text.secondary">
-                                <b>User:</b> {CURRENT_USER}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                <b>Login Time:</b> {CURRENT_DATE_TIME}
-                              </Typography>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </Box>
                     </Stack>
                   </Box>
                 </Grid>

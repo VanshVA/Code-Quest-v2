@@ -983,12 +983,12 @@ const adminDashboardController = {
         // Get creator information from both Teacher and Admin schemas
         let creatorName = 'Unknown';
         let creatorType = 'unknown';
-        
+
         try {
           // First check if creator is a teacher
           const teacher = await Teacher.findById(comp.creatorId)
             .select('teacherFirstName teacherLastName');
-          
+
           if (teacher) {
             creatorName = `${teacher.teacherFirstName} ${teacher.teacherLastName}`;
             creatorType = 'teacher';
@@ -996,7 +996,7 @@ const adminDashboardController = {
             // If not a teacher, check if creator is an admin
             const admin = await Admin.findById(comp.creatorId)
               .select('adminName');
-              
+
             if (admin) {
               creatorName = admin.adminName;
               creatorType = 'admin';
@@ -1108,7 +1108,7 @@ const adminDashboardController = {
         // First check if creator is a teacher
         const teacher = await Teacher.findById(competition.creatorId)
           .select('teacherFirstName teacherLastName teacherEmail');
-        
+
         if (teacher) {
           creator = {
             id: teacher._id,
@@ -1120,7 +1120,7 @@ const adminDashboardController = {
           // If not a teacher, check if creator is an admin
           const admin = await Admin.findById(competition.creatorId)
             .select('adminName adminEmail');
-            
+
           if (admin) {
             creator = {
               id: admin._id,
@@ -1797,9 +1797,736 @@ const adminDashboardController = {
         error: error.message
       });
     }
+  },
+
+  // Get all submissions for a specific competition
+  getCompetitionSubmissions: async (req, res) => {
+    try {
+      const { id } = req.params; // Competition ID
+
+      // Verify competition exists
+      const competition = await Competition.findById(id);
+      if (!competition) {
+        return res.status(404).json({
+          success: false,
+          message: 'Competition not found'
+        });
+      }
+
+      // Find all submissions for this competition
+      const Submission = require('../models/submission');
+      const submissions = await Submission.find({ competitionId: id });
+
+      // Get detailed information for each submission
+      const detailedSubmissions = await Promise.all(
+        submissions.map(async (submission) => {
+          // Get student information
+          const student = await Student.findById(submission.studentId)
+            .select('studentFirstName studentLastName studentEmail');
+
+
+          return {
+            submissionId: submission._id,
+            submissionTime: submission.submissionTime,
+            student: student ? {
+              id: student._id,
+              name: `${student.studentFirstName} ${student.studentLastName}`,
+              email: student.studentEmail,
+            } : { name: 'Unknown Student' },
+            questions: submission.questions?.length || 0,
+            answers: submission.answers?.length || 0,
+            answeredAll: submission.questions?.length === submission.answers?.length,
+          };
+        })
+      );
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed submissions for competition: ${competition.competitionName} (ID: ${competition._id})`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          competition: {
+            id: competition._id,
+            name: competition.competitionName,
+            type: competition.competitionType,
+            totalQuestions: competition.questions?.length || 0
+          },
+          submissions: detailedSubmissions,
+          stats: {
+            totalSubmissions: submissions.length,
+            completedSubmissions: detailedSubmissions.filter(sub => sub.answeredAll).length
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in getCompetitionSubmissions:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve competition submissions',
+        error: error.message
+      });
+    }
+  },
+
+  // Get detailed information for a specific submission
+  getSubmissionDetails: async (req, res) => {
+    try {
+      const { id } = req.params; // Submission ID
+
+      // Find the submission
+      const Submission = require('../models/submission');
+      const submission = await Submission.findById(id);
+
+      if (!submission) {
+        return res.status(404).json({
+          success: false,
+          message: 'Submission not found'
+        });
+      }
+
+      // Get the competition details
+      const competition = await Competition.findById(submission.competitionId);
+      if (!competition) {
+        return res.status(404).json({
+          success: false,
+          message: 'Associated competition not found'
+        });
+      }
+
+      // Get student information
+      const student = await Student.findById(submission.studentId)
+        .select('studentFirstName studentLastName studentEmail grade school studentImage');
+
+      // Get student competition data
+      let studentCompetitionData = null;
+      if (student && student.competitions) {
+        studentCompetitionData = student.competitions.find(
+          comp => comp.competitionId.toString() === competition._id.toString()
+        );
+      }
+
+      // Format the questions and answers together with full question details
+      const questionAnswers = [];
+      for (let i = 0; i < submission.questions.length; i++) {
+        const questionId = submission.questions[i];
+
+        // Find the original question from the competition
+        const originalQuestion = competition.questions.find(q => q._id.toString() === questionId);
+
+        // Include the entire question object along with student's answer
+        questionAnswers.push({
+          question: originalQuestion || {
+            questionText: 'Question not found',
+            options: []
+          },
+          studentAnswer: submission.answers[i] || 'Not answered',
+          isCorrect: originalQuestion && submission.answers[i] ?
+            submission.answers[i] === originalQuestion.answer : false,
+          questionNumber: i + 1
+        });
+      }
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed submission details (ID: ${submission._id}) for student: ${student ? student.studentEmail : 'Unknown'}`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          submission: {
+            _id: submission._id,
+            submissionTime: submission.submissionTime,
+            lastUpdated: submission.updatedAt || submission.submissionTime,
+            totalQuestions: submission.questions.length,
+            answeredQuestions: submission.answers.filter(a => a).length,
+            completionStatus: submission.questions.length === submission.answers.filter(a => a).length ? 'Completed' : 'Incomplete'
+          },
+          competition: {
+            _id: competition._id,
+            name: competition.competitionName,
+            description: competition.competitionDescription,
+            type: competition.competitionType,
+            startTime: competition.startTiming,
+            endTime: competition.endTiming,
+            duration: competition.duration
+          },
+          student: student ? {
+            _id: student._id,
+            name: `${student.studentFirstName} ${student.studentLastName}`,
+            email: student.studentEmail,
+            grade: student.grade || 'N/A',
+            school: student.school || 'N/A',
+            profileImage: student.studentImage || null
+          } : { name: 'Unknown Student' },
+          performance: {
+            score: studentCompetitionData ? studentCompetitionData.score : 'N/A',
+            timeSpent: studentCompetitionData ? studentCompetitionData.timeSpent : 'N/A',
+            completedAt: studentCompetitionData && studentCompetitionData.completed ?
+              studentCompetitionData.completedAt : null
+          },
+          questionAnswers
+        }
+      });
+    } catch (error) {
+      console.error('Error in getSubmissionDetails:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve submission details',
+        error: error.message
+      });
+    }
+  },
+
+  // Calculate and assign results for a submission
+  assignSubmissionResults: async (req, res) => {
+    try {
+      const { id } = req.params; // Submission ID
+
+      // Find the submission
+      const Submission = require('../models/submission');
+      const Result = require('../models/result');
+
+      const submission = await Submission.findById(id);
+
+      if (!submission) {
+        return res.status(404).json({
+          success: false,
+          message: 'Submission not found'
+        });
+      }
+
+      // Get the competition details
+      const competition = await Competition.findById(submission.competitionId);
+      if (!competition) {
+        return res.status(404).json({
+          success: false,
+          message: 'Associated competition not found'
+        });
+      }
+
+      // Check if result already exists
+      const existingResult = await Result.findOne({
+        studentId: submission.studentId,
+        competitionId: submission.competitionId
+      });
+
+      if (existingResult) {
+        // Return existing result instead of error
+        return res.status(200).json({
+          success: true,
+          message: 'Results already exist for this submission',
+          data: {
+            submissionId: id,
+            resultId: existingResult._id,
+            totalScore: existingResult.totalScore,
+            percentageScore: existingResult.percentageScore,
+            isExisting: true
+          }
+        });
+      }
+
+      // Calculate results
+      const results = [];
+      let totalCorrect = 0;
+      let gradableQuestions = 0;
+
+      for (let i = 0; i < submission.questions.length; i++) {
+        const questionId = submission.questions[i];
+        const studentAnswer = submission.answers[i] || '';
+
+        // Find the original question from the competition
+        const originalQuestion = competition.questions.find(q => q._id.toString() === questionId);
+
+        if (!originalQuestion) continue;
+
+        // Determine correctness based on competition type
+        let isCorrect = false;
+
+        if (competition.competitionType === 'MCQ') {
+          // For MCQ, we can automatically check answer
+          isCorrect = originalQuestion.answer === studentAnswer;
+          if (isCorrect) totalCorrect++;
+          gradableQuestions++;
+        } else {
+          // For TEXT or CODE, set as false initially (requires manual grading)
+          isCorrect = false;
+          // Only count as gradable if student provided an answer
+          if (studentAnswer.trim().length > 0) {
+            gradableQuestions++;
+          }
+        }
+
+        results.push({
+          questionId: questionId,
+          questionType: competition.competitionType,
+          studentAnswer: studentAnswer,
+          correctAnswer: competition.competitionType === 'MCQ' ? originalQuestion.answer : undefined,
+          isCorrect: isCorrect
+        });
+      }
+
+      const totalQuestions = results.length;
+      const percentageScore = gradableQuestions > 0 ? (totalCorrect / gradableQuestions) * 100 : 0;
+
+      // Create and save the result
+      const newResult = new Result({
+        studentId: submission.studentId,
+        competitionId: submission.competitionId,
+        results: results,
+        totalScore: totalCorrect,
+        percentageScore: percentageScore,
+        scoreAssignedTime: new Date(),
+        submissionId: id,
+      });
+
+      await newResult.save();
+
+      // Update student's competition record with the score
+      await Student.updateOne(
+        {
+          _id: submission.studentId,
+          'competitions.competitionId': submission.competitionId
+        },
+        {
+          $set: {
+            'competitions.$.score': totalCorrect,
+            'competitions.$.completed': true,
+            'competitions.$.completedAt': new Date()
+          }
+        }
+      );
+
+      // Get student information for response
+      const student = await Student.findById(submission.studentId)
+        .select('studentFirstName studentLastName studentEmail');
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} assigned results for submission (ID: ${submission._id}), student: ${student ? student.studentEmail : submission.studentId}, score: ${totalCorrect}/${totalQuestions}`);
+
+      // Return appropriate data based on competition type
+      const responseData = {
+        submissionId: submission._id, // Added submission ID
+        resultId: newResult._id,
+        studentId: submission.studentId,
+        studentInfo: student ? {
+          name: `${student.studentFirstName} ${student.studentLastName}`,
+          email: student.studentEmail
+        } : { name: 'Unknown Student' },
+        competitionId: submission.competitionId,
+        competitionInfo: {
+          name: competition.competitionName,
+          type: competition.competitionType
+        },
+        totalScore: totalCorrect,
+        totalQuestions: totalQuestions,
+        percentageScore: percentageScore,
+        requiresManualGrading: competition.competitionType !== 'MCQ'
+      };
+
+      // Add question details for MCQ type
+      if (competition.competitionType === 'MCQ') {
+        responseData.questions = results.map(r => {
+          const question = competition.questions.find(q => q._id.toString() === r.questionId.toString());
+          return {
+            questionId: r.questionId,
+            questionText: question ? question.questionText : 'Question not found',
+            studentAnswer: r.studentAnswer,
+            correctAnswer: r.correctAnswer,
+            isCorrect: r.isCorrect,
+            options: question ? question.options : []
+          };
+        });
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Results assigned successfully',
+        data: responseData
+      });
+    } catch (error) {
+      console.error('Error in assignSubmissionResults:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to assign results',
+        error: error.message
+      });
+    }
+  },
+
+  // Manually grade a TEXT or CODE submission
+  gradeTextOrCodeSubmission: async (req, res) => {
+    try {
+      const { submissionId } = req.params;
+      const { questionScores } = req.body;
+
+      // Validate input
+      if (!questionScores || !Array.isArray(questionScores)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Question scores must be provided as an array'
+        });
+      }
+
+      // Validate that each question score has the required properties
+      for (const score of questionScores) {
+        if (score.questionId === undefined || score.isCorrect === undefined) {
+          return res.status(400).json({
+            success: false,
+            message: 'Each question score must include questionId and isCorrect'
+          });
+        }
+      }
+
+      // Find the submission
+      const Submission = require('../models/submission');
+      const Result = require('../models/result');
+
+      const submission = await Submission.findById(submissionId);
+      if (!submission) {
+        return res.status(404).json({
+          success: false,
+          message: 'Submission not found'
+        });
+      }
+
+      // Get the competition details
+      const competition = await Competition.findById(submission.competitionId);
+      if (!competition) {
+        return res.status(404).json({
+          success: false,
+          message: 'Associated competition not found'
+        });
+      }
+
+      // Only allow manual grading for TEXT or CODE competitions
+      if (competition.competitionType === 'MCQ') {
+        return res.status(400).json({
+          success: false,
+          message: 'MCQ submissions should be auto-graded, not manually graded'
+        });
+      }
+
+      // Find existing result or prepare to create new one
+      let result = await Result.findOne({
+        studentId: submission.studentId,
+        competitionId: submission.competitionId
+      });
+
+      // Create new result if one doesn't exist
+      if (!result) {
+        // Initialize results array based on submission data
+        const initialResults = submission.questions.map((questionId, index) => {
+          const studentAnswer = submission.answers[index] || '';
+          // Find original question
+          const originalQuestion = competition.questions.find(q => q._id.toString() === questionId.toString());
+
+          return {
+            questionId,
+            questionType: competition.competitionType,
+            studentAnswer,
+            isCorrect: false // Default to false, will be updated below
+          };
+        });
+
+        result = new Result({
+          studentId: submission.studentId,
+          competitionId: submission.competitionId,
+          results: initialResults,
+          totalScore: 0,
+          percentageScore: 0,
+          scoreAssignedTime: new Date(),
+          submissionId: submissionId,
+        });
+      }
+
+      // Update each question's correctness based on provided scores
+      let totalCorrect = 0;
+
+      // Map to track which questions were updated
+      const updatedQuestionIds = new Set();
+
+      for (const score of questionScores) {
+        // Find the question in results array
+        const resultQuestion = result.results.find(r => r.questionId.toString() === score.questionId.toString());
+
+        if (resultQuestion) {
+          // Set the correctness based on the score input
+          resultQuestion.isCorrect = Boolean(score.isCorrect);
+          updatedQuestionIds.add(score.questionId.toString());
+
+          if (resultQuestion.isCorrect) {
+            totalCorrect++;
+          }
+        }
+      }
+
+      // Count correct answers from non-updated questions too
+      for (const item of result.results) {
+        if (!updatedQuestionIds.has(item.questionId.toString()) && item.isCorrect) {
+          totalCorrect++;
+        }
+      }
+
+      // Update total score and percentage
+      result.totalScore = totalCorrect;
+      result.percentageScore = (result.results.length > 0) ?
+        (totalCorrect / result.results.length) * 100 : 0;
+      result.scoreAssignedTime = new Date();
+
+      // Save the result in one operation
+      await result.save();
+
+      // Update student's competition record with the score
+      try {
+        await Student.findOneAndUpdate(
+          {
+            _id: submission.studentId,
+            'competitions.competitionId': submission.competitionId
+          },
+          {
+            $set: {
+              'competitions.$.score': totalCorrect,
+              'competitions.$.completed': true,
+              'competitions.$.completedAt': new Date()
+            }
+          }
+        );
+      } catch (updateError) {
+        // If student doesn't have this competition in their array yet, add it
+        await Student.findByIdAndUpdate(
+          submission.studentId,
+          {
+            $push: {
+              competitions: {
+                competitionId: submission.competitionId,
+                score: totalCorrect,
+                completed: true,
+                completedAt: new Date()
+              }
+            }
+          }
+        );
+      }
+
+      // Get student information for better logging and response
+      const student = await Student.findById(submission.studentId)
+        .select('studentFirstName studentLastName studentEmail');
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} graded submission (ID: ${submissionId}) for competition: ${competition.competitionName}, student: ${student ? student.studentEmail : submission.studentId}, score: ${totalCorrect}/${result.results.length}`);
+
+      res.status(200).json({
+        success: true,
+        message: 'Submission graded successfully',
+        data: {
+          submissionId: submission._id, // Added submission ID
+          resultId: result._id,
+          studentInfo: student ? {
+            id: student._id,
+            name: `${student.studentFirstName} ${student.studentLastName}`,
+            email: student.studentEmail
+          } : { id: submission.studentId },
+          competitionInfo: {
+            id: competition._id,
+            name: competition.competitionName,
+            type: competition.competitionType
+          },
+          totalScore: totalCorrect,
+          totalQuestions: result.results.length,
+          percentageScore: result.percentageScore.toFixed(2),
+          gradedAt: result.scoreAssignedTime,
+          gradedQuestions: questionScores.length
+        }
+      });
+    } catch (error) {
+      console.error('Error in gradeTextOrCodeSubmission:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to grade submission',
+        error: error.message
+      });
+    }
+  },
+
+  // Get result details for a specific submission
+  getResultDetails: async (req, res) => {
+    try {
+      const { resultId } = req.params;
+      const { submissionId } = req.params; // Get submissionId from query parameters
+
+      const Result = require('../models/result');
+
+      // Find result by resultId or by submissionId
+      let result;
+      if (submissionId) {
+        // If submissionId is provided, search by submissionId field
+        result = await Result.findOne({ submissionId: submissionId });
+        if (!result) {
+          // Try to find by resultId as fallback
+          result = await Result.findById(resultId);
+        }
+      } else {
+        // If no submissionId, use standard resultId search
+        result = await Result.findById(resultId);
+      }
+
+      if (!result) {
+        return res.status(404).json({
+          success: false,
+          message: 'Result not found'
+        });
+      }
+
+      // Get competition and student details
+      const competition = await Competition.findById(result.competitionId);
+      const student = await Student.findById(result.studentId)
+        .select('studentFirstName studentLastName studentEmail grade school');
+
+      if (!competition || !student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Associated competition or student not found'
+        });
+      }
+
+      // Format detailed question and answer data
+      const questionDetails = await Promise.all(result.results.map(async (item) => {
+        // Find the original question
+        const originalQuestion = competition.questions.find(
+          q => q._id.toString() === item.questionId.toString()
+        );
+
+        return {
+          questionId: item.questionId,
+          questionType: item.questionType,
+          questionText: originalQuestion ? originalQuestion.questionText : 'Question not found',
+          studentAnswer: item.studentAnswer,
+          correctAnswer: item.correctAnswer,
+          isCorrect: item.isCorrect,
+          options: originalQuestion && originalQuestion.options ? originalQuestion.options : [],
+        };
+      }));
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed result details (ID: ${result._id}) for student: ${student.studentEmail}`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          result: {
+            _id: result._id,
+            submissionId: result.submissionId,
+            totalScore: result.totalScore,
+            percentageScore: result.percentageScore,
+            scoreAssignedTime: result.scoreAssignedTime,
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt
+          },
+          competition: {
+            _id: competition._id,
+            name: competition.competitionName,
+            type: competition.competitionType,
+            totalQuestions: competition.questions.length
+          },
+          student: {
+            _id: student._id,
+            name: `${student.studentFirstName} ${student.studentLastName}`,
+            email: student.studentEmail,
+            grade: student.grade || 'N/A',
+            school: student.school || 'N/A'
+          },
+          questionDetails
+        }
+      });
+    } catch (error) {
+      console.error('Error in getResultDetails:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve result details',
+        error: error.message
+      });
+    }
+  },
+
+  // Get results for all submissions in a competition
+  getCompetitionResults: async (req, res) => {
+    try {
+      const { id } = req.params; // Competition ID
+      const Result = require('../models/result');
+
+      // Verify competition exists
+      const competition = await Competition.findById(id);
+      if (!competition) {
+        return res.status(404).json({
+          success: false,
+          message: 'Competition not found'
+        });
+      }
+
+      // Find all results for this competition
+      const results = await Result.find({ competitionId: id });
+
+      // Get detailed information for each result
+      const detailedResults = await Promise.all(
+        results.map(async (result) => {
+          // Get student information
+          const student = await Student.findById(result.studentId)
+            .select('studentFirstName studentLastName studentEmail grade school');
+
+          return {
+            resultId: result._id,
+            scoreAssignedTime: result.scoreAssignedTime,
+            student: student ? {
+              id: student._id,
+              name: `${student.studentFirstName} ${student.studentLastName}`,
+              email: student.studentEmail,
+              grade: student.grade || 'N/A',
+              school: student.school || 'N/A'
+            } : { name: 'Unknown Student' },
+            totalScore: result.totalScore,
+            percentageScore: result.percentageScore.toFixed(2),
+            questionsCount: result.results.length,
+            correctAnswers: result.results.filter(r => r.isCorrect).length
+          };
+        })
+      );
+
+      // Sort results by score (descending)
+      detailedResults.sort((a, b) => b.totalScore - a.totalScore);
+
+      // Get top performers
+      const topPerformers = detailedResults.slice(0, 3);
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed results for competition: ${competition.competitionName} (ID: ${competition._id})`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          competition: {
+            id: competition._id,
+            name: competition.competitionName,
+            type: competition.competitionType
+          },
+          topPerformers,
+          allResults: detailedResults,
+          stats: {
+            totalParticipants: detailedResults.length,
+            averageScore: detailedResults.length > 0
+              ? (detailedResults.reduce((sum, r) => sum + r.totalScore, 0) / detailedResults.length).toFixed(2)
+              : 0
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error in getCompetitionResults:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve competition results',
+        error: error.message
+      });
+    }
   }
-
 };
-
 
 module.exports = adminDashboardController;

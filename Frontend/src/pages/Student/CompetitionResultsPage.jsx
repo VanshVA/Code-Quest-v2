@@ -1,28 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
+  Avatar,
   Box,
   Typography,
-  Paper,
-  Divider,
   Grid,
   Card,
   CardContent,
   Button,
+  Divider,
   CircularProgress,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
   Chip,
+  Stack,
+  IconButton,
+  Paper,
+  Container,
+  useTheme,
+  useMediaQuery,
   alpha,
-  useTheme
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  OutlinedInput,
+  InputAdornment,
 } from '@mui/material';
 import {
-  CheckCircle as CheckIcon,
-  Cancel as CancelIcon,
-  ArrowBack as BackIcon,
-  EmojiEvents as TrophyIcon
+  EmojiEvents as TrophyIcon,
+  Timer as TimerIcon,
+  TrendingUp as TrendingUpIcon,
+  ArrowForward as ArrowForwardIcon,
+  CalendarToday as CalendarIcon,
+  AccessTime,
+  CheckCircle,
+  ErrorOutline,
+  FilterList,
+  Search,
+  Refresh,
+  BarChart,
+  Sort,
+  Person,
+  School,
+  Leaderboard,
+  Download,
+  Print,
+  DateRange,
+  Score,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
@@ -30,459 +63,766 @@ import { motion } from 'framer-motion';
 const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 const MotionPaper = motion(Paper);
-const MotionTypography = motion(Typography);
-const MotionGrid = motion(Grid);
 
-const CompetitionResultsPage = ({ currentDateTime, currentUser }) => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (custom) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: custom * 0.1,
+      duration: 0.5
+    }
+  })
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: (custom) => ({
+    opacity: 1,
+    scale: 1,
+    transition: {
+      delay: custom * 0.1,
+      duration: 0.4,
+      type: "spring",
+      stiffness: 100
+    }
+  }),
+  hover: {
+    y: -5,
+    boxShadow: "0px 10px 25px rgba(0,0,0,0.1)",
+    transition: { duration: 0.3 }
+  }
+};
+
+function CompetitionResultsPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
-  const [competition, setCompetition] = useState(null);
+
+  // State for results data
+  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (custom) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: custom * 0.1,
-        duration: 0.5
-      }
-    })
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: (custom) => ({
-      opacity: 1,
-      scale: 1,
-      transition: {
-        delay: custom * 0.1,
-        duration: 0.4,
-        type: "spring",
-        stiffness: 100
-      }
-    }),
-    hover: {
-      y: -8,
-      boxShadow: "0px 10px 25px rgba(0,0,0,0.1)",
-      transition: { duration: 0.3 }
-    }
-  };
+  
+  // State for pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalResults, setTotalResults] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  
+  // State for filtering and sorting
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState('submissionTime');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Stats for summary cards
+  const [stats, setStats] = useState({
+    totalCompetitions: 0,
+    averageScore: 0,
+    bestScore: 0,
+    recentCompetitionDate: null
+  });
 
   useEffect(() => {
-    const fetchResults = async () => {
-      try {
-        setLoading(true);
-        // Use getCompetitionDetails endpoint to get full results
-        const response = await dashboardService.getCompetitionDetails(id);
-        
-        if (response.success) {
-          setCompetition(response.data.competition);
-        } else {
-          setError(response.message || 'Failed to fetch results');
-        }
-      } catch (err) {
-        console.error('Error fetching competition results:', err);
-        setError('Failed to load results. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchResults();
-  }, [id]);
+  }, [page, rowsPerPage, sortField, sortOrder]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Not available';
-    
+  const fetchResults = async () => {
     try {
-      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-      return new Date(dateString).toLocaleDateString(undefined, options);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return dateString;
+      setLoading(true);
+      const response = await axios.get(`/api/student/results/all`, {
+        params: {
+          page: page + 1,
+          limit: rowsPerPage,
+          sort: sortField,
+          order: sortOrder,
+          search: searchTerm
+        },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.data.success) {
+        setResults(response.data.data.results);
+        setTotalResults(response.data.data.pagination.total);
+        setTotalPages(response.data.data.pagination.pages);
+        calculateStats(response.data.data.results);
+      } else {
+        setError(response.data.message || 'Failed to fetch results');
+      }
+    } catch (err) {
+      console.error('Error fetching results:', err);
+      setError(err.response?.data?.message || 'An error occurred while fetching results');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '50vh',
-        backgroundColor: isDark ? 'background.default' : '#f7f9fc', 
-        minHeight: '100vh'
-      }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchResults().finally(() => {
+      setTimeout(() => setRefreshing(false), 800);
+    });
+  };
 
-  if (error) {
-    return (
-      <Box sx={{ 
-        backgroundColor: isDark ? 'background.default' : '#f7f9fc',
-        minHeight: '100vh',
-        py: 4,
-        px: 3 
-      }}>
-        <MotionBox
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-            {error}
-            <Button 
-              sx={{ mt: 2 }} 
-              variant="outlined" 
-              onClick={() => navigate('/student/competitions')}
-            >
-              Back to Competitions
-            </Button>
-          </Alert>
-        </MotionBox>
-      </Box>
-    );
-  }
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
-  if (!competition) {
-    return (
-      <Box sx={{ 
-        backgroundColor: isDark ? 'background.default' : '#f7f9fc',
-        minHeight: '100vh',
-        py: 4,
-        px: 3 
-      }}>
-        <MotionBox
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Alert severity="warning" sx={{ mb: 3, borderRadius: 2 }}>
-            Results not found
-            <Button 
-              sx={{ mt: 2 }} 
-              variant="outlined" 
-              onClick={() => navigate('/student/competitions')}
-            >
-              Back to Competitions
-            </Button>
-          </Alert>
-        </MotionBox>
-      </Box>
-    );
-  }
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const calculateStats = (resultsData) => {
+    if (!resultsData || resultsData.length === 0) {
+      return;
+    }
+
+    const uniqueCompetitions = new Set(resultsData.map(r => r.competitionId));
+    const scores = resultsData.map(r => parseFloat(r.percentageScore));
+    const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const bestScore = Math.max(...scores);
+    const latestDate = new Date(Math.max(...resultsData.map(r => new Date(r.submissionTime))));
+
+    setStats({
+      totalCompetitions: uniqueCompetitions.size,
+      averageScore: avgScore.toFixed(2),
+      bestScore: bestScore.toFixed(2),
+      recentCompetitionDate: latestDate
+    });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  const formatDuration = (seconds) => {
+    if (!seconds) return 'N/A';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  };
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       backgroundColor: isDark ? 'background.default' : '#f7f9fc',
       minHeight: '100vh',
-      py: 4,
-      px: { xs: 2, md: 4 }
+      pb: 4
     }}>
-      <MotionBox
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
-      >
-        <Box>
-          <MotionTypography 
-            variant="h5" 
-            fontWeight="bold" 
-            gutterBottom
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            {competition.competitionName} - Results
-          </MotionTypography>
-          <Typography variant="body1" color="text.secondary">
-            Competition completed on {formatDate(competition.submissionTime)}
-          </Typography>
+      {loading && results.length === 0 ? (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh' 
+        }}>
+          <CircularProgress />
         </Box>
-        <Button
-          variant="outlined"
-          startIcon={<BackIcon />}
-          onClick={() => navigate('/student/competitions')}
-          sx={{ 
-            borderRadius: 2, 
-            textTransform: 'none',
-            fontWeight: 600,
-            boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.2)' : 'none'
-          }}
-        >
-          Back to Competitions
-        </Button>
-      </MotionBox>
-
-      <MotionGrid 
-        container 
-        spacing={3}
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-          }
-        }}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Score Card */}
-        <Grid item xs={12} md={4}>
-          <MotionCard 
-            elevation={3}
-            variants={cardVariants}
-            custom={0}
-            whileHover="hover"
-            sx={{ 
-              borderRadius: '16px',
-              mb: { xs: 3, md: 0 },
-              overflow: 'hidden',
-              position: 'relative'
-            }}
+      ) : (
+        <Box sx={{ py: 2, px: isMobile ? 2 : 4 }}>
+          {/* Header Section */}
+          <MotionBox
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            sx={{ mb: 4 }}
           >
-            <Box
-              sx={{
-                height: 6,
-                width: '100%',
-                bgcolor: competition.isGraded ? 'success.main' : 'info.main',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-              }}
-            />
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <MotionBox
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ 
-                  delay: 0.3,
-                  type: "spring",
-                  stiffness: 100
-                }}
-              >
-                <TrophyIcon sx={{ 
-                  fontSize: 60, 
-                  color: competition.isGraded ? 'success.main' : 'info.main', 
-                  mb: 2 
-                }} />
-              </MotionBox>
-              
-              {competition.isGraded ? (
-                <>
-                  <MotionTypography 
-                    variant="h3" 
-                    fontWeight="bold" 
-                    gutterBottom
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
-                  >
-                    {Math.round(competition.scorePercentage || 0)}%
-                  </MotionTypography>
-                  <Typography variant="h6" gutterBottom>
-                    Score: {competition.totalScore || 0}/{competition.maxPossibleScore || 0}
-                  </Typography>
-                  <Chip 
-                    label="Graded" 
-                    color="success" 
-                    icon={<CheckIcon />}
-                    sx={{ mt: 1 }}
-                  />
-                </>
-              ) : (
-                <>
-                  <MotionTypography 
-                    variant="h5" 
-                    fontWeight="bold" 
-                    gutterBottom
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
-                  >
-                    Submitted Successfully
-                  </MotionTypography>
-                  <Typography variant="body1" paragraph>
-                    Your answers are being reviewed
-                  </Typography>
-                  <Chip 
-                    label="Pending Grade" 
-                    color="info"
-                    sx={{ mt: 1 }}
-                  />
-                </>
-              )}
-              
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Submitted on: {formatDate(competition.submissionTime)}
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between">
+              <Grid item xs={12} md={6}>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                  Competition Results
                 </Typography>
-              </Box>
-            </CardContent>
-          </MotionCard>
-        </Grid>
-
-        {/* Results Details */}
-        <Grid item xs={12} md={8}>
-          <MotionPaper 
-            elevation={3}
-            variants={cardVariants}
-            custom={1}
-            whileHover="hover"
-            sx={{ 
-              borderRadius: '16px', 
-              p: 3,
-              overflow: 'hidden',
-              position: 'relative'
-            }}
-          >
-            <Box
-              sx={{
-                height: 6,
-                width: '100%',
-                bgcolor: 'secondary.main',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-              }}
-            />
-
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Competition Details
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" color="text.secondary">
-                  Competition Type
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  {competition.competitionType || 'Standard'}
+                <Typography variant="body1" color="text.secondary">
+                  View your performance across all competitions
                 </Typography>
               </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" color="text.secondary">
-                  Total Questions
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  {competition.questions?.length || 0}
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" color="text.secondary">
-                  Duration
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  {competition.duration || 60} minutes
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} sm={6}>
-                <Typography variant="body2" color="text.secondary">
-                  Time Taken
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  {Math.floor((competition.timeSpent || 0) / 60)} minutes {(competition.timeSpent || 0) % 60} seconds
-                </Typography>
+              <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 2 }}>
+                <OutlinedInput
+                  placeholder="Search competitions..."
+                  size="small"
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  onKeyPress={(e) => e.key === 'Enter' && fetchResults()}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <Search fontSize="small" />
+                    </InputAdornment>
+                  }
+                  sx={{ 
+                    borderRadius: 2, 
+                    backgroundColor: isDark ? alpha(theme.palette.background.paper, 0.1) : alpha(theme.palette.background.paper, 0.7),
+                    width: { xs: '100%', sm: 220 }
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<Refresh />}
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 2
+                  }}
+                >
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
               </Grid>
             </Grid>
-            
-            {competition.isGraded && competition.competitionType === 'MCQ' && competition.answers && (
-              <MotionBox
-                variants={fadeInUp}
-                custom={2}
+          </MotionBox>
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {/* Stats Cards */}
+          <Grid container spacing={2} sx={{ mb: 4 }}>
+            {/* Total Competitions Card */}
+            <Grid item xs={12} sm={6} md={3}>
+              <MotionCard
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                custom={0}
+                elevation={2}
+                sx={{ borderRadius: 3, overflow: 'hidden' }}
               >
-                <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ mt: 3 }}>
-                  Question Summary
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                
-                <List>
-                  {competition.answers.map((answer, index) => (
-                    <MotionBox
-                      key={index}
-                      variants={fadeInUp}
-                      custom={index * 0.1 + 3}
+                <CardContent sx={{ 
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  bgcolor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05)
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                      Total Competitions
+                    </Typography>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(theme.palette.primary.main, 0.2),
+                        color: theme.palette.primary.main,
+                        width: 32,
+                        height: 32
+                      }}
                     >
-                      <ListItem 
-                        sx={{ 
-                          mb: 1, 
-                          bgcolor: answer.isCorrect ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
-                          borderRadius: 2,
-                          border: `1px solid ${answer.isCorrect ? 
-                            alpha(theme.palette.success.main, 0.3) : 
-                            alpha(theme.palette.error.main, 0.3)}`
-                        }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant="body1" fontWeight="medium">
-                                Question {index + 1}:
-                              </Typography>
-                              {answer.isCorrect ? 
-                                <Chip 
-                                  label="Correct" 
-                                  size="small"
-                                  color="success"
-                                  icon={<CheckIcon />}
-                                  sx={{ ml: 1 }}
-                                /> : 
-                                <Chip 
-                                  label="Incorrect" 
-                                  size="small"
-                                  color="error"
-                                  icon={<CancelIcon />}
-                                  sx={{ ml: 1 }}
-                                />
-                              }
-                            </Box>
-                          }
-                          secondary={
-                            answer.isCorrect ? 
-                              `Your answer: ${answer.answer}` :
-                              `Your answer: ${answer.answer} | Correct answer: ${answer.correctAnswer}`
-                          }
-                        />
-                      </ListItem>
-                    </MotionBox>
-                  ))}
-                </List>
-              </MotionBox>
-            )}
+                      <TrophyIcon fontSize="small" />
+                    </Avatar>
+                  </Box>
+                  
+                  <Typography variant="h4" fontWeight="bold" sx={{ mt: 2, mb: 1 }}>
+                    {stats.totalCompetitions}
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    Competitions taken
+                  </Typography>
+                </CardContent>
+              </MotionCard>
+            </Grid>
             
-            {(!competition.isGraded || competition.competitionType !== 'MCQ') && (
-              <MotionBox
-                variants={fadeInUp}
-                custom={2}
+            {/* Average Score Card */}
+            <Grid item xs={12} sm={6} md={3}>
+              <MotionCard
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                custom={1}
+                elevation={2}
+                sx={{ borderRadius: 3, overflow: 'hidden' }}
               >
-                <Alert severity="info" sx={{ mt: 3, borderRadius: 2 }}>
-                  {!competition.isGraded ?
-                    'Your answers have been submitted and will be graded soon.' :
-                    'Detailed results for this competition type are not available in this view.'
-                  }
-                </Alert>
-              </MotionBox>
+                <CardContent sx={{ 
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  bgcolor: isDark ? alpha(theme.palette.info.main, 0.1) : alpha(theme.palette.info.main, 0.05)
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                      Average Score
+                    </Typography>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(theme.palette.info.main, 0.2),
+                        color: theme.palette.info.main,
+                        width: 32,
+                        height: 32
+                      }}
+                    >
+                      <BarChart fontSize="small" />
+                    </Avatar>
+                  </Box>
+                  
+                  <Typography variant="h4" fontWeight="bold" sx={{ mt: 2, mb: 1 }}>
+                    {stats.averageScore}%
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    Overall performance
+                  </Typography>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+            
+            {/* Best Score Card */}
+            <Grid item xs={12} sm={6} md={3}>
+              <MotionCard
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                custom={2}
+                elevation={2}
+                sx={{ borderRadius: 3, overflow: 'hidden' }}
+              >
+                <CardContent sx={{ 
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  bgcolor: isDark ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.success.main, 0.05)
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                      Best Score
+                    </Typography>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(theme.palette.success.main, 0.2),
+                        color: theme.palette.success.main,
+                        width: 32,
+                        height: 32
+                      }}
+                    >
+                      <TrendingUpIcon fontSize="small" />
+                    </Avatar>
+                  </Box>
+                  
+                  <Typography variant="h4" fontWeight="bold" sx={{ mt: 2, mb: 1 }}>
+                    {stats.bestScore}%
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    Your highest score
+                  </Typography>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+            
+            {/* Last Competition Card */}
+            <Grid item xs={12} sm={6} md={3}>
+              <MotionCard
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                custom={3}
+                elevation={2}
+                sx={{ borderRadius: 3, overflow: 'hidden' }}
+              >
+                <CardContent sx={{ 
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  bgcolor: isDark ? alpha(theme.palette.warning.main, 0.1) : alpha(theme.palette.warning.main, 0.05)
+                }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                      Last Competition
+                    </Typography>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(theme.palette.warning.main, 0.2),
+                        color: theme.palette.warning.main,
+                        width: 32,
+                        height: 32
+                      }}
+                    >
+                      <CalendarIcon fontSize="small" />
+                    </Avatar>
+                  </Box>
+                  
+                  <Typography variant="h6" fontWeight="bold" sx={{ mt: 2, mb: 0.5 }}>
+                    {stats.recentCompetitionDate 
+                      ? formatDate(stats.recentCompetitionDate).split(',')[0] 
+                      : 'No data'}
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    {stats.recentCompetitionDate 
+                      ? formatDate(stats.recentCompetitionDate).split(',')[1] 
+                      : 'No competitions taken yet'}
+                  </Typography>
+                </CardContent>
+              </MotionCard>
+            </Grid>
+          </Grid>
+          
+          {/* Results Table */}
+          <MotionPaper 
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
+            custom={4}
+            elevation={3}
+            sx={{
+              borderRadius: 3,
+              overflow: 'hidden',
+              mb: 4,
+              position: 'relative'
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: 'linear-gradient(90deg, #3a47d5 0%, #00d2ff 100%)'
+              }}
+            />
+            
+            {results.length > 0 ? (
+              <>
+                <TableContainer sx={{ minHeight: 400 }}>
+                  <Table sx={{ minWidth: 650 }}>
+                    <TableHead>
+                      <TableRow sx={{ 
+                        backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
+                        '& th': { 
+                          fontWeight: 700,
+                          color: theme.palette.text.primary,
+                          fontSize: '0.875rem',
+                          px: 2,
+                          py: 1.5
+                        }
+                      }}>
+                        <TableCell>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              cursor: 'pointer' 
+                            }}
+                            onClick={() => handleSort('competitionName')}
+                          >
+                            Competition
+                            {sortField === 'competitionName' && (
+                              <Sort 
+                                fontSize="small" 
+                                sx={{ 
+                                  ml: 0.5,
+                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              cursor: 'pointer' 
+                            }}
+                            onClick={() => handleSort('competitionType')}
+                          >
+                            Type
+                            {sortField === 'competitionType' && (
+                              <Sort 
+                                fontSize="small" 
+                                sx={{ 
+                                  ml: 0.5,
+                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              cursor: 'pointer' 
+                            }}
+                            onClick={() => handleSort('creatorName')}
+                          >
+                            Creator
+                            {sortField === 'creatorName' && (
+                              <Sort 
+                                fontSize="small" 
+                                sx={{ 
+                                  ml: 0.5,
+                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              cursor: 'pointer' 
+                            }}
+                            onClick={() => handleSort('submissionTime')}
+                          >
+                            Submission Date
+                            {sortField === 'submissionTime' && (
+                              <Sort 
+                                fontSize="small" 
+                                sx={{ 
+                                  ml: 0.5,
+                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              cursor: 'pointer' 
+                            }}
+                            onClick={() => handleSort('percentageScore')}
+                          >
+                            Score
+                            {sortField === 'percentageScore' && (
+                              <Sort 
+                                fontSize="small" 
+                                sx={{ 
+                                  ml: 0.5,
+                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              cursor: 'pointer' 
+                            }}
+                            onClick={() => handleSort('rank')}
+                          >
+                            Rank
+                            {sortField === 'rank' && (
+                              <Sort 
+                                fontSize="small" 
+                                sx={{ 
+                                  ml: 0.5,
+                                  transform: sortOrder === 'asc' ? 'rotate(180deg)' : 'none' 
+                                }} 
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody sx={{ '& td': { px: 2, py: 1.5 } }}>
+                      {results.map((result) => (
+                        <TableRow
+                          key={result._id}
+                          hover
+                          sx={{
+                            '&:last-child td, &:last-child th': { border: 0 },
+                            transition: 'background-color 0.2s',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: isDark ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.primary.main, 0.05),
+                            }
+                          }}
+                          onClick={() => navigate(`/student/competitions/${result.competitionId}/results/${result._id}`)}
+                        >
+                          <TableCell component="th" scope="row">
+                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 200 }}>
+                                {result.competitionName}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                <Tooltip title="Questions">
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+                                    <CheckCircle fontSize="inherit" sx={{ mr: 0.5, fontSize: '0.75rem' }} />
+                                    {result.correctAnswers}/{result.totalQuestions}
+                                  </Typography>
+                                </Tooltip>
+                                <Tooltip title="Time Taken">
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <AccessTime fontSize="inherit" sx={{ mr: 0.5, fontSize: '0.75rem' }} />
+                                    {formatDuration(result.timeTaken)}
+                                  </Typography>
+                                </Tooltip>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={result.competitionType || 'MCQ'} 
+                              size="small"
+                              color={result.competitionType === 'Coding' ? 'primary' : 'default'}
+                              sx={{ fontWeight: 500 }}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Person fontSize="small" sx={{ mr: 0.5, color: 'text.secondary', fontSize: '1rem' }} />
+                              <Typography variant="body2">{result.creatorName}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">{formatDate(result.submissionTime)}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography 
+                                variant="body2" 
+                                fontWeight={600} 
+                                sx={{ 
+                                  color: 
+                                    parseFloat(result.percentageScore) >= 70 ? theme.palette.success.main :
+                                    parseFloat(result.percentageScore) >= 40 ? theme.palette.warning.main :
+                                    theme.palette.error.main
+                                }}
+                              >
+                                {result.percentageScore}%
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            {result.rank ? (
+                              <Chip 
+                                label={`#${result.rank}`} 
+                                size="small" 
+                                color={
+                                  result.rank <= 3 ? 'success' : 
+                                  result.rank <= 10 ? 'primary' : 
+                                  'default'
+                                }
+                                sx={{ fontWeight: 600 }}
+                              />
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                N/A
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              endIcon={<ArrowForwardIcon />}
+                              sx={{
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontSize: '0.8125rem',
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/student/competitions/${result.competitionId}/results/${result._id}`);
+                              }}
+                            >
+                              Details
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {refreshing && (
+                        <TableRow>
+                          <TableCell colSpan={7}>
+                            <LinearProgress />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              
+                <TablePagination
+                  component="div"
+                  count={totalResults}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Results per page:"
+                  sx={{ 
+                    borderTop: `1px solid ${theme.palette.divider}`,
+                    '.MuiTablePagination-toolbar': {
+                      px: 2
+                    }
+                  }}
+                />
+              </>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  py: 8,
+                  px: 2,
+                  textAlign: 'center'
+                }}
+              >
+                <TrophyIcon sx={{ fontSize: 70, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  No Results Found
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500, mb: 3 }}>
+                  You haven't completed any competitions yet or no results match your filters. 
+                  Participate in competitions to see your results here.
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Search />}
+                  onClick={() => navigate('/student/competitions')}
+                  sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                >
+                  Browse Competitions
+                </Button>
+              </Box>
             )}
           </MotionPaper>
-        </Grid>
-      </MotionGrid>
+        </Box>
+      )}
     </Box>
   );
-};
+}
 
 export default CompetitionResultsPage;

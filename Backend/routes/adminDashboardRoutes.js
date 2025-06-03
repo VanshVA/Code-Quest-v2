@@ -31,8 +31,11 @@ router.post('/competitions/:id/clone', protectAdmin, authorize('admin'), adminDa
 
 
 // Results management routes
-// router.get('/results', protectAdmin, authorize('admin'), adminDashboardController.getAllResults);
-// router.get('/results/:id', protectAdmin, authorize('admin'), adminDashboardController.getResultById);
+router.get('/competitions/:id/submissions', protectAdmin, authorize('admin'), adminDashboardController.getCompetitionSubmissions);
+router.get('/competitions/submission/:id', protectAdmin, authorize('admin'), adminDashboardController.getSubmissionDetails);
+router.post('/competitions/:id/assign-results', protectAdmin, authorize('admin'), adminDashboardController.assignSubmissionResults);
+router.post('/competitions/:submissionId/grade-text-or-code-submission', protectAdmin, authorize('admin'), adminDashboardController.gradeTextOrCodeSubmission);
+router.get('/competitions/:submissionId/result-details', protectAdmin, authorize('admin'), adminDashboardController.getResultDetails);
 
 // Admin profile routes
 router.get('/profile', protectAdmin, adminDashboardController.getProfile);

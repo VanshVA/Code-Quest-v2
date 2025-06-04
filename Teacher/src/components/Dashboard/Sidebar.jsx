@@ -33,7 +33,7 @@ const DRAWER_WIDTH = 240;
 
 // Navigation items for Teacher dashboard
 const navItems = [
-    { name: 'Dashboard', path: '/teacher/dashboard', icon: <DashboardIcon /> },
+    { name: 'Dashboard', path: '/teacher/dashboard', icon: <DashboardIcon  /> },
     { name: 'Competitions', path: '/teacher/competitions', icon: <EmojiEvents /> },
     { name: 'Results', path: '/teacher/results', icon: <Assessment /> },
     { name: 'Profile', path: '/teacher/profile', icon: <Person /> }
@@ -41,6 +41,7 @@ const navItems = [
 
 const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
     const theme = useTheme();
+      const isDark = theme.palette.mode === 'dark';
     const location = useLocation();
     const navigate = useNavigate();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -106,7 +107,7 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
                                 }
                             }}
                         >
-                            <ListItemIcon sx={{ minWidth: 40 }}>
+                            <ListItemIcon sx={{ minWidth: 40 ,color:isDark ? ' white' : '#312f2f',}}>
                                 {item.icon}
                             </ListItemIcon>
                             <ListItemText primary={item.name} />

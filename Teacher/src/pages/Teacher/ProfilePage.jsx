@@ -43,6 +43,7 @@ const CURRENT_USER = "VanshSharmaSDE"; // Using provided user login
 
 const ProfilePage = () => {
     const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
     const navigate = useNavigate();
 
     // Profile state
@@ -293,7 +294,8 @@ const ProfilePage = () => {
                                     p: 3,
                                     borderRadius: '16px',
                                     border: '1px solid',
-                                    borderColor: 'divider',
+                                
+                                     bgcolor:isDark ? '#312f2f' : 'white',
                                 }}
                             >
                                 <Box sx={{ textAlign: 'center', mb: 3 }}>
@@ -430,7 +432,7 @@ const ProfilePage = () => {
                                     p: 3,
                                     borderRadius: '16px',
                                     border: '1px solid',
-                                    borderColor: 'divider',
+                                    bgcolor:isDark ? '#312f2f' : 'white',
                                 }}
                             >
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>

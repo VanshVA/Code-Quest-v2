@@ -13,7 +13,7 @@ import {
     Typography,
     useTheme,
     useMediaQuery
-} from '@mui/material';
+} from '@mui/material'; 
 import {
     Dashboard as DashboardIcon,
     School,
@@ -58,16 +58,16 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
         authService.logout();
         navigate('/login');
     };
-
+ 
     // Sidebar content
     const sidebarContent = (
         <Box sx={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column', }}>
-            {/* App Logo and Title */}
+            {/* App Logo and Title */} 
             <Box
                 sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    p: 2,
+                    p: 2, 
                     mb: 1
                 }}
             >

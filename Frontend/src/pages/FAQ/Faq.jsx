@@ -180,8 +180,8 @@ const FAQPage = () => {
 
   // Tabs for different FAQ categories
   const faqCategories = [
-    { label: "All FAQs", value: 0, icon: <FilterList /> },
-    { label: "Getting Started", value: 1, icon: <School /> },
+    { label: "All FAQs", value: 0, icon: <FilterList   /> },
+    { label: "Getting Started", value: 1, icon: <School  /> },
     { label: "Account & Settings", value: 2, icon: <Settings /> },
     { label: "Billing & Payments", value: 3, icon: <Payment /> },
     { label: "Technical Support", value: 4, icon: <ContactSupport /> },
@@ -678,12 +678,12 @@ const FAQPage = () => {
                         }}
                       >
                         <AccordionSummary
-                          expandIcon={<ExpandMore />}
+                          expandIcon={<ExpandMore  sx={{color:isDark ? 'white' : 'black'}}/>}
                           sx={{ 
                             px: 3,
                             py: 2,
                           }}
-                        >
+                         >
                           <Typography 
                             variant="subtitle1"
                             sx={{ 
@@ -723,14 +723,15 @@ const FAQPage = () => {
                               Was this answer helpful?
                             </Typography>
                             <Box>
-                              <Tooltip title="Yes, this was helpful">
+                              <Tooltip title="Yes, this was helpful" >
                                 <IconButton 
                                   size="small"
                                   color={feedbackGiven[`panel${index}`] === 'helpful' ? 'success' : 'default'}
                                   disabled={feedbackGiven[`panel${index}`] === 'not-helpful'}
                                   onClick={() => handleFeedback(`panel${index}`, true)}
+                                  
                                 >
-                                  <ThumbUp fontSize="small" />
+                                  <ThumbUp fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="No, this wasn't helpful">
@@ -741,7 +742,7 @@ const FAQPage = () => {
                                   onClick={() => handleFeedback(`panel${index}`, false)}
                                   sx={{ ml: 1 }}
                                 >
-                                  <ThumbDown fontSize="small" />
+                                  <ThumbDown fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
                                 </IconButton>
                               </Tooltip>
                             </Box>

@@ -50,7 +50,7 @@ import { AccessTime, Apps, AutoAwesome, Category, CheckCircleOutline, CheckCircl
 // Custom rating component with emojis
 function CustomRating({ value, onChange }) {
   const theme = useTheme();
-  
+   const isDark = theme.palette.mode === 'dark';
   const customIcons = {
     1: {
       icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 40 }} />,
@@ -104,12 +104,13 @@ function CustomRating({ value, onChange }) {
                 }
               }}
             >
-              {customIcons[ratingValue].icon}
+              {customIcons[ratingValue].icon }
             </Box>
           );
         }}
+        
       />
-      <Typography variant="body2" color="text.secondary" mt={1}>
+      <Typography variant="body2" sx={{color:isDark ? 'white' : 'black'}} mt={1}>
         {value ? customIcons[value].label : 'Select your rating'}
       </Typography>
     </Box>
@@ -129,7 +130,7 @@ const Feedback = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
-  
+   const isDark = theme.palette.mode === 'dark';
   // Form state
   const [formData, setFormData] = useState({
     name: currentUser?.name || 'Anuj Prajapati',
@@ -552,7 +553,7 @@ const Feedback = () => {
             </Box>
             
             <Typography variant="body1" paragraph>
-              We're committed to making EventHub the best platform for venue discovery and booking. Your feedback is essential to help us understand what we're doing well and where we can improve.
+              We value your feedback and suggestions to help us improve Code Quest. Please fill out the form below to share your thoughts, ideas, or report any issues you've encountered.
             </Typography>
             
             {error && (
@@ -575,7 +576,7 @@ const Feedback = () => {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Person fontSize="small" />
+                          <Person fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
                         </InputAdornment>
                       ),
                     }}
@@ -593,7 +594,7 @@ const Feedback = () => {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Email fontSize="small" />
+                          <Email fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
                         </InputAdornment>
                       ),
                     }}
@@ -613,7 +614,7 @@ const Feedback = () => {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Category fontSize="small" />
+                          <Category fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
                         </InputAdornment>
                       ),
                     }}
@@ -639,7 +640,7 @@ const Feedback = () => {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Apps fontSize="small" />
+                          <Apps fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
                         </InputAdornment>
                       ),
                     }}
@@ -657,7 +658,7 @@ const Feedback = () => {
                   <Divider sx={{ mb: 2 }}>
                     <Chip 
                       label="Ratings" 
-                      icon={<Star fontSize="small" />} 
+                      icon={<Star fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>} 
                       sx={{ px: 1 }}
                     />
                   </Divider>
@@ -699,12 +700,13 @@ const Feedback = () => {
                     />
                     
                     <Typography variant="subtitle1" fontWeight="bold" align="center" gutterBottom>
-                      How would you rate your overall experience with EventHub?
+                      How would you rate your overall experience with Code Quest?
                     </Typography>
                     <Box sx={{ position: 'relative', zIndex: 2 }}>
                       <CustomRating 
                         value={formData.ratingGeneral} 
                         onChange={(value) => handleRatingChange('ratingGeneral', value)}
+                        
                       />
                     </Box>
                   </Paper>
@@ -718,9 +720,11 @@ const Feedback = () => {
                       borderRadius: 3, 
                       height: '100%',
                       transition: 'all 0.2s ease',
+                        color:isDark ? 'white' : 'black',
                       '&:hover': {
                         boxShadow: '0 5px 15px rgba(0,0,0,0.07)',
                         borderColor: theme => theme.palette.primary.main,
+                      
                       },
                     }}
                   >

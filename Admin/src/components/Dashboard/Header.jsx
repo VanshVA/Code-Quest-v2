@@ -35,6 +35,7 @@ const MotionTypography = motion(Typography);
 const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+     const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { mode, toggleColorMode, setColorMode } = useColorMode();
   
@@ -197,7 +198,7 @@ const DashboardHeader = ({ title, onToggleSidebar, isSidebarOpen }) => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.3 }}
             >
-              {theme.palette.mode === 'dark' ? <LightMode /> : <DarkMode />}
+              {theme.palette.mode === 'dark' ? <LightMode  sx={{color:isDark ? 'white' : 'black'}}/> : <DarkMode sx={{color:isDark ? 'white' : 'black'}}/>}
             </MotionBox>
           </Tooltip>
           

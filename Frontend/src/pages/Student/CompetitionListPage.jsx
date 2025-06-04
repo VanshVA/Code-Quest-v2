@@ -407,11 +407,10 @@ const CompetitionPage = ({
               top: 12,
               left: 12,
               zIndex: 1,
-              bgcolor: isDark ? alpha(theme.palette.background.paper, 0.7) : alpha(theme.palette.common.white, 0.8),
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              '&:hover': {
-                bgcolor: isDark ? alpha(theme.palette.background.paper, 0.9) : theme.palette.common.white,
-              }
+              color:isDark ? 'white' : 'black',
+              backgroundColor: isDark ? 'white' : 'black',
+              
             }}
           >
             {isBookmarked ?

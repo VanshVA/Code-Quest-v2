@@ -701,9 +701,7 @@ const DashboardHome = () => {
                       </Typography>
                       <IconButton
                         size="small"
-                        sx={{
-                          bgcolor: isDark ? alpha(theme.palette.background.default, 0.3) : alpha(theme.palette.background.default, 0.5),
-                        }}
+                    sx={{color:isDark ? 'white' : 'black'}}
                       >
                         <History fontSize="small" />
                       </IconButton>
@@ -871,9 +869,7 @@ const DashboardHome = () => {
                       </Typography>
                       <IconButton
                         size="small"
-                        sx={{
-                          bgcolor: isDark ? alpha(theme.palette.background.default, 0.3) : alpha(theme.palette.background.default, 0.5),
-                        }}
+                         sx={{color:isDark ? 'white' : 'black'}}
                       >
                         <AccessTime fontSize="small" />
                       </IconButton>
@@ -1072,9 +1068,7 @@ const DashboardHome = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
                           size="small"
-                          sx={{
-                            bgcolor: isDark ? alpha(theme.palette.background.default, 0.3) : alpha(theme.palette.background.default, 0.5),
-                          }}
+                          sx={{color:isDark ? 'white' : 'black'}}
                         >
                           <CalendarIcon fontSize="small" />
                         </IconButton>

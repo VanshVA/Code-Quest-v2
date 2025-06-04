@@ -457,18 +457,18 @@ const ContactPage = () => {
               >
                 <Grid container spacing={3} sx={{minWidth:"100%"}}>
                   <Grid item xs={12}>
-                    <FormControl fullWidth error={!!formErrors.name}>
+                    <FormControl fullWidth error={!!formErrors.name}> 
                       <TextField
                         label="Full Name"
                         name="name"
-                        value={formData.name}
+                        value={formData.name} 
                         onChange={handleChange}
                         placeholder="Enter your name"
                         required
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Person color={formErrors.name ? "error" : "inherit"} />
+                              <Person    sx={{color:isDark ? 'white' : 'black'}} />
                             </InputAdornment>
                           ),
                           sx: { borderRadius: '8px' }
@@ -493,7 +493,7 @@ const ContactPage = () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Email color={formErrors.email ? "error" : "inherit"} />
+                              <Email   sx={{color:isDark ? 'white' : 'black'}}/>
                             </InputAdornment>
                           ),
                           sx: { borderRadius: '8px' }
@@ -516,7 +516,7 @@ const ContactPage = () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <Call color={formErrors.phone ? "error" : "inherit"} />
+                              <Call   sx={{color:isDark ? 'white' : 'black'}} />
                             </InputAdornment>
                           ),
                           sx: { borderRadius: '8px' }
@@ -543,7 +543,7 @@ const ContactPage = () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5, mr: 1 }}>
-                              <MessageOutlined color={formErrors.message ? "error" : "inherit"} />
+                              <MessageOutlined   sx={{color:isDark ? 'white' : 'black'}} />
                             </InputAdornment>
                           ),
                           sx: { borderRadius: '8px' }
@@ -616,9 +616,10 @@ const ContactPage = () => {
                     aria-label={social.name}
                     sx={{
                       bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                      color:isDark ? 'white' : 'black',
                       '&:hover': {
                         bgcolor: theme.palette.primary.main,
-                        color: 'white',
+                         color:isDark ? 'white' : 'black',
                         transform: 'translateY(-3px)',
                       },
                       transition: 'all 0.2s ease-in-out',

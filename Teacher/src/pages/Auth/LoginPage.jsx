@@ -350,57 +350,6 @@ const LoginPage = () => {
         />
       </Box>
       
-      {/* Current Time Display - Updated with new timestamp */}
-      <MotionBox
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        sx={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          px: 2.5,
-          py: 1,
-          borderRadius: '100px',
-          backdropFilter: 'blur(10px)',
-          backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-          boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
-        }}
-      >
-        <Typography
-          variant="body2" 
-          sx={{
-            fontFamily: 'monospace',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            color: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.7)',
-          }}
-        >
-          UTC: {CURRENT_DATE_TIME}
-          <Box 
-            component="span"
-            sx={{
-              display: 'inline-block',
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              backgroundColor: theme.palette.success.main,
-              ml: 1.5,
-              animation: 'pulse 2s infinite',
-              '@keyframes pulse': {
-                '0%': { opacity: 0.6, transform: 'scale(0.9)' },
-                '50%': { opacity: 1, transform: 'scale(1.1)' },
-                '100%': { opacity: 0.6, transform: 'scale(0.9)' },
-              },
-            }}
-          />
-        </Typography>
-      </MotionBox>
       
       {/* Main Content */}
       <Container maxWidth="sm">
@@ -654,7 +603,7 @@ const LoginPage = () => {
           <Box sx={{ mt: 1 }}>
             <Link 
               component={RouterLink} 
-              to="/terms"
+              to="http://localhost:5173/terms"
               variant="caption"
               color="textSecondary"
               underline="hover"
@@ -664,7 +613,7 @@ const LoginPage = () => {
             </Link>
             <Link 
               component={RouterLink} 
-              to="/privacy"
+              to="http://localhost:5173/privacy"
               variant="caption"
               color="textSecondary"
               underline="hover"
@@ -674,7 +623,7 @@ const LoginPage = () => {
             </Link>
             <Link 
               component={RouterLink} 
-              to="/help"
+              to="http://localhost:5173/support"
               variant="caption"
               color="textSecondary"
               underline="hover"

@@ -8,6 +8,7 @@ const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const adminDashboardRoutes = require('./routes/adminDashboardRoutes'); 
 const teacherDashboardRoutes = require('./routes/teacherDashboardRoutes');
 const studentDashboardRoutes = require('./routes/studentDashboardRoutes');
+const generalRoutes = require('./routes/generalRoutes');
 const createDefaultAdmin = require('./utilities/createDefaultAdmin');
 const { updateCompetitionStatuses } = require('./utilities/scheduler');
 
@@ -33,6 +34,7 @@ app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/teacher/dashboard', teacherDashboardRoutes);
 app.use('/api/student/dashboard', studentDashboardRoutes);
+app.use('/api/general', generalRoutes); // General routes for feedback, etc.
 
 
 // Default route

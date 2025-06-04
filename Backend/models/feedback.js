@@ -1,63 +1,99 @@
 const mongoose = require('mongoose');
 
 const feedbackSchema = new mongoose.Schema({
-  studentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student',
-    required: true
-  },
-  competitionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Competition',
-    required: true
-  },
-  rating: {
-    type: Number,
+  name: {
+    type: String,
     required: true,
-    min: 1,
-    max: 5
+    trim: true
   },
-  comment: {
+  email: {
     type: String,
-    required: false,
+    required: true,
+    trim: true
+  },
+  feedback: {
+    type: String,
+    required: true
+  },
+  occupation: {
+    type: String,
     trim: true,
-    maxlength: 1000
+    default: ''
   },
-  difficulty: {
+  feedbackType: {
     type: String,
-    enum: ['Easy', 'Medium', 'Hard', 'Very Hard'],
-    required: false
+    enum: ['general', 'suggestion', 'bug', 'testimonial', 'other'],
+    default: 'general'
   },
-  improvements: {
+  source: {
     type: String,
-    required: false,
-    trim: true,
-    maxlength: 1000
+    enum: ['website', 'mobile_app', 'customer_support', 'email', 'social_media'],
+    default: 'website'
   },
-  experience: {
-    type: String,
-    required: false,
-    trim: true,
-    maxlength: 1000
+  ratingGeneral: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  ratingEase: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0
   },
-  isAnonymous: {
+  ratingSupport: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0
+  },
+  specificFeatures: {
+    type: [String],
+    default: []
+  },
+  contactConsent: {
     type: Boolean,
     default: false
   },
   status: {
     type: String,
-    enum: ['pending', 'reviewed', 'addressed'],
-    default: 'pending'
+    enum: ['new', 'reviewed', 'in-progress', 'resolved', 'archived'],
+    default: 'new'
+  },
+  adminNotes: {
+    type: String,
+    default: ''
+  },
+  reviewedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin'
+  },
+  reviewedAt: {
+    type: Date
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    // This can reference multiple models: Student, Teacher, Admin
+  },
+  userType: {
+    type: String,
+    enum: ['student', 'teacher', 'admin', 'guest'],
+    default: 'guest'
+  },
+  submittedAt: {
+    type: Date,
+    default: Date.now
   }
-}, { timestamps: true });
+}, {
+  timestamps: true
+});
 
-// One student can only give one feedback per competition
-feedbackSchema.index({ studentId: 1, competitionId: 1 }, { unique: true });
+// Create a text index for searching
+feedbackSchema.index({
+  name: 'text',
+  email: 'text',
+  feedback: 'text'
+});
 
-const Feedback = mongoose.model('Feedback', feedbackSchema);
-
-module.exports = Feedback;
+module.exports = mongoose.model('Feedback', feedbackSchema);

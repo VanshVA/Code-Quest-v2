@@ -42,6 +42,14 @@ router.get('/profile', protectAdmin, adminDashboardController.getProfile);
 router.put('/profile', protectAdmin, adminDashboardController.updateProfile);
 router.put('/password', protectAdmin, adminDashboardController.updatePassword);
 
+// Feedback management routes
+router.post('/feedback', protectAdmin, adminDashboardController.createFeedback);
+router.get('/feedback', protectAdmin, adminDashboardController.getAllFeedback);
+router.get('/feedback/:id', protectAdmin, adminDashboardController.getFeedbackById);
+router.delete('/feedback/:id', protectAdmin, adminDashboardController.deleteFeedback);
+router.get('/feedback/stats', protectAdmin, adminDashboardController.getFeedbackStats);
+router.patch('/feedback/:id/status', protectAdmin, adminDashboardController.updateFeedbackStatus);
+
 // Dashboard statistics routes
 router.get('/statistics', protectAdmin, adminDashboardController.getDashboardStats);
 

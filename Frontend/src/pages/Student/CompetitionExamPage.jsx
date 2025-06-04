@@ -591,7 +591,7 @@ function CompetitionExamPage() {
       </Box>
 
       {/* Main Content */}
-      <Grid container spacing={3} sx={{ display: 'flex', alignItems: 'stretch' }}>
+      <Grid container spacing={3} sx={{ display: 'flex', alignItems: 'stretch' , justifyContent: 'center'}}>
         {/* Competition Information */}
         <Grid item xs={12} md={6}>
           <Card elevation={3} sx={{ height: '100%' }}>
@@ -605,7 +605,7 @@ function CompetitionExamPage() {
                 <Typography variant="h6" gutterBottom>Description</Typography>
                 <Typography variant="body1" paragraph>{competition?.competitionDescription || 'No description available'}</Typography>
 
-                <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid container spacing={2} sx={{ mt: 2 }} width={"500px"}>
                   <Grid item xs={12} sm={6}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <QuizIcon sx={{ mr: 1, color: 'primary.main' }} />
@@ -662,10 +662,9 @@ function CompetitionExamPage() {
                       p: 1.5,
                       mt: 1,
                       bgcolor: competition.timeStatus.type === 'endsIn' ? 'error.light' : 'primary.light',
-                      color: 'white',
                       borderRadius: 1
                     }}>
-                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.contrastText' }}>
                         {competition.timeStatus.type === 'endsIn'
                           ? `Competition ends in ${competition.timeStatus.formattedTime}`
                           : `Competition starts in ${competition.timeStatus.formattedTime}`

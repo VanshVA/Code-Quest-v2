@@ -12,8 +12,9 @@ import {
     Avatar,
     Typography,
     useTheme,
-    useMediaQuery
-} from '@mui/material'; 
+    useMediaQuery,
+    Badge
+} from '@mui/material';
 import {
     Dashboard as DashboardIcon,
     School,
@@ -35,7 +36,15 @@ const navItems = [
     { name: 'Dashboard', path: '/student/dashboard', icon: <DashboardIcon /> },
     { name: 'Competitions', path: '/student/competitions', icon: <EmojiEvents /> },
     { name: 'Results', path: '/student/results', icon: <Assessment /> },
-    { name: 'Profile', path: '/student/profile', icon: <Person /> }
+    { name: 'Profile', path: '/student/profile', icon: <Person /> },
+    { type: 'divider' }, // Divider before Practice section
+    { 
+        name: 'Practice', 
+        path: '/student/practice', 
+        icon: <School />, 
+        label: 'Local', 
+        isNew: true 
+    }
 ];
 
 const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
@@ -58,16 +67,16 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
         authService.logout();
         navigate('/login');
     };
- 
+
     // Sidebar content
     const sidebarContent = (
         <Box sx={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column', }}>
-            {/* App Logo and Title */} 
+            {/* App Logo and Title */}
             <Box
                 sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    p: 2, 
+                    p: 2,
                     mb: 1
                 }}
             >
@@ -83,34 +92,76 @@ const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {
 
             {/* Navigation Links */}
             <List sx={{ flexGrow: 1, px: 1.5 }}>
-                {navItems.map((item) => (
-                    <ListItem key={item.name} disablePadding sx={{ mb: 0.5 }}>
-                        <ListItemButton
-                            selected={isActive(item.path)}
-                            onClick={() => navigate(item.path)}
-                            sx={{
-                                borderRadius: '8px',
-                                '&.Mui-selected': {
-                                    backgroundColor: 'rgba(var(--primary-color-rgb), 0.08)',
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(var(--primary-color-rgb), 0.12)',
-                                    },
-                                    '& .MuiListItemIcon-root': {
-                                        color: 'primary.main',
-                                    },
-                                    '& .MuiTypography-root': {
-                                        fontWeight: 'bold',
-                                        color: 'primary.main',
-                                    },
-                                }
-                            }}
-                        >
-                            <ListItemIcon sx={{ minWidth: 40 }} style={{ color: isActive(item.path) ? theme.palette.primary.main : 'inherit' }}>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.name} />
-                        </ListItemButton>
-                    </ListItem>
+                {navItems.map((item, index) => (
+                    item.type === 'divider' ? (
+                        <Divider key={`divider-${index}`} sx={{ my: 1.5 }} />
+                    ) : (
+                        <ListItem key={item.name} disablePadding sx={{ mb: 0.5 }}>
+                            <ListItemButton
+                                selected={isActive(item.path)}
+                                onClick={() => navigate(item.path)}
+                                sx={{
+                                    borderRadius: '8px',
+                                    '&.Mui-selected': {
+                                        backgroundColor: 'rgba(var(--primary-color-rgb), 0.08)',
+                                        '&:hover': {
+                                            backgroundColor: 'rgba(var(--primary-color-rgb), 0.12)',
+                                        },
+                                        '& .MuiListItemIcon-root': {
+                                            color: 'primary.main',
+                                        },
+                                        '& .MuiTypography-root': {
+                                            fontWeight: 'bold',
+                                            color: 'primary.main',
+                                        },
+                                    }
+                                }}
+                            >
+                                <ListItemIcon sx={{ minWidth: 40 }} style={{ color: isActive(item.path) ? theme.palette.primary.main : 'inherit' }}>
+                                    {item.isNew ? (
+                                        <Badge 
+                                            color="error" 
+                                            badgeContent="New" 
+                                            sx={{ 
+                                                '& .MuiBadge-badge': { 
+                                                    fontSize: '0.65rem', 
+                                                    height: '18px', 
+                                                    minWidth: '34px' 
+                                                }
+                                            }}
+                                        >
+                                            {item.icon}
+                                        </Badge>
+                                    ) : (
+                                        item.icon
+                                    )}
+                                </ListItemIcon>
+                                <ListItemText 
+                                    primary={
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Typography component="span">{item.name}</Typography>
+                                            {item.label && (
+                                                <Typography 
+                                                    component="span" 
+                                                    sx={{ 
+                                                        ml: 1, 
+                                                        fontSize: '0.7rem', 
+                                                        color: 'text.secondary',
+                                                        bgcolor: 'action.hover',
+                                                        px: 0.8,
+                                                        py: 0.2,
+                                                        borderRadius: '4px'
+                                                    }}
+                                                >
+                                                    {item.label}
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    } 
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    )
                 ))}
             </List>
 

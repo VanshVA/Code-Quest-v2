@@ -8,14 +8,10 @@ import {
   FormControlLabel,
   FormControl,
   Button,
-  Stepper,
-  Step,
-  StepLabel,
   Container,
   Grid,
   AppBar,
   Toolbar,
-  IconButton,
   LinearProgress,
   Divider,
   Card,
@@ -31,7 +27,14 @@ import {
   ListItemText,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  useTheme,
+  alpha,
+  Badge,
+  Chip,
+  Tooltip,
+  useMediaQuery,
+  IconButton
 } from '@mui/material';
 import {
   ArrowBack,
@@ -41,21 +44,29 @@ import {
   Warning,
   Send as SendIcon,
   QuestionAnswer,
-  PieChart
+  Flag as FlagIcon,
+  HelpOutline,
+  BookmarkBorder,
+  Bookmark,
 } from '@mui/icons-material';
 import { submitCompetitionAnswers } from '../../services/api';
 import CompetitionSuccessPage from '../../pages/Student/CompetitionSuccessPage';
 
 function McqPage({ questions = [], competition = {} }) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
   // State for current question index, answers, and timer
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [bookmarkedQuestions, setBookmarkedQuestions] = useState({});
   const [timeLeft, setTimeLeft] = useState(competition.duration ? competition.duration * 60 : 600); // Default 10 min if not set
   const [openSummaryDialog, setOpenSummaryDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState(0);
   const [submissionComplete, setSubmissionComplete] = useState(false);
   const [submissionDetails, setSubmissionDetails] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -118,6 +129,18 @@ function McqPage({ questions = [], competition = {} }) {
     }
   };
 
+  // Toggle bookmark for current question
+  const toggleBookmark = () => {
+    const question = questions[currentQuestion];
+    if (!question || !question._id) return;
+    
+    const questionId = question._id;
+    setBookmarkedQuestions(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
+  };
+
   // Jump to specific question
   const jumpToQuestion = (index) => {
     setCurrentQuestion(index);
@@ -177,6 +200,26 @@ function McqPage({ questions = [], competition = {} }) {
     }
   };
 
+  // Get badge color based on time remaining
+  const getTimerColor = () => {
+    const totalTime = competition.duration ? competition.duration * 60 : 600;
+    const percentLeft = (timeLeft / totalTime) * 100;
+    
+    if (percentLeft < 10) return theme.palette.error.main;
+    if (percentLeft < 25) return theme.palette.warning.main;
+    return theme.palette.success.main;
+  };
+
+  // Determine if a question is answered
+  const isQuestionAnswered = (questionId) => {
+    return !!answers[questionId];
+  };
+
+  // Determine if a question is bookmarked
+  const isQuestionBookmarked = (questionId) => {
+    return !!bookmarkedQuestions[questionId];
+  };
+
   // Render the current question
   const renderQuestion = () => {
     if (!questions || questions.length === 0) {
@@ -197,15 +240,57 @@ function McqPage({ questions = [], competition = {} }) {
       );
     }
 
+    const isBookmarked = isQuestionBookmarked(question._id);
+
     return (
-      <Card elevation={3}>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
-            Question {currentQuestion + 1}: {question.question}
+      <Card elevation={3} sx={{ position: 'relative', borderRadius: 2 }}>
+        <Box sx={{ 
+          position: 'absolute', 
+          top: 16, 
+          right: 16, 
+          display: 'flex', 
+          gap: 1 
+        }}>
+          <Tooltip title={isBookmarked ? "Remove bookmark" : "Bookmark question"}>
+            <IconButton 
+              onClick={toggleBookmark} 
+              color={isBookmarked ? "primary" : "default"}
+            >
+              {isBookmarked ? <Bookmark /> : <BookmarkBorder />}
+            </IconButton>
+          </Tooltip>
+          
+          <Chip 
+            label={`Question ${currentQuestion + 1}/${questions.length}`}
+            color="primary"
+            variant="outlined"
+            size="small"
+          />
+        </Box>
+        
+        <CardContent sx={{ pt: 5 }}>
+          <Typography 
+            variant="h5" 
+            gutterBottom 
+            sx={{ 
+              fontWeight: 600, 
+              color: theme.palette.text.primary,
+              pr: 8 // Space for the bookmark icon
+            }}
+          >
+            {question.question}
           </Typography>
           
           {question.description && (
-            <Typography variant="body1" color="textSecondary" paragraph sx={{ mb: 3 }}>
+            <Typography 
+              variant="body1" 
+              color="textSecondary" 
+              paragraph 
+              sx={{ 
+                mb: 3, 
+                fontStyle: question.description.includes('Note:') ? 'italic' : 'normal'
+              }}
+            >
               {question.description}
             </Typography>
           )}
@@ -217,28 +302,54 @@ function McqPage({ questions = [], competition = {} }) {
               value={answers[question._id] || ''} 
               onChange={handleAnswerChange}
             >
-              {question.options && question.options.map((option, index) => (
-                <Paper 
-                  key={index}
-                  elevation={1} 
-                  sx={{ 
-                    mb: 2, 
-                    p: 1, 
-                    borderRadius: 2,
-                    border: answers[question._id] === option ? '2px solid' : '1px solid',
-                    borderColor: answers[question._id] === option ? 'primary.main' : 'divider',
-                    bgcolor: answers[question._id] === option ? 'action.selected' : 'background.paper',
-                    '&:hover': { bgcolor: 'action.hover' }
-                  }}
-                >
-                  <FormControlLabel
-                    value={option}
-                    control={<Radio />}
-                    label={option}
-                    sx={{ width: '100%', m: 0, p: 1 }}
-                  />
-                </Paper>
-              ))}
+              {question.options && question.options.map((option, index) => {
+                const isSelected = answers[question._id] === option;
+                
+                return (
+                  <Paper 
+                    key={index}
+                    elevation={1} 
+                    sx={{ 
+                      mb: 2, 
+                      p: 0, 
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: isSelected ? theme.palette.primary.main : alpha(theme.palette.divider, 0.8),
+                      bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.05) : 'background.paper',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': { 
+                        bgcolor: isSelected ? alpha(theme.palette.primary.main, 0.1) : alpha(theme.palette.action.hover, 0.7),
+                        transform: 'translateY(-2px)',
+                        boxShadow: isSelected ? `0px 4px 8px ${alpha(theme.palette.primary.main, 0.25)}` : theme.shadows[2]
+                      }
+                    }}
+                  >
+                    <FormControlLabel
+                      value={option}
+                      control={
+                        <Radio 
+                          sx={{ 
+                            color: isSelected ? theme.palette.primary.main : undefined,
+                            '& .MuiSvgIcon-root': { fontSize: 22 }
+                          }} 
+                        />
+                      }
+                      label={
+                        <Typography 
+                          variant="body1" 
+                          sx={{ 
+                            fontWeight: isSelected ? 600 : 400,
+                            color: isSelected ? theme.palette.primary.main : theme.palette.text.primary
+                          }}
+                        >
+                          {option}
+                        </Typography>
+                      }
+                      sx={{ width: '100%', m: 0, p: 1.5 }}
+                    />
+                  </Paper>
+                );
+              })}
             </RadioGroup>
           </FormControl>
         </CardContent>
@@ -260,27 +371,80 @@ function McqPage({ questions = [], competition = {} }) {
   }
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ 
+      height: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      bgcolor: alpha(theme.palette.background.default, 0.98)
+    }}>
       {/* Top AppBar with Timer */}
-      <AppBar position="static" color="default" elevation={2}>
+      <AppBar 
+        position="static" 
+        color="default" 
+        elevation={3}
+        sx={{
+          bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'white',
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}
+      >
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              flexGrow: 1,
+              fontWeight: 600,
+              color: theme.palette.primary.main,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
             {competition.competitionName || 'MCQ Competition'}
+            <Tooltip title="View instructions">
+              <IconButton 
+                size="small"
+                color="primary"
+                onClick={() => setShowInstructions(true)}
+              >
+                <HelpOutline fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </Typography>
           
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            bgcolor: timeLeft < 300 ? 'error.light' : 'primary.main',
-            color: 'white',
-            px: 2,
-            py: 1,
-            borderRadius: 2
-          }}>
-            <Timer sx={{ mr: 1 }} />
-            <Typography variant="subtitle1" fontFamily="monospace" fontWeight="bold">
-              {formatTime(timeLeft)}
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1
+            }}>
+              <Chip
+                icon={<QuestionAnswer fontSize="small" />}
+                label={`${answeredQuestions}/${questions.length} Answered`}
+                color="primary"
+                variant="outlined"
+              />
+            </Box>
+            
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              bgcolor: alpha(getTimerColor(), 0.1),
+              border: `1px solid ${getTimerColor()}`,
+              color: getTimerColor(),
+              px: 2,
+              py: 0.75,
+              borderRadius: 2
+            }}>
+              <Timer sx={{ mr: 1, color: getTimerColor() }} />
+              <Typography 
+                variant="subtitle1" 
+                fontFamily="monospace" 
+                fontWeight="bold"
+                sx={{ color: getTimerColor() }}
+              >
+                {formatTime(timeLeft)}
+              </Typography>
+            </Box>
           </Box>
         </Toolbar>
         
@@ -288,96 +452,332 @@ function McqPage({ questions = [], competition = {} }) {
         <LinearProgress
           variant="determinate"
           value={(answeredQuestions / questions.length) * 100}
-          sx={{ height: 6 }}
+          sx={{ 
+            height: 4,
+            '& .MuiLinearProgress-bar': {
+              bgcolor: getTimerColor()
+            }
+          }}
         />
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 3, mb: 2, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          mt: 3, 
+          mb: 2, 
+          flexGrow: 1, 
+          display: 'flex', 
+          flexDirection: 'column'
+        }}
+      >
         <Grid container spacing={3}>
-          {/* Left: Question Navigator */}
-          <Grid item xs={12} md={3}>
-            <Card elevation={2}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                  <QuestionAnswer fontSize="small" sx={{ mr: 1 }} />
-                  Question Navigator
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                
-                <Grid container spacing={1}>
-                  {questions.map((q, index) => (
-                    <Grid item xs={3} sm={2} md={4} key={index}>
-                      <Button
-                        variant={answers[q._id] ? "contained" : "outlined"}
-                        color={answers[q._id] ? "primary" : "inherit"}
-                        onClick={() => jumpToQuestion(index)}
-                        sx={{
-                          minWidth: 0,
-                          width: '100%',
-                          height: '36px',
-                          aspectRatio: '1',
-                          borderRadius: 1,
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {index + 1}
-                      </Button>
-                    </Grid>
-                  ))}
-                </Grid>
-                
-                <Box sx={{ mt: 3, textAlign: 'center' }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Questions Answered: {answeredQuestions}/{questions.length}
+          {/* Left: Question Navigator - Hidden on mobile, shown in drawer */}
+          {!isMobile && (
+            <Grid item xs={12} md={3}>
+              <Card 
+                elevation={2}
+                sx={{ 
+                  borderRadius: 2,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      fontWeight: 600,
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    <QuestionAnswer fontSize="small" sx={{ mr: 1 }} />
+                    Question Navigator
                   </Typography>
-                  <LinearProgress
-                    variant="determinate"
-                    value={(answeredQuestions / questions.length) * 100}
-                    sx={{ height: 10, borderRadius: 5 }}
-                  />
+                  <Divider sx={{ mb: 2 }} />
+                  
+                  <Box sx={{ mb: 3, textAlign: 'center' }}>
+                    <Typography variant="subtitle2" gutterBottom color="text.secondary">
+                      Questions Answered: {answeredQuestions}/{questions.length}
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={(answeredQuestions / questions.length) * 100}
+                      sx={{ 
+                        height: 8, 
+                        borderRadius: 4,
+                        bgcolor: alpha(theme.palette.primary.main, 0.1),
+                        mb: 1
+                      }}
+                    />
+                  </Box>
+                  
+                  <Grid container spacing={1}>
+                    {questions.map((q, index) => {
+                      const isAnswered = isQuestionAnswered(q._id);
+                      const isBookmarked = isQuestionBookmarked(q._id);
+                      const isCurrent = index === currentQuestion;
+                      
+                      return (
+                        <Grid item xs={4} key={index}>
+                          <Badge
+                            color="primary"
+                            variant="dot"
+                            invisible={!isBookmarked}
+                            overlap="circular"
+                            sx={{
+                              '.MuiBadge-badge': {
+                                top: 5,
+                                right: 5,
+                                transform: 'scale(0.9) translate(50%, -50%)',
+                              }
+                            }}
+                          >
+                            <Button
+                              variant={isAnswered ? "contained" : "outlined"}
+                              color={isCurrent ? "primary" : isAnswered ? "success" : "inherit"}
+                              onClick={() => jumpToQuestion(index)}
+                              sx={{
+                                minWidth: 0,
+                                width: '100%',
+                                height: '36px',
+                                borderRadius: 1.5,
+                                fontWeight: 'bold',
+                                border: isCurrent ? `2px solid ${theme.palette.primary.main}` : undefined,
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  transform: 'translateY(-2px)'
+                                }
+                              }}
+                            >
+                              {index + 1}
+                            </Button>
+                          </Badge>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                  
+                  <Box sx={{ mt: 3 }}>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                      <Chip
+                        size="small"
+                        icon={<CheckCircle fontSize="small" />}
+                        label="Answered" 
+                        color="success"
+                        variant="outlined"
+                      />
+                      <Chip
+                        size="small"
+                        icon={<BookmarkBorder fontSize="small" />} 
+                        label="Bookmarked"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </Box>
+                  </Box>
+                </CardContent>
+                
+                <Box sx={{ p: 2, pt: 0 }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    fullWidth
+                    startIcon={<SendIcon />}
+                    onClick={handleOpenSummary}
+                    sx={{ 
+                      py: 1.25, 
+                      fontWeight: 'bold',
+                      borderRadius: 2,
+                      boxShadow: theme.shadows[4],
+                      '&:hover': {
+                        boxShadow: theme.shadows[8],
+                        transform: 'translateY(-2px)'
+                      },
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Submit Exam
+                  </Button>
                 </Box>
-              </CardContent>
-            </Card>
-            
-            <Button
-              variant="contained"
-              color="error"
-              fullWidth
-              startIcon={<SendIcon />}
-              onClick={handleOpenSummary}
-              sx={{ mt: 2, py: 1.5, fontWeight: 'bold' }}
-            >
-              Submit Exam
-            </Button>
-          </Grid>
+              </Card>
+            </Grid>
+          )}
           
           {/* Right: Question Display */}
-          <Grid item xs={12} md={9} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid 
+            item 
+            xs={12} 
+            md={isMobile ? 12 : 9} 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: 'column'
+            }}
+          >
             {renderQuestion()}
             
+            {/* Compact Status Bar for Mobile */}
+            {isMobile && (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                bgcolor: 'background.paper',
+                p: 2,
+                mt: 2,
+                borderRadius: 2,
+                boxShadow: 1
+              }}>
+                <Typography variant="body2">
+                  <strong>{answeredQuestions}/{questions.length}</strong> answered
+                </Typography>
+                
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  endIcon={<FlagIcon />}
+                  onClick={() => setOpenSummaryDialog(true)}
+                >
+                  Finish
+                </Button>
+              </Box>
+            )}
+            
             {/* Navigation Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              mt: 3,
+              alignItems: 'center' 
+            }}>
               <Button
                 variant="outlined"
                 startIcon={<ArrowBack />}
                 onClick={handlePrevQuestion}
                 disabled={currentQuestion === 0}
+                sx={{ 
+                  borderRadius: 2,
+                  px: 3
+                }}
               >
                 Previous
               </Button>
               
-              <Button
-                variant="contained"
-                endIcon={<ArrowForward />}
-                onClick={handleNextQuestion}
-                disabled={currentQuestion === questions.length - 1}
-              >
-                Next
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {isMobile && (
+                  <Chip
+                    label={`${currentQuestion + 1}/${questions.length}`}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+                
+                <Button
+                  variant={
+                    currentQuestion === questions.length - 1 
+                      ? "contained" 
+                      : "outlined"
+                  }
+                  color={
+                    currentQuestion === questions.length - 1 
+                      ? "primary" 
+                      : "primary"
+                  }
+                  endIcon={
+                    currentQuestion === questions.length - 1 
+                      ? <SendIcon /> 
+                      : <ArrowForward />
+                  }
+                  onClick={
+                    currentQuestion === questions.length - 1 
+                      ? handleOpenSummary 
+                      : handleNextQuestion
+                  }
+                  sx={{ 
+                    borderRadius: 2,
+                    px: 3,
+                    ...(currentQuestion === questions.length - 1 && {
+                      fontWeight: 'bold',
+                      boxShadow: theme.shadows[4],
+                      '&:hover': {
+                        boxShadow: theme.shadows[8],
+                      }
+                    })
+                  }}
+                >
+                  {currentQuestion === questions.length - 1 ? "Submit" : "Next"}
+                </Button>
+              </Box>
             </Box>
           </Grid>
         </Grid>
       </Container>
+      
+      {/* Instructions Dialog */}
+      <Dialog
+        open={showInstructions}
+        onClose={() => setShowInstructions(false)}
+        maxWidth="md"
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          {competition.competitionName || 'Exam'} Instructions
+        </DialogTitle>
+        <DialogContent>
+          <List>
+            <ListItem>
+              <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+              <ListItemText 
+                primary="Answering Questions" 
+                secondary="Select one option for each question. You can change your answers anytime before submission." 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><BookmarkBorder color="primary" /></ListItemIcon>
+              <ListItemText 
+                primary="Bookmarking" 
+                secondary="Use the bookmark icon to mark questions you want to review later." 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><Timer color="warning" /></ListItemIcon>
+              <ListItemText 
+                primary="Time Limit" 
+                secondary={`The exam has a time limit of ${competition.duration || 10} minutes. Your answers will be automatically submitted when time expires.`} 
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><SendIcon color="error" /></ListItemIcon>
+              <ListItemText 
+                primary="Submission" 
+                secondary="Click 'Submit Exam' when you're ready to finish. You cannot return to the exam after submission." 
+              />
+            </ListItem>
+          </List>
+
+          {competition.instructions && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+                Additional Instructions:
+              </Typography>
+              <Typography variant="body2">
+                {competition.instructions}
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowInstructions(false)} variant="contained">
+            I Understand
+          </Button>
+        </DialogActions>
+      </Dialog>
       
       {/* Submission Summary Dialog */}
       <Dialog
@@ -386,39 +786,98 @@ function McqPage({ questions = [], competition = {} }) {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Confirm Submission</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+          Confirm Submission
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ mb: 2 }}>
             You are about to submit your answers. Once submitted, you cannot change them.
           </DialogContentText>
           
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Summary:
-            </Typography>
-            <List dense>
-              <ListItem>
-                <ListItemIcon><CheckCircle color="primary" /></ListItemIcon>
-                <ListItemText primary={`Questions Answered: ${answeredQuestions} of ${questions.length}`} />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><Warning color="error" /></ListItemIcon>
-                <ListItemText 
-                  primary={`Questions Unanswered: ${questions.length - answeredQuestions}`} 
-                  secondary={answeredQuestions < questions.length ? "You still have unanswered questions." : ""}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon><Timer color="info" /></ListItemIcon>
-                <ListItemText primary={`Time Remaining: ${formatTime(timeLeft)}`} />
-              </ListItem>
-            </List>
-          </Box>
+          <Card variant="outlined" sx={{ mb: 2, borderRadius: 2 }}>
+            <CardContent>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
+                Summary:
+              </Typography>
+              <List dense>
+                <ListItem>
+                  <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                  <ListItemText 
+                    primary={
+                      <Typography variant="body2" fontWeight={500}>
+                        Questions Answered: 
+                        <Typography 
+                          component="span"
+                          variant="body2"
+                          fontWeight="bold" 
+                          color="success.main"
+                          sx={{ ml: 1 }}
+                        >
+                          {answeredQuestions} of {questions.length}
+                        </Typography>
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><Warning color={answeredQuestions < questions.length ? "error" : "disabled"} /></ListItemIcon>
+                  <ListItemText 
+                    primary={
+                      <Typography variant="body2" fontWeight={500}>
+                        Questions Unanswered:
+                        <Typography 
+                          component="span"
+                          variant="body2"
+                          fontWeight="bold" 
+                          color={answeredQuestions < questions.length ? "error" : "text.secondary"}
+                          sx={{ ml: 1 }}
+                        >
+                          {questions.length - answeredQuestions}
+                        </Typography>
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><Timer color="info" /></ListItemIcon>
+                  <ListItemText 
+                    primary={
+                      <Typography variant="body2" fontWeight={500}>
+                        Time Remaining: 
+                        <Typography 
+                          component="span"
+                          variant="body2"
+                          fontWeight="bold" 
+                          color="info.main"
+                          fontFamily="monospace"
+                          sx={{ ml: 1 }}
+                        >
+                          {formatTime(timeLeft)}
+                        </Typography>
+                      </Typography>
+                    } 
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+          
+          {answeredQuestions < questions.length && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              You still have {questions.length - answeredQuestions} unanswered questions. Are you sure you want to submit?
+            </Alert>
+          )}
+          
+          <Alert severity="info">
+            Once submitted, you will not be able to return to this exam or change your answers.
+          </Alert>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button 
             onClick={() => setOpenSummaryDialog(false)} 
             disabled={isSubmitting}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
           >
             Continue Exam
           </Button>
@@ -427,7 +886,13 @@ function McqPage({ questions = [], competition = {} }) {
             onClick={handleSubmit} 
             color="primary" 
             disabled={isSubmitting}
-            startIcon={isSubmitting && <CircularProgress size={20} color="inherit" />}
+            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+            sx={{ 
+              borderRadius: 2, 
+              px: 3,
+              py: 1.25,
+              fontWeight: 'bold'
+            }}
           >
             {isSubmitting ? 'Submitting...' : 'Submit Answers'}
           </Button>
@@ -445,7 +910,7 @@ function McqPage({ questions = [], competition = {} }) {
           onClose={handleCloseSnackbar} 
           severity={snackbar.severity}
           variant="filled" 
-          sx={{ width: '100%' }}
+          sx={{ width: '100%', boxShadow: theme.shadows[3] }}
         >
           {snackbar.message}
         </Alert>

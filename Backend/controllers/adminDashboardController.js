@@ -2526,7 +2526,372 @@ const adminDashboardController = {
         error: error.message
       });
     }
+  },
+
+  // Feedback management controllers
+
+  // Get all feedback with filtering and pagination
+  getAllFeedback: async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      // Prepare filter based on query parameters
+      const filter = {};
+
+      if (req.query.type) {
+        filter.feedbackType = req.query.type;
+      }
+
+      if (req.query.search) {
+        filter.$or = [
+          { name: { $regex: req.query.search, $options: 'i' } },
+          { email: { $regex: req.query.search, $options: 'i' } },
+          { feedback: { $regex: req.query.search, $options: 'i' } }
+        ];
+      }
+
+      if (req.query.source) {
+        filter.source = req.query.source;
+      }
+
+      // Rating filter
+      if (req.query.minRating) {
+        filter.ratingGeneral = { $gte: parseInt(req.query.minRating) };
+      }
+
+      // Date range filter
+      if (req.query.startDate && req.query.endDate) {
+        filter.createdAt = {
+          $gte: new Date(req.query.startDate),
+          $lte: new Date(req.query.endDate)
+        };
+      }
+
+      // Count total feedback matching filter
+      const totalFeedback = await Feedback.countDocuments(filter);
+
+      // Get feedback with pagination
+      const feedbackList = await Feedback.find(filter)
+        .sort({ createdAt: -1 }) // Sort by newest first
+        .skip(skip)
+        .limit(limit);
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed feedback list`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          feedback: feedbackList,
+          pagination: {
+            total: totalFeedback,
+            page,
+            pages: Math.ceil(totalFeedback / limit),
+            limit
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error in getAllFeedback:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve feedback",
+        error: error.message
+      });
+    }
+  },
+
+  // Get single feedback by ID
+  getFeedbackById: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const feedback = await Feedback.findById(id);
+
+      if (!feedback) {
+        return res.status(404).json({
+          success: false,
+          message: "Feedback not found"
+        });
+      }
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed feedback ID: ${id}`);
+
+      res.status(200).json({
+        success: true,
+        data: { feedback }
+      });
+    } catch (error) {
+      console.error("Error in getFeedbackById:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve feedback details",
+        error: error.message
+      });
+    }
+  },
+
+  // Create new feedback (for users, not only admin)
+  createFeedback: async (req, res) => {
+    try {
+      const {
+        name,
+        email,
+        feedback,
+        feedbackType,
+        source,
+        ratingGeneral,
+        ratingEase,
+        ratingSupport,
+        specificFeatures,
+        contactConsent,
+        occupation
+      } = req.body;
+
+      // Validate required fields
+      if (!name || !email || !feedback) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields"
+        });
+      }
+
+      // Validate email format
+      if (!validateEmail(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email format"
+        });
+      }
+
+      // Create new feedback
+      const newFeedback = new Feedback({
+        name,
+        email,
+        feedback,
+        feedbackType: feedbackType || 'general',
+        source: source || 'website',
+        ratingGeneral: ratingGeneral || 0,
+        ratingEase: ratingEase || 0,
+        ratingSupport: ratingSupport || 0,
+        specificFeatures: specificFeatures || [],
+        contactConsent: contactConsent || false,
+        occupation: occupation || '',
+        submittedAt: new Date()
+      });
+
+      await newFeedback.save();
+
+      // Log the action (using source IP for non-logged in users)
+      const sourceIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      console.log(`[${new Date().toISOString()}] New feedback submitted by ${name} (${email}) from IP: ${sourceIP}`);
+
+      res.status(201).json({
+        success: true,
+        message: "Feedback submitted successfully",
+        data: { 
+          feedbackId: newFeedback._id,
+          reference: `FDB-${Math.floor(Math.random() * 90000) + 10000}-${new Date().getFullYear().toString().substring(2)}`
+        }
+      });
+    } catch (error) {
+      console.error("Error in createFeedback:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to submit feedback",
+        error: error.message
+      });
+    }
+  },
+
+  // Delete feedback
+  deleteFeedback: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Check if feedback exists
+      const feedback = await Feedback.findById(id);
+      if (!feedback) {
+        return res.status(404).json({
+          success: false,
+          message: "Feedback not found"
+        });
+      }
+
+      // Store feedback info for logging
+      const feedbackEmail = feedback.email;
+      const feedbackType = feedback.feedbackType;
+
+      // Delete feedback
+      await Feedback.findByIdAndDelete(id);
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} deleted feedback from ${feedbackEmail} (Type: ${feedbackType})`);
+
+      res.status(200).json({
+        success: true,
+        message: "Feedback deleted successfully"
+      });
+    } catch (error) {
+      console.error("Error in deleteFeedback:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete feedback",
+        error: error.message
+      });
+    }
+  },
+
+  // Get feedback statistics and metrics
+  getFeedbackStats: async (req, res) => {
+    try {
+      // Get total count
+      const totalFeedback = await Feedback.countDocuments();
+
+      // Get counts by type
+      const typeStats = await Feedback.aggregate([
+        { $group: { _id: "$feedbackType", count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]);
+
+      // Get counts by source
+      const sourceStats = await Feedback.aggregate([
+        { $group: { _id: "$source", count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]);
+
+      // Get average ratings
+      const ratingStats = await Feedback.aggregate([
+        {
+          $group: {
+            _id: null,
+            avgGeneralRating: { $avg: "$ratingGeneral" },
+            avgEaseRating: { $avg: "$ratingEase" },
+            avgSupportRating: { $avg: "$ratingSupport" },
+            totalRated: { $sum: { $cond: [{ $gt: ["$ratingGeneral", 0] }, 1, 0] } }
+          }
+        }
+      ]);
+
+      // Get top mentioned features
+      const featureStats = await Feedback.aggregate([
+        { $unwind: "$specificFeatures" },
+        { $group: { _id: "$specificFeatures", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ]);
+
+      // Get recent feedback trends (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const trendData = await Feedback.aggregate([
+        { 
+          $match: { 
+            submittedAt: { $gte: thirtyDaysAgo } 
+          } 
+        },
+        {
+          $group: {
+            _id: { 
+              $dateToString: { format: "%Y-%m-%d", date: "$submittedAt" } 
+            },
+            count: { $sum: 1 },
+            avgRating: { $avg: "$ratingGeneral" }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]);
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} viewed feedback statistics`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          totalFeedback,
+          typeBreakdown: typeStats,
+          sourceBreakdown: sourceStats,
+          ratings: ratingStats.length > 0 ? {
+            general: ratingStats[0].avgGeneralRating.toFixed(1),
+            ease: ratingStats[0].avgEaseRating.toFixed(1),
+            support: ratingStats[0].avgSupportRating.toFixed(1),
+            totalRated: ratingStats[0].totalRated
+          } : {
+            general: 0,
+            ease: 0,
+            support: 0,
+            totalRated: 0
+          },
+          topFeatures: featureStats,
+          recentTrends: trendData
+        }
+      });
+    } catch (error) {
+      console.error("Error in getFeedbackStats:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve feedback statistics",
+        error: error.message
+      });
+    }
+  },
+
+  // Mark feedback as reviewed
+  updateFeedbackStatus: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, adminNotes } = req.body;
+
+      // Find feedback
+      const feedback = await Feedback.findById(id);
+      if (!feedback) {
+        return res.status(404).json({
+          success: false,
+          message: "Feedback not found"
+        });
+      }
+
+      // Update status
+      feedback.status = status || feedback.status;
+      
+      // Add admin notes if provided
+      if (adminNotes) {
+        feedback.adminNotes = adminNotes;
+      }
+      
+      // Update review information
+      feedback.reviewedBy = req.admin._id;
+      feedback.reviewedAt = new Date();
+
+      await feedback.save();
+
+      // Log the action
+      console.log(`[${CURRENT_DATE_TIME}] Admin ${CURRENT_USER} updated feedback status to ${status} for ID: ${id}`);
+
+      res.status(200).json({
+        success: true,
+        message: "Feedback status updated successfully",
+        data: {
+          feedbackId: feedback._id,
+          status: feedback.status,
+          reviewedAt: feedback.reviewedAt
+        }
+      });
+    } catch (error) {
+      console.error("Error in updateFeedbackStatus:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update feedback status",
+        error: error.message
+      });
+    }
   }
+
+  // Other admin functionalities can be added here
 };
 
 module.exports = adminDashboardController;

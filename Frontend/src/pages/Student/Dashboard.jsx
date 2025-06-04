@@ -12,12 +12,13 @@ import CompetitionsPage from './CompetitionListPage';
 import CompetitionExamPage from './CompetitionExamPage';
 import CompetitionResultPage from './CompetitionResultsPage';
 import ProfilePage from './ProfilePage';
+import PracticePage from './PracticePage';
 import NotFoundPage from '../Error404/Error404Page';
 
 
 // Current date and time
-const CURRENT_DATE_TIME = "2025-05-31 17:47:10";
-const CURRENT_USER = "VanshSharmaSDEChange";
+const CURRENT_DATE_TIME = "";
+const CURRENT_USER = "";
 
 const Dashboard = () => {
     const location = useLocation();
@@ -39,6 +40,8 @@ const Dashboard = () => {
             setTitle('Competitions');
         } else if (path.includes('/student/results')) {
             setTitle('Competition Result');
+        } else if (path.includes('/student/practice')) {
+            setTitle('Practice');
         }
 
     }, [location]);
@@ -159,6 +162,17 @@ const Dashboard = () => {
                             path="/profile"
                             element={
                                 <ProfilePage
+                                    currentDateTime={CURRENT_DATE_TIME}
+                                    currentUser={CURRENT_USER}
+                                />
+                            }
+                        />
+
+                        {/* Practice Page */}
+                        <Route
+                            path="/practice"
+                            element={
+                                <PracticePage
                                     currentDateTime={CURRENT_DATE_TIME}
                                     currentUser={CURRENT_USER}
                                 />

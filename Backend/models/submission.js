@@ -25,9 +25,6 @@ const submissionSchema = new mongoose.Schema({
     },
 });
 
-// Create a compound index to ensure a student can only submit once per competition
-submissionSchema.index({ competitionId: 1, studentId: 1 }, { unique: true });
-
 const Submission = mongoose.model('Submission', submissionSchema);
 
 module.exports = Submission;

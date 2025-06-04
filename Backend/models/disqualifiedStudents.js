@@ -28,9 +28,6 @@ const disqualifiedStudentSchema = new Schema({
   timestamps: true
 });
 
-// Create a compound index to prevent duplicate entries for the same student in the same competition
-disqualifiedStudentSchema.index({ studentId: 1, competitionId: 1 }, { unique: true });
-
 const DisqualifiedStudent = mongoose.model('disqualifiedStudent', disqualifiedStudentSchema);
 
 module.exports = DisqualifiedStudent;

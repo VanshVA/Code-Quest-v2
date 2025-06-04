@@ -789,23 +789,6 @@ const DashboardHome = () => {
                                 View Details
                               </Button>
                             </Box>
-
-                            {/* Bookmark button */}
-                            {/* <IconButton
-                              size="small"
-                              onClick={() => toggleBookmark(result.competitionId)}
-                              sx={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                color: bookmarkedCompetitions.includes(result.competitionId) ? 'warning.main' : 'action.active',
-                              }}
-                            >
-                              {bookmarkedCompetitions.includes(result.competitionId) ?
-                                <Bookmark fontSize="small" /> :
-                                <BookmarkBorder fontSize="small" />
-                              }
-                            </IconButton> */}
                           </Paper>
                         ))}
                       </Stack>

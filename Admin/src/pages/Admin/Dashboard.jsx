@@ -13,11 +13,7 @@ import StudentManagement from '../../pages/Admin/StudentManagement';
 import CompetitionManagement from '../../pages/Admin/CompetitionManagement';
 import ResultsManagement from '../../pages/Admin/ResultsManagement';
 import ProfilePage from '../../pages/Admin/ProfilePage';
-import SettingsPage from '../../pages/Admin/SeetingsPage';
-
-// Current date and time
-const CURRENT_DATE_TIME = "2025-05-30 10:33:35";
-const CURRENT_USER = "VanshSharmaSDEI";
+import FeedbackPage from '../../pages/Admin/FeedbackPage';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -39,8 +35,8 @@ const Dashboard = () => {
       setTitle('Results Management');
     } else if (path.includes('/dashboard/profile')) {
       setTitle('Profile');
-    } else if (path.includes('/dashboard/settings')) {
-      setTitle('Settings');
+    } else if (path.includes('/dashboard/feedback')) {
+      setTitle('Feedback');
     }
   }, [location]);
 
@@ -50,20 +46,19 @@ const Dashboard = () => {
   };
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         display: 'flex',
         minHeight: '100vh',
         backgroundColor: 'var(--background-color)',
       }}
     >
       {/* Dashboard Sidebar */}
-      <DashboardSidebar 
+      <DashboardSidebar
         isOpen={isSidebarOpen}
         onToggle={toggleSidebar}
-        currentUser={CURRENT_USER}
       />
-      
+
       {/* Main Content */}
       <Box
         component="main"
@@ -76,18 +71,16 @@ const Dashboard = () => {
           }),
           marginLeft: { xs: 0, md: isSidebarOpen ? 0 : -240 },
           width: { xs: '100%', md: isSidebarOpen ? 'calc(100% - 240px)' : '100%' },
-          marginTop: { xs: '64px', md: '64px'}
+          marginTop: { xs: '64px', md: '64px' }
         }}
       >
         {/* Dashboard Header */}
-        <DashboardHeader 
+        <DashboardHeader
           title={title}
           onToggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}
-          currentDateTime={CURRENT_DATE_TIME}
-          currentUser={CURRENT_USER}
         />
-        
+
         {/* Dashboard Content */}
         <Box sx={{ p: { xs: 2, md: 3 }, pt: { xs: 10, sm: 11 } }}>
           <Routes>
@@ -97,7 +90,7 @@ const Dashboard = () => {
             <Route path="/competitions" element={<CompetitionManagement />} />
             <Route path="/results" element={<ResultsManagement />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
         </Box>

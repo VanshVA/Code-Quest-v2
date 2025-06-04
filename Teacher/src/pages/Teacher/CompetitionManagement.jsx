@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -66,73 +66,85 @@ const CompetitionManagement = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { id } = useParams();
-  
+
   // State for competitions list
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Pagination state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCompetitions, setTotalCompetitions] = useState(0);
-  
+
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState('all');
   const [filterMenuAnchorEl, setFilterMenuAnchorEl] = useState(null);
-  
+
   // Action menu state
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState(null);
   const [selectedCompetition, setSelectedCompetition] = useState(null);
-  
+
   // Dialog states
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  
+
   // Notification state
   const [notification, setNotification] = useState({
     open: false,
     type: 'success',
     message: ''
   });
-  
+
+  // Debounce search term
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce time
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
+
   // Fetch competitions on component mount and when filters change
   useEffect(() => {
     fetchCompetitions();
-  }, [page, rowsPerPage, searchTerm, statusFilter, timeFilter]);
-  
+  }, [page, rowsPerPage, debouncedSearchTerm, statusFilter, timeFilter]);
+
   // Fetch competitions with filtering and pagination
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Build query parameters
       const params = new URLSearchParams({
         page: page + 1, // API uses 1-indexed pages
         limit: rowsPerPage,
       });
-      
-      if (searchTerm) {
-        params.append('name', searchTerm);
+
+      if (debouncedSearchTerm) {
+        params.append('search', debouncedSearchTerm);
       }
-      
+
       // Apply status filter
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-      
+
       // Apply time filter
       if (timeFilter === 'past') {
         params.append('isPrevious', 'true');
       } else if (timeFilter === 'current') {
         params.append('isPrevious', 'false');
       }
-      
+
       // Make API request with auth token
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/competitions?${params}`, {
@@ -140,14 +152,14 @@ const CompetitionManagement = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.data.success) {
         setCompetitions(response.data.data.competitions);
         setTotalCompetitions(response.data.data.pagination.total);
       } else {
         setError('Failed to load competitions. Please try again.');
       }
-      
+
     } catch (err) {
       console.error('Error fetching competitions:', err);
       setError('Failed to load competitions. Please try again.');
@@ -155,64 +167,75 @@ const CompetitionManagement = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle page change
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-  
+
   // Handle rows per page change
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  
+
   // Handle search input change
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
-  
+
+  // Function can remain, but we'll remove the UI element
+  const handleSearchClear = () => {
+    setSearchTerm('');
+  };
+
+  // Handle search by pressing Enter key
+  const handleSearchKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      setDebouncedSearchTerm(searchTerm);
+    }
+  };
+
   // Handle status filter change
   const handleStatusFilterChange = (value) => {
     setStatusFilter(value);
     setPage(0);
   };
-  
+
   // Handle time filter change
   const handleTimeFilterChange = (value) => {
     setTimeFilter(value);
     setPage(0);
   };
-  
+
   // Handle filter menu open
   const handleFilterMenuOpen = (event) => {
     setFilterMenuAnchorEl(event.currentTarget);
   };
-  
+
   // Handle filter menu close
   const handleFilterMenuClose = () => {
     setFilterMenuAnchorEl(null);
   };
-  
+
   // Handle action menu open
   const handleActionMenuOpen = (event, competition) => {
     setActionMenuAnchorEl(event.currentTarget);
     setSelectedCompetition(competition);
   };
-  
+
   // Handle action menu close
   const handleActionMenuClose = () => {
     setActionMenuAnchorEl(null);
   };
-  
+
   // Handle competition creation
   const handleCreateCompetition = () => {
     setIsCreating(true);
     setSelectedCompetition(null);
     setFormDialogOpen(true);
   };
-  
+
   // Handle competition edit
   const handleEditCompetition = async () => {
     try {
@@ -227,7 +250,7 @@ const CompetitionManagement = () => {
           }
         }
       );
-      
+
       if (response.data.success) {
         // Use the detailed competition data for editing
         setSelectedCompetition(response.data.data.competition);
@@ -248,24 +271,24 @@ const CompetitionManagement = () => {
       handleActionMenuClose();
     }
   };
-  
+
   // Handle competition view
   const handleViewCompetition = () => {
     setDetailDialogOpen(true);
     handleActionMenuClose();
   };
-  
+
   // Handle competition delete
   const handleDeleteCompetition = () => {
     setDeleteDialogOpen(true);
     handleActionMenuClose();
   };
-  
+
   // Handle competition clone
   const handleCloneCompetition = async () => {
     try {
       setLoading(true);
-      
+
       const response = await axios.post(
         `${API_BASE_URL}/competitions/${selectedCompetition._id}/clone`,
         {},
@@ -275,7 +298,7 @@ const CompetitionManagement = () => {
           }
         }
       );
-      
+
       if (response.data.success) {
         // Show success notification
         setNotification({
@@ -283,13 +306,13 @@ const CompetitionManagement = () => {
           type: 'success',
           message: `Competition "${selectedCompetition.competitionName}" cloned successfully`
         });
-        
+
         // Refresh the competitions list
         fetchCompetitions();
       } else {
         throw new Error(response.data.message || 'Failed to clone competition');
       }
-      
+
       handleActionMenuClose();
     } catch (err) {
       console.error('Error cloning competition:', err);
@@ -302,15 +325,15 @@ const CompetitionManagement = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle competition toggle status
   const handleToggleStatus = async () => {
     try {
       setLoading(true);
-      
+
       const newStatus = !selectedCompetition.isLive;
       const actionText = newStatus ? 'live' : 'draft';
-      
+
       const response = await axios.post(
         `${API_BASE_URL}/competitions/${selectedCompetition._id}/toggle-status`,
         { isLive: newStatus }, // Explicitly send the new status
@@ -320,26 +343,26 @@ const CompetitionManagement = () => {
           }
         }
       );
-      
+
       if (response.data.success) {
         // Update the competition in the local state
-        setCompetitions(competitions.map(comp => 
+        setCompetitions(competitions.map(comp =>
           comp._id === selectedCompetition._id ? { ...comp, isLive: newStatus } : comp
         ));
-        
+
         // Show success notification
         setNotification({
           open: true,
           type: 'success',
           message: `Competition set to ${actionText} mode successfully`
         });
-        
+
         // Refresh competitions to ensure we have the latest data
         fetchCompetitions();
       } else {
         throw new Error(response.data.message || `Failed to set competition to ${actionText}`);
       }
-      
+
       handleActionMenuClose();
     } catch (err) {
       console.error('Error toggling competition status:', err);
@@ -352,15 +375,15 @@ const CompetitionManagement = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle competition archive/unarchive
   const handleArchiveCompetition = async () => {
     try {
       setLoading(true);
-      
+
       const isArchiving = !selectedCompetition.previousCompetition;
       const actionText = isArchiving ? 'archived' : 'unarchived';
-      
+
       const response = await axios.post(
         `${API_BASE_URL}/competitions/${selectedCompetition._id}/archive`,
         { archive: isArchiving }, // Explicitly send whether to archive or unarchive
@@ -370,27 +393,27 @@ const CompetitionManagement = () => {
           }
         }
       );
-      
+
       if (response.data.success) {
         // Update the competition in the local state
-        setCompetitions(competitions.map(comp => 
-          comp._id === selectedCompetition._id ? 
+        setCompetitions(competitions.map(comp =>
+          comp._id === selectedCompetition._id ?
             { ...comp, previousCompetition: isArchiving, isLive: isArchiving ? false : comp.isLive } : comp
         ));
-        
+
         // Show success notification
         setNotification({
           open: true,
           type: 'success',
           message: `Competition "${selectedCompetition.competitionName}" ${actionText} successfully`
         });
-        
+
         // Refresh competitions to ensure we have the latest data
         fetchCompetitions();
       } else {
         throw new Error(response.data.message || `Failed to ${isArchiving ? 'archive' : 'unarchive'} competition`);
       }
-      
+
       handleActionMenuClose();
     } catch (err) {
       console.error(`Error ${selectedCompetition.previousCompetition ? 'unarchiving' : 'archiving'} competition:`, err);
@@ -403,12 +426,12 @@ const CompetitionManagement = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle competition form submit
   const handleCompetitionFormSubmit = async (formData) => {
     try {
       setLoading(true);
-      
+
       // Prepare the data in the format expected by the API
       const competitionData = {
         competitionName: formData.competitionName,
@@ -424,10 +447,10 @@ const CompetitionManagement = () => {
           options: q.options || []
         }))
       };
-      
+
       const token = localStorage.getItem('token');
       let response;
-      
+
       if (isCreating) {
         // Create new competition
         response = await axios.post(
@@ -440,7 +463,7 @@ const CompetitionManagement = () => {
             }
           }
         );
-        
+
         if (response.data.success) {
           setNotification({
             open: true,
@@ -460,7 +483,7 @@ const CompetitionManagement = () => {
             }
           }
         );
-        
+
         if (response.data.success) {
           setNotification({
             open: true,
@@ -469,10 +492,10 @@ const CompetitionManagement = () => {
           });
         }
       }
-      
+
       // Refresh the competitions list
       fetchCompetitions();
-      
+
       setFormDialogOpen(false);
     } catch (err) {
       console.error('Error saving competition:', err);
@@ -485,12 +508,12 @@ const CompetitionManagement = () => {
       setLoading(false);
     }
   };
-  
+
   // Handle competition deletion
   const handleConfirmDelete = async () => {
     try {
       setLoading(true);
-      
+
       const token = localStorage.getItem('token');
       const response = await axios.delete(
         `${API_BASE_URL}/competitions/${selectedCompetition._id}`,
@@ -500,17 +523,17 @@ const CompetitionManagement = () => {
           }
         }
       );
-      
+
       if (response.data.success) {
         setDeleteDialogOpen(false);
-        
+
         // Show success notification
         setNotification({
           open: true,
           type: 'success',
           message: `Competition "${selectedCompetition.competitionName}" deleted successfully`
         });
-        
+
         // Refresh the competitions list
         fetchCompetitions();
       } else {
@@ -527,7 +550,7 @@ const CompetitionManagement = () => {
       setLoading(false);
     }
   };
-  
+
   // Close notification
   const handleCloseNotification = () => {
     setNotification({
@@ -535,7 +558,7 @@ const CompetitionManagement = () => {
       open: false
     });
   };
-  
+
   // Format date
   const formatDate = (dateString) => {
     try {
@@ -544,7 +567,7 @@ const CompetitionManagement = () => {
       return 'Invalid date';
     }
   };
-  
+
   return (
     <Box>
       {/* Page header */}
@@ -556,7 +579,7 @@ const CompetitionManagement = () => {
           variant="contained"
           startIcon={<Add />}
           onClick={handleCreateCompetition}
-          sx={{ 
+          sx={{
             borderRadius: '8px',
             bgcolor: 'var(--theme-color)',
             '&:hover': {
@@ -567,7 +590,7 @@ const CompetitionManagement = () => {
           Create Competition
         </Button>
       </Box>
-      
+
       {/* Filters and search */}
       <Paper
         elevation={0}
@@ -587,6 +610,7 @@ const CompetitionManagement = () => {
           placeholder="Search competitions..."
           value={searchTerm}
           onChange={handleSearchChange}
+          onKeyDown={handleSearchKeyDown}
           size="small"
           InputProps={{
             startAdornment: (
@@ -598,14 +622,14 @@ const CompetitionManagement = () => {
           }}
           sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 'auto' } }}
         />
-        
+
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="outlined"
             startIcon={<FilterList />}
             onClick={handleFilterMenuOpen}
             size="medium"
-            sx={{ 
+            sx={{
               borderRadius: '8px',
               textTransform: 'none',
             }}
@@ -632,7 +656,7 @@ const CompetitionManagement = () => {
               </Box>
             )}
           </Button>
-          
+
           <Menu
             anchorEl={filterMenuAnchorEl}
             open={Boolean(filterMenuAnchorEl)}
@@ -646,7 +670,7 @@ const CompetitionManagement = () => {
               horizontal: 'right',
             }}
             PaperProps={{
-              sx: { 
+              sx: {
                 width: 220,
                 p: 1,
                 mt: 0.5,
@@ -665,9 +689,9 @@ const CompetitionManagement = () => {
             <MenuItem selected={statusFilter === 'draft'} onClick={() => handleStatusFilterChange('draft')}>
               Draft
             </MenuItem>
-            
+
             <Divider sx={{ my: 1 }} />
-            
+
             <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
               Time
             </Typography>
@@ -680,9 +704,9 @@ const CompetitionManagement = () => {
             <MenuItem selected={timeFilter === 'past'} onClick={() => handleTimeFilterChange('past')}>
               Past Competitions
             </MenuItem>
-            
+
             <Divider sx={{ my: 1 }} />
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
               <Button
                 size="small"
@@ -696,13 +720,13 @@ const CompetitionManagement = () => {
               </Button>
             </Box>
           </Menu>
-          
+
           <Button
             variant="outlined"
             startIcon={<Refresh />}
             onClick={fetchCompetitions}
             size="medium"
-            sx={{ 
+            sx={{
               borderRadius: '8px',
               textTransform: 'none',
             }}
@@ -711,7 +735,7 @@ const CompetitionManagement = () => {
           </Button>
         </Box>
       </Paper>
-      
+
       {/* Competitions table */}
       <Paper
         elevation={0}
@@ -727,7 +751,7 @@ const CompetitionManagement = () => {
             <LinearProgress />
           </Box>
         )}
-        
+
         <TableContainer>
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
@@ -748,7 +772,7 @@ const CompetitionManagement = () => {
             <TableBody>
               {competitions.length > 0 ? (
                 competitions.map((competition) => (
-                  <TableRow 
+                  <TableRow
                     key={competition._id}
                     hover
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -778,43 +802,16 @@ const CompetitionManagement = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      {competition.status === 'active' && (
+                      {competition.status && (
                         <Chip
-                          icon={<PlayArrow sx={{ fontSize: '0.75rem !important' }} />}
-                          label="Active"
+                          label={competition.status}
+                          color={
+                            competition.status === 'active' ? 'success' :
+                              competition.status === 'upcoming' ? 'info' :
+                                competition.status === 'ended' ? 'error' : 'default'
+                          }
                           size="small"
-                          color="success"
-                          variant="outlined"
-                          sx={{ height: 24 }}
-                        />
-                      )}
-                      {competition.status === 'upcoming' && (
-                        <Chip
-                          icon={<Visibility sx={{ fontSize: '0.75rem !important' }} />}
-                          label="Upcoming"
-                          size="small"
-                          color="primary"
-                          variant="outlined"
-                          sx={{ height: 24 }}
-                        />
-                      )}
-                      {competition.status === 'ended' && (
-                        <Chip
-                          icon={<History sx={{ fontSize: '0.75rem !important' }} />}
-                          label="Ended"
-                          size="small"
-                          color="default"
-                          variant="outlined"
-                          sx={{ height: 24 }}
-                        />
-                      )}
-                      {!competition.status && (
-                        <Chip
-                          label="Unknown"
-                          size="small"
-                          color="default"
-                          variant="outlined"
-                          sx={{ height: 24 }}
+                          sx={{ borderRadius: '4px', fontWeight: 500 }}
                         />
                       )}
                     </TableCell>
@@ -869,7 +866,7 @@ const CompetitionManagement = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      
+
       {/* Action Menu */}
       <Menu
         anchorEl={actionMenuAnchorEl}
@@ -920,7 +917,7 @@ const CompetitionManagement = () => {
           <Delete fontSize="small" sx={{ mr: 1 }} /> Delete
         </MenuItem>
       </Menu>
-      
+
       {/* Competition Form Dialog */}
       <CompetitionForm
         open={formDialogOpen}
@@ -929,14 +926,14 @@ const CompetitionManagement = () => {
         competition={isCreating ? null : selectedCompetition}
         isCreating={isCreating}
       />
-      
+
       {/* Competition Detail Dialog */}
       <CompetitionDetail
         open={detailDialogOpen}
         onClose={() => setDetailDialogOpen(false)}
         competitionId={selectedCompetition?._id}
       />
-      
+
       {/* Delete Confirmation Dialog */}
       <CompetitionDeleteDialog
         open={deleteDialogOpen}
@@ -945,7 +942,7 @@ const CompetitionManagement = () => {
         competition={selectedCompetition}
         loading={loading}
       />
-      
+
       {/* Notifications */}
       <Snackbar
         open={notification.open}
@@ -953,7 +950,7 @@ const CompetitionManagement = () => {
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
+        <Alert
           onClose={handleCloseNotification}
           severity={notification.type}
           variant="filled"

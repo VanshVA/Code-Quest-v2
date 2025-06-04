@@ -53,86 +53,109 @@ const API_BASE_URL = "http://localhost:5000/api/teacher/dashboard";
 
 function ResultsManagement() {
   const theme = useTheme();
-  
+
   // State for competitions list
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
- 
+
   // Pagination state for competitions
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCompetitions, setTotalCompetitions] = useState(0);
-  
+
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [timeFilter, setTimeFilter] = useState('all');
   const [filterMenuAnchorEl, setFilterMenuAnchorEl] = useState(null);
-  
+
   // Selected competition and view state
   const [selectedCompetition, setSelectedCompetition] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionStats, setSubmissionStats] = useState(null);
-  
+
   // Pagination state for submissions
   const [submissionsPage, setSubmissionsPage] = useState(0);
   const [submissionsRowsPerPage, setSubmissionsRowsPerPage] = useState(10);
-  
-  // Submissions search
+
+  // Submissions search with debounce
   const [submissionSearchTerm, setSubmissionSearchTerm] = useState('');
+  const [debouncedSubmissionSearchTerm, setDebouncedSubmissionSearchTerm] = useState('');
   const [submissionFilterMenuAnchorEl, setSubmissionFilterMenuAnchorEl] = useState(null);
   const [submissionStatusFilter, setSubmissionStatusFilter] = useState('all');
-  
+
   // Selected submission for detailed view
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [submissionDetailOpen, setSubmissionDetailOpen] = useState(false);
-  
+
   // Action menu state
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState(null);
-  
+
   // Notification state
   const [notification, setNotification] = useState({
     open: false,
     type: 'success',
     message: ''
   });
-  
+
+  // Debounce search terms
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce time
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSubmissionSearchTerm(submissionSearchTerm);
+    }, 500); // 500ms debounce time
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [submissionSearchTerm]);
+
   // Fetch competitions on component mount and when filters change
   useEffect(() => {
     fetchCompetitions();
-  }, [page, rowsPerPage, searchTerm, statusFilter, timeFilter]);
-  
+  }, [page, rowsPerPage, debouncedSearchTerm, statusFilter, timeFilter]);
+
   // Fetch competitions with filtering and pagination
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Build query parameters
       const params = new URLSearchParams({
         page: page + 1, // API uses 1-indexed pages
         limit: rowsPerPage,
       });
-      
-      if (searchTerm) {
-        params.append('name', searchTerm);
+
+      if (debouncedSearchTerm) {
+        params.append('search', debouncedSearchTerm);
       }
-      
+
       // Apply status filter
       if (statusFilter !== 'all') {
         params.append('status', statusFilter);
       }
-      
+
       // Apply time filter
       if (timeFilter === 'past') {
         params.append('isPrevious', 'true');
       } else if (timeFilter === 'current') {
         params.append('isPrevious', 'false');
       }
-      
+
       // Make API request
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/competitions?${params}`, {
@@ -140,14 +163,14 @@ function ResultsManagement() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.data.success) {
         setCompetitions(response.data.data.competitions);
         setTotalCompetitions(response.data.data.pagination.total);
       } else {
         setError('Failed to load competitions. Please try again.');
       }
-      
+
     } catch (err) {
       console.error('Error fetching competitions:', err);
       setError('Failed to load competitions. Please try again.');
@@ -155,13 +178,13 @@ function ResultsManagement() {
       setLoading(false);
     }
   };
-  
+
   // Fetch submissions for a selected competition
   const fetchSubmissions = async (competitionId) => {
     try {
       setSubmissionsLoading(true);
       setSubmissionError(null);
-      
+
       // Make API request
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_BASE_URL}/competitions/${competitionId}/submissions`, {
@@ -169,7 +192,7 @@ function ResultsManagement() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.data.success) {
         setSubmissions(response.data.data.submissions);
         setSubmissionStats(response.data.data.stats);
@@ -177,7 +200,7 @@ function ResultsManagement() {
       } else {
         setSubmissionError('Failed to load submissions. Please try again.');
       }
-      
+
     } catch (err) {
       console.error('Error fetching submissions:', err);
       setSubmissionError('Failed to load submissions. Please try again.');
@@ -185,102 +208,114 @@ function ResultsManagement() {
       setSubmissionsLoading(false);
     }
   };
-  
+
   // Handle page change for competitions
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-  
+
   // Handle rows per page change for competitions
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  
+
   // Handle page change for submissions
   const handleSubmissionsChangePage = (event, newPage) => {
     setSubmissionsPage(newPage);
   };
-  
+
   // Handle rows per page change for submissions
   const handleSubmissionsChangeRowsPerPage = (event) => {
     setSubmissionsRowsPerPage(parseInt(event.target.value, 10));
     setSubmissionsPage(0);
   };
-  
+
   // Handle search input change for competitions
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
   
+  // Handle search by Enter key
+  const handleSearchKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      setDebouncedSearchTerm(searchTerm);
+    }
+  };
+
   // Handle search input change for submissions
   const handleSubmissionSearchChange = (event) => {
     setSubmissionSearchTerm(event.target.value);
-    setSubmissionsPage(0);
   };
   
+  // Handle submission search by Enter key
+  const handleSubmissionSearchKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      setDebouncedSubmissionSearchTerm(submissionSearchTerm);
+    }
+  };
+
   // Handle status filter change for competitions
   const handleStatusFilterChange = (value) => {
     setStatusFilter(value);
     setPage(0);
   };
-  
+
   // Handle submission status filter change
   const handleSubmissionStatusFilterChange = (value) => {
     setSubmissionStatusFilter(value);
     setSubmissionsPage(0);
   };
-  
+
   // Handle time filter change
   const handleTimeFilterChange = (value) => {
     setTimeFilter(value);
     setPage(0);
   };
-  
+
   // Handle filter menu open for competitions
   const handleFilterMenuOpen = (event) => {
     setFilterMenuAnchorEl(event.currentTarget);
   };
-  
+
   // Handle filter menu close for competitions
   const handleFilterMenuClose = () => {
     setFilterMenuAnchorEl(null);
   };
-  
+
   // Handle filter menu open for submissions
   const handleSubmissionFilterMenuOpen = (event) => {
     setSubmissionFilterMenuAnchorEl(event.currentTarget);
   };
-  
+
   // Handle filter menu close for submissions
   const handleSubmissionFilterMenuClose = () => {
     setSubmissionFilterMenuAnchorEl(null);
   };
-  
+
   // Handle click on a competition row
   const handleCompetitionClick = (competition) => {
     fetchSubmissions(competition._id);
   };
-  
+
   // Handle view submission details
   const handleViewSubmissionDetails = () => {
     setSubmissionDetailOpen(true);
     handleActionMenuClose();
   };
-  
+
   // Handle action menu open
   const handleActionMenuOpen = (event, submission) => {
     event.stopPropagation();
     setActionMenuAnchorEl(event.currentTarget);
     setSelectedSubmission(submission);
   };
-  
+
   // Handle action menu close
   const handleActionMenuClose = () => {
     setActionMenuAnchorEl(null);
   };
-  
+
   // Close notification
   const handleCloseNotification = () => {
     setNotification({
@@ -288,7 +323,7 @@ function ResultsManagement() {
       open: false
     });
   };
-  
+
   // Format date
   const formatDate = (dateString) => {
     try {
@@ -297,43 +332,48 @@ function ResultsManagement() {
       return 'Invalid date';
     }
   };
-  
+
+  // Fetch competitions on component mount and when filters change
+  useEffect(() => {
+    fetchCompetitions();
+  }, [page, rowsPerPage, searchTerm, statusFilter, timeFilter]);
+
   // Filter submissions based on search term and status filter
   const filteredSubmissions = submissions.filter(submission => {
-    const matchesSearch = submission.student.name.toLowerCase().includes(submissionSearchTerm.toLowerCase()) ||
-                         (submission.student.email && submission.student.email.toLowerCase().includes(submissionSearchTerm.toLowerCase()));
-    
+    const matchesSearch = submission.student.name.toLowerCase().includes(debouncedSubmissionSearchTerm.toLowerCase()) ||
+      (submission.student.email && submission.student.email.toLowerCase().includes(debouncedSubmissionSearchTerm.toLowerCase()));
+
     if (submissionStatusFilter === 'all') return matchesSearch;
     if (submissionStatusFilter === 'graded') return matchesSearch && submission.result && submission.result.isGraded;
     if (submissionStatusFilter === 'ungraded') return matchesSearch && (!submission.result || !submission.result.isGraded);
-    
+
     return matchesSearch;
   });
-  
+
   // Handle back button click to return to competitions list
   const handleBackToCompetitions = () => {
     setSelectedCompetition(null);
     setSubmissions([]);
     setSubmissionStats(null);
   };
-  
+
   // Export submissions as CSV
   const handleExportSubmissions = () => {
     if (!submissions.length) return;
-    
+
     try {
       // Create CSV header
       let csvContent = "Submission ID,Student Name,Student Email,Submission Time,Questions Answered,Total Questions,Score,Status\n";
-      
+
       // Add each submission as a row
       submissions.forEach(submission => {
-        const scoreInfo = submission.result 
-          ? `${submission.result.totalScore}/${submission.result.maxPossibleScore}` 
+        const scoreInfo = submission.result
+          ? `${submission.result.totalScore}/${submission.result.maxPossibleScore}`
           : 'Not graded';
-          
+
         csvContent += `${submission._id},${submission.student.name},${submission.student.email || 'N/A'},${formatDate(submission.submissionDate)},${submission.answeredCount},${submission.questionCount},${scoreInfo},${submission.result?.isGraded ? 'Graded' : 'Ungraded'}\n`;
       });
-      
+
       // Create download link
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -343,14 +383,14 @@ function ResultsManagement() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Show success notification
       setNotification({
         open: true,
         type: 'success',
         message: 'Submissions exported successfully'
       });
-      
+
     } catch (err) {
       console.error('Error exporting submissions:', err);
       setNotification({
@@ -368,7 +408,7 @@ function ResultsManagement() {
         <Typography variant="h5" fontWeight="bold">
           {selectedCompetition ? `Results: ${selectedCompetition.name}` : 'Results Management'}
         </Typography>
-        
+
         {selectedCompetition && (
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
@@ -383,8 +423,8 @@ function ResultsManagement() {
             <Button
               variant="contained"
               onClick={handleBackToCompetitions}
-              sx={{ 
-                borderRadius: '8px', 
+              sx={{
+                borderRadius: '8px',
                 bgcolor: 'var(--theme-color)',
                 '&:hover': {
                   bgcolor: 'var(--hover-color)'
@@ -396,7 +436,7 @@ function ResultsManagement() {
           </Box>
         )}
       </Box>
-      
+
       {!selectedCompetition ? (
         /* Competitions View */
         <>
@@ -419,6 +459,7 @@ function ResultsManagement() {
               placeholder="Search competitions..."
               value={searchTerm}
               onChange={handleSearchChange}
+              onKeyDown={handleSearchKeyDown}
               size="small"
               InputProps={{
                 startAdornment: (
@@ -430,14 +471,14 @@ function ResultsManagement() {
               }}
               sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 'auto' } }}
             />
-            
+
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
                 variant="outlined"
                 startIcon={<FilterList />}
                 onClick={handleFilterMenuOpen}
                 size="medium"
-                sx={{ 
+                sx={{
                   borderRadius: '8px',
                   textTransform: 'none',
                 }}
@@ -464,7 +505,7 @@ function ResultsManagement() {
                   </Box>
                 )}
               </Button>
-              
+
               <Menu
                 anchorEl={filterMenuAnchorEl}
                 open={Boolean(filterMenuAnchorEl)}
@@ -478,7 +519,7 @@ function ResultsManagement() {
                   horizontal: 'right',
                 }}
                 PaperProps={{
-                  sx: { 
+                  sx: {
                     width: 220,
                     p: 1,
                     mt: 0.5,
@@ -497,9 +538,9 @@ function ResultsManagement() {
                 <MenuItem selected={statusFilter === 'draft'} onClick={() => handleStatusFilterChange('draft')}>
                   Draft
                 </MenuItem>
-                
+
                 <Divider sx={{ my: 1 }} />
-                
+
                 <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
                   Time
                 </Typography>
@@ -512,9 +553,9 @@ function ResultsManagement() {
                 <MenuItem selected={timeFilter === 'past'} onClick={() => handleTimeFilterChange('past')}>
                   Past Competitions
                 </MenuItem>
-                
+
                 <Divider sx={{ my: 1 }} />
-                
+
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
                   <Button
                     size="small"
@@ -528,13 +569,13 @@ function ResultsManagement() {
                   </Button>
                 </Box>
               </Menu>
-              
+
               <Button
                 variant="outlined"
                 startIcon={<Refresh />}
                 onClick={fetchCompetitions}
                 size="medium"
-                sx={{ 
+                sx={{
                   borderRadius: '8px',
                   textTransform: 'none',
                 }}
@@ -543,7 +584,7 @@ function ResultsManagement() {
               </Button>
             </Box>
           </Paper>
-          
+
           {/* Competitions table */}
           <Paper
             elevation={0}
@@ -559,19 +600,19 @@ function ResultsManagement() {
                 <LinearProgress />
               </Box>
             )}
-            
+
             <TableContainer>
               <Table sx={{ minWidth: 650 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>ID</TableCell>
                     <TableCell>Competition Name</TableCell>
-                    <TableCell>Live Status</TableCell>
-                    <TableCell>Active Status</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Type</TableCell>
                     <TableCell>Questions</TableCell>
                     <TableCell>Start Time</TableCell>
                     <TableCell>End Time</TableCell>
-                    <TableCell align="center">Actions</TableCell>
+                    <TableCell>Submissions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -579,16 +620,16 @@ function ResultsManagement() {
                     competitions.map((competition) => {
                       const isEnded = new Date(competition.endTiming) < new Date();
                       return (
-                        <TableRow 
+                        <TableRow
                           key={competition._id}
                           hover
-                          sx={{ 
+                          sx={{
                             cursor: 'pointer',
                             '&:last-child td, &:last-child th': { border: 0 },
-                            ...(isEnded && { 
-                              bgcolor: theme.palette.mode === 'dark' 
-                                ? 'rgba(255, 255, 255, 0.05)' 
-                                : 'rgba(0, 0, 0, 0.02)' 
+                            ...(isEnded && {
+                              bgcolor: theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.05)'
+                                : 'rgba(0, 0, 0, 0.02)'
                             })
                           }}
                         >
@@ -610,51 +651,41 @@ function ResultsManagement() {
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={competition.isLive ? 'Live' : 'Draft'}
-                              color={competition.isLive ? 'success' : 'default'}
+                              label={competition.status || (isExpired ? 'ended' : 'active')}
+                              color={
+                                competition.status === 'active' || (!competition.status && !isExpired) ? 'success' :
+                                  competition.status === 'upcoming' ? 'info' : 'error'
+                              }
                               size="small"
                               sx={{ borderRadius: '4px', fontWeight: 500 }}
                             />
                           </TableCell>
                           <TableCell>
-                            {isEnded ? (
-                              <Chip
-                                icon={<History sx={{ fontSize: '0.75rem !important' }} />}
-                                label="Ended"
-                                size="small"
-                                color="default"
-                                variant="outlined"
-                                sx={{ height: 24 }}
-                              />
-                            ) : (
-                              <Chip
-                                label="Active"
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                                sx={{ height: 24 }}
-                              />
-                            )}
+                            <Chip
+                              label={competition.competitionType}
+                              color={
+                                competition.competitionType === 'TEXT' ? 'primary' :
+                                  competition.competitionType === 'MCQ' ? 'secondary' :
+                                    'warning'
+                              }
+                              size="small"
+                              sx={{ borderRadius: '4px' }}
+                            />
                           </TableCell>
                           <TableCell>{competition.questions?.length || '—'}</TableCell>
                           <TableCell>{formatDate(competition.startTiming)}</TableCell>
                           <TableCell>{formatDate(competition.endTiming)}</TableCell>
-                          <TableCell align="center">
-                            <Button
-                              variant="contained"
+                          <TableCell>
+                            <Chip
+                              icon={<Assessment fontSize="small" />}
                               startIcon={<Assessment />}
+                              label="View Results"
+                              color="primary"
+                              variant="outlined"
                               onClick={() => handleCompetitionClick(competition)}
                               size="small"
-                              sx={{ 
-                                borderRadius: '8px',
-                                bgcolor: 'var(--theme-color)',
-                                '&:hover': {
-                                  bgcolor: 'var(--hover-color)'
-                                }
-                              }}
                             >
-                              View Results
-                            </Button>
+                            </Chip>
                           </TableCell>
                         </TableRow>
                       );
@@ -681,7 +712,7 @@ function ResultsManagement() {
                 </TableBody>
               </Table>
             </TableContainer>
-            
+
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
@@ -790,14 +821,14 @@ function ResultsManagement() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                           <Typography variant="body2">Grading Rate</Typography>
                           <Typography variant="body2">
-                            {submissionStats.totalSubmissions > 0 
-                              ? Math.round((submissionStats.gradedSubmissions / submissionStats.totalSubmissions) * 100) 
+                            {submissionStats.totalSubmissions > 0
+                              ? Math.round((submissionStats.gradedSubmissions / submissionStats.totalSubmissions) * 100)
                               : 0}%
                           </Typography>
                         </Box>
                         <LinearProgress
                           variant="determinate"
-                          value={submissionStats.totalSubmissions > 0 
+                          value={submissionStats.totalSubmissions > 0
                             ? (submissionStats.gradedSubmissions / submissionStats.totalSubmissions) * 100
                             : 0}
                           sx={{ height: 10, borderRadius: 5, mt: 1 }}
@@ -817,7 +848,7 @@ function ResultsManagement() {
               </Paper>
             </Grid>
           </Grid>
-          
+
           {/* Submissions filters and search */}
           <Paper
             elevation={0}
@@ -837,6 +868,7 @@ function ResultsManagement() {
               placeholder="Search by student name or email..."
               value={submissionSearchTerm}
               onChange={handleSubmissionSearchChange}
+              onKeyDown={handleSubmissionSearchKeyDown}
               size="small"
               InputProps={{
                 startAdornment: (
@@ -848,14 +880,14 @@ function ResultsManagement() {
               }}
               sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 'auto' } }}
             />
-            
+
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
                 variant="outlined"
                 startIcon={<FilterList />}
                 onClick={handleSubmissionFilterMenuOpen}
                 size="medium"
-                sx={{ 
+                sx={{
                   borderRadius: '8px',
                   textTransform: 'none',
                 }}
@@ -882,7 +914,7 @@ function ResultsManagement() {
                   </Box>
                 )}
               </Button>
-              
+
               <Menu
                 anchorEl={submissionFilterMenuAnchorEl}
                 open={Boolean(submissionFilterMenuAnchorEl)}
@@ -896,7 +928,7 @@ function ResultsManagement() {
                   horizontal: 'right',
                 }}
                 PaperProps={{
-                  sx: { 
+                  sx: {
                     width: 220,
                     p: 1,
                     mt: 0.5,
@@ -915,9 +947,9 @@ function ResultsManagement() {
                 <MenuItem selected={submissionStatusFilter === 'ungraded'} onClick={() => handleSubmissionStatusFilterChange('ungraded')}>
                   Ungraded Submissions
                 </MenuItem>
-                
+
                 <Divider sx={{ my: 1 }} />
-                
+
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1 }}>
                   <Button
                     size="small"
@@ -930,13 +962,13 @@ function ResultsManagement() {
                   </Button>
                 </Box>
               </Menu>
-              
+
               <Button
                 variant="outlined"
                 startIcon={<Refresh />}
                 onClick={() => fetchSubmissions(selectedCompetition._id)}
                 size="medium"
-                sx={{ 
+                sx={{
                   borderRadius: '8px',
                   textTransform: 'none',
                 }}
@@ -945,7 +977,7 @@ function ResultsManagement() {
               </Button>
             </Box>
           </Paper>
-          
+
           {/* Submissions table */}
           <Paper
             elevation={0}
@@ -961,7 +993,7 @@ function ResultsManagement() {
                 <LinearProgress />
               </Box>
             )}
-            
+
             <TableContainer>
               <Table sx={{ minWidth: 650 }}>
                 <TableHead>
@@ -981,7 +1013,7 @@ function ResultsManagement() {
                     filteredSubmissions
                       .slice(submissionsPage * submissionsRowsPerPage, submissionsPage * submissionsRowsPerPage + submissionsRowsPerPage)
                       .map((submission) => (
-                        <TableRow 
+                        <TableRow
                           key={submission._id}
                           hover
                           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -992,8 +1024,8 @@ function ResultsManagement() {
                           <TableCell>{formatDate(submission.submissionDate)}</TableCell>
                           <TableCell>{`${submission.answeredCount}/${submission.questionCount}`}</TableCell>
                           <TableCell>
-                            {submission.result ? 
-                              `${submission.result.totalScore}/${submission.result.maxPossibleScore}` : 
+                            {submission.result ?
+                              `${submission.result.totalScore}/${submission.result.maxPossibleScore}` :
                               'Not graded'}
                           </TableCell>
                           <TableCell>
@@ -1039,7 +1071,7 @@ function ResultsManagement() {
                 </TableBody>
               </Table>
             </TableContainer>
-            
+
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
@@ -1052,7 +1084,7 @@ function ResultsManagement() {
           </Paper>
         </>
       )}
-      
+
       {/* Action Menu */}
       <Menu
         anchorEl={actionMenuAnchorEl}
@@ -1071,7 +1103,7 @@ function ResultsManagement() {
           <Visibility fontSize="small" sx={{ mr: 1 }} /> View Details
         </MenuItem>
       </Menu>
-      
+
       {/* Submission Detail Dialog */}
       {selectedSubmission && selectedCompetition && (
         <SubmissionDetails
@@ -1081,7 +1113,7 @@ function ResultsManagement() {
           competition={selectedCompetition}
         />
       )}
-      
+
       {/* Notifications */}
       <Snackbar
         open={notification.open}
@@ -1089,7 +1121,7 @@ function ResultsManagement() {
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
+        <Alert
           onClose={handleCloseNotification}
           severity={notification.type}
           variant="filled"

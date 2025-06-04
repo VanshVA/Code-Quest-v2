@@ -156,7 +156,7 @@ const TeacherHome = () => {
 
       {/* Key Stats Cards */}
       <Grid container spacing={3.4} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={4} width={"250px"}>
           <Paper
             elevation={0}
             sx={{
@@ -195,7 +195,7 @@ const TeacherHome = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4} >
+        <Grid item xs={12} sm={6} md={4} width={"250px"} >
           <Paper
             elevation={0}
             sx={{
@@ -234,7 +234,7 @@ const TeacherHome = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4} >
+        <Grid item xs={12} sm={6} md={4} width={"250px"} >
           <Paper
             elevation={0}
             sx={{
@@ -273,7 +273,7 @@ const TeacherHome = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={4} >
+        <Grid item xs={12} sm={6} md={4} width={"250px"} >
           <Paper
             elevation={0}
             sx={{

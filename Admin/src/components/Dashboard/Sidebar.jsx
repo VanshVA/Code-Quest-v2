@@ -20,10 +20,10 @@ import {
   People,
   EmojiEvents,
   Assessment,
-  Settings,
   Person,
   Logout,
-  AdminPanelSettings
+  AdminPanelSettings,
+  Feedback
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import authService from '../../services/authService'; // Adjust the import based on your project structure
@@ -38,7 +38,7 @@ const navItems = [
   { name: 'Competitions', path: '/admin/competitions', icon: <EmojiEvents /> },
   { name: 'Results', path: '/admin/results', icon: <Assessment /> },
   { name: 'Profile', path: '/admin/profile', icon: <Person /> },
-  { name: 'Settings', path: '/admin/settings', icon: <Settings /> }
+  { name: 'Feedback', path: '/admin/feedback', icon: <Feedback /> }
 ];
 
 const DashboardSidebar = ({ isOpen, onToggle, currentUser }) => {

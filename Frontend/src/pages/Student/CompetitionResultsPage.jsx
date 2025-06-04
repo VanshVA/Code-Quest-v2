@@ -877,7 +877,7 @@ function CompetitionResultsPage() {
                 onClick={handleRefresh}
                 disabled={refreshing}
               >
-                {refreshing ? 'Refreshing...' : 'Refresh Results'}
+                {refreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
             </Stack>
           </Grid>

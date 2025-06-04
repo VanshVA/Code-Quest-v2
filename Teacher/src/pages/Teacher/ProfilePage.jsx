@@ -21,7 +21,9 @@ import {
     InputAdornment,
     IconButton,
     useTheme,
-    Stack
+    Stack,
+    Chip,
+    Skeleton
 } from '@mui/material';
 import {
     Person as PersonIcon,
@@ -32,10 +34,16 @@ import {
     Dashboard as DashboardIcon,
     EmojiEvents as EmojiEventsIcon,
     Visibility as VisibilityIcon,
-    VisibilityOff as VisibilityOffIcon
+    VisibilityOff as VisibilityOffIcon,
+    Email as EmailIcon,
+    History as HistoryIcon,
+    PhotoCamera,
+    Settings as SettingsIcon,
+    Refresh
 } from '@mui/icons-material';
 import authService from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
+import moment from 'moment';
 
 // Current date and time
 const CURRENT_DATE_TIME = "2025-05-31 14:18:14"; // Using provided UTC time
@@ -274,479 +282,518 @@ const ProfilePage = () => {
             open: false
         }));
     };
+    
+    // Format date helper
+    const formatDate = (dateString) => {
+        return moment(dateString).format('MMMM D, YYYY [at] h:mm A');
+    };
 
     return (
-        <>
-            <Container maxWidth="xl">
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : error ? (
-                    <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
-                ) : (
-                    <Grid container spacing={3}>
-                        {/* Profile Card */}
-                        <Grid item xs={12} md={4}>
-                            <Paper
-                                elevation={0}
+        <Box>
+            {/* Page title and header */}
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" fontWeight="bold">
+                    Profile Management
+                </Typography>
+                <Button
+                    variant="outlined"
+                    startIcon={<Refresh />}
+                    onClick={() => window.location.reload()}
+                    sx={{ borderRadius: '8px' }}
+                >
+                    Refresh
+                </Button>
+            </Box>
+
+            {loading && !profile ? (
+                <ProfileSkeleton />
+            ) : error ? (
+                <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>{error}</Alert>
+            ) : (
+                <Grid container spacing={3} direction={{ xs: 'column-reverse', md: 'row' }}>
+                    {/* Profile Card */}
+                    <Grid item xs={12} md={4} order={{ xs: 2, md: 1 }}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 4,
+                                borderRadius: '20px',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                textAlign: 'center',
+                                background: `linear-gradient(180deg, 
+                                    ${theme.palette.background.paper} 0%, 
+                                    ${isDark ? 'rgba(66, 66, 66, 0.8)' : 'rgba(246, 246, 246, 0.8)'} 100%)`,
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+                            }}
+                        >
+                            {/* Profile Image with animation */}
+                            <Box
                                 sx={{
-                                    p: 3,
-                                    borderRadius: '16px',
-                                    border: '1px solid',
-                                
-                                     bgcolor:isDark ? '#312f2f' : 'white',
+                                    position: 'relative',
+                                    mb: 3,
+                                    '&:hover .edit-overlay': {
+                                        opacity: 1
+                                    }
                                 }}
                             >
-                                <Box sx={{ textAlign: 'center', mb: 3 }}>
-                                    <Avatar
-                                        src={profile?.teacherImage}
-                                        alt={profile?.teacherFirstName}
+                                <Avatar
+                                    src={profile?.teacherImage}
+                                    alt={profile?.teacherFirstName}
+                                    sx={{
+                                        width: 150,
+                                        height: 150,
+                                        border: '5px solid',
+                                        borderColor: 'primary.main',
+                                        boxShadow: '0 8px 24px rgba(var(--primary-color-rgb), 0.3)',
+                                        transition: 'transform 0.3s ease-in-out',
+                                        '&:hover': {
+                                            transform: 'scale(1.05)'
+                                        }
+                                    }}
+                                >
+                                    {profile?.teacherFirstName?.charAt(0)}
+                                </Avatar>
+                                {!isEditing && (
+                                    <IconButton
+                                        className="edit-overlay"
+                                        size="small"
                                         sx={{
-                                            width: 120,
-                                            height: 120,
-                                            mx: 'auto',
-                                            mb: 2,
-                                            border: '4px solid',
-                                            borderColor: 'primary.main'
-                                        }}
-                                    >
-                                        {profile?.teacherFirstName?.charAt(0)}
-                                    </Avatar>
-                                    <Typography variant="h5" fontWeight="bold">
-                                        {profile?.teacherFirstName} {profile?.teacherLastName}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {profile?.teacherEmail}
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            display: 'inline-block',
-                                            bgcolor: 'primary.main',
-                                            color: 'primary.contrastText',
-                                            px: 1,
-                                            py: 0.5,
-                                            borderRadius: '4px',
-                                            mt: 1
-                                        }}
-                                    >
-                                        {profile?.role || 'Teacher'}
-                                    </Typography>
-                                </Box>
-
-                                <Divider sx={{ my: 2 }} />
-
-                                {/* Profile Stats */}
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Statistics
-                                    </Typography>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={6}>
-                                            <Card
-                                                variant="outlined"
-                                                sx={{
-                                                    borderRadius: '8px',
-                                                    height: '100%'
-                                                }}
-                                            >
-                                                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                                        <DashboardIcon sx={{ color: 'primary.main', mr: 1, fontSize: '1rem' }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Competitions
-                                                        </Typography>
-                                                    </Box>
-                                                    <Typography variant="h5" fontWeight="bold">
-                                                        {profile?.stats?.competitionsCount || 0}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Card
-                                                variant="outlined"
-                                                sx={{
-                                                    borderRadius: '8px',
-                                                    height: '100%'
-                                                }}
-                                            >
-                                                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                                                        <SchoolIcon sx={{ color: 'secondary.main', mr: 1, fontSize: '1rem' }} />
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Students
-                                                        </Typography>
-                                                    </Box>
-                                                    <Typography variant="h5" fontWeight="bold">
-                                                        {profile?.stats?.studentsCount || 0}
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Grid>
-                                    </Grid>
-                                </Box>
-
-                                <Divider sx={{ my: 2 }} />
-
-                                {/* Action Buttons */}
-                                <Box>
-                                    <Button
-                                        fullWidth
-                                        variant="contained"
-                                        startIcon={<EditIcon />}
-                                        onClick={() => setIsEditing(true)}
-                                        sx={{
-                                            borderRadius: '8px',
-                                            mb: 2,
-                                            bgcolor: 'var(--theme-color)',
+                                            position: 'absolute',
+                                            bottom: 5,
+                                            right: 5,
+                                            backgroundColor: 'primary.main',
+                                            color: '#fff',
+                                            opacity: 0,
+                                            transition: 'opacity 0.2s ease-in-out',
                                             '&:hover': {
-                                                bgcolor: 'var(--hover-color)'
+                                                backgroundColor: 'primary.dark',
                                             }
                                         }}
+                                        onClick={() => setIsEditing(true)}
                                     >
-                                        Edit Profile
-                                    </Button>
-                                    <Button
-                                        fullWidth
-                                        variant="outlined"
-                                        color="primary"
-                                        startIcon={<LockIcon />}
-                                        onClick={() => setPasswordDialog(true)}
-                                        sx={{
-                                            borderRadius: '8px',
-                                        }}
-                                    >
-                                        Change Password
-                                    </Button>
-                                </Box>
-                            </Paper>
-                        </Grid>
+                                        <PhotoCamera fontSize="small" />
+                                    </IconButton>
+                                )}
+                            </Box>
 
-                        {/* Profile Details and Quick Actions side by side, with vertical inner content */}
-                        <Grid item xs={12} md={8}>
-                            <Paper
-                                elevation={0}
+                            <Typography variant="h5" fontWeight="bold" gutterBottom>
+                                {profile?.teacherFirstName} {profile?.teacherLastName}
+                            </Typography>
+
+                            <Chip
+                                label={profile?.role || 'Teacher'}
+                                color="primary"
                                 sx={{
-                                    p: 3,
-                                    borderRadius: '16px',
-                                    border: '1px solid',
-                                    bgcolor:isDark ? '#312f2f' : 'white',
+                                    mb: 2,
+                                    textTransform: 'capitalize',
+                                    borderRadius: '20px',
+                                    fontWeight: 'bold',
+                                    px: 1
                                 }}
-                            >
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                    <Typography variant="h6" fontWeight="bold">
-                                        {isEditing ? 'Edit Profile' : 'Profile Information'}
-                                    </Typography>
+                            />
 
-                                    {isEditing && (
-                                        <Button
-                                            variant="outlined"
-                                            color="inherit"
-                                            onClick={() => {
-                                                setIsEditing(false);
-                                                setFormData({
-                                                    teacherFirstName: profile?.teacherFirstName || '',
-                                                    teacherLastName: profile?.teacherLastName || '',
-                                                    teacherEmail: profile?.teacherEmail || '',
-                                                    teacherImage: profile?.teacherImage || ''
-                                                });
-                                            }}
-                                            sx={{ borderRadius: '8px' }}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    )}
-                                </Box>
+                            <Typography variant="body1" color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <EmailIcon fontSize="small" />
+                                {profile?.teacherEmail}
+                            </Typography>
 
-                                <Divider sx={{ mb: 3 }} />
-                                
-                                {/* Main content area with Profile Details and Quick Actions side by side */}
-                                <Grid container spacing={3}>
-                                    {/* Profile Details */}
-                                    <Grid item xs={12} md={6}>
-                                        {isEditing ? (
-                                            // Edit Form - Vertical layout
-                                            <Box component="form">
-                                                <Stack spacing={3}>
-                                                    <TextField
-                                                        fullWidth
-                                                        label="First Name"
-                                                        name="teacherFirstName"
-                                                        value={formData.teacherFirstName}
-                                                        onChange={handleChange}
-                                                        required
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <PersonIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Last Name"
-                                                        name="teacherLastName"
-                                                        value={formData.teacherLastName}
-                                                        onChange={handleChange}
-                                                        required
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <PersonIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Email Address"
-                                                        name="teacherEmail"
-                                                        type="email"
-                                                        value={formData.teacherEmail}
-                                                        onChange={handleChange}
-                                                        required
-                                                        InputProps={{
-                                                            startAdornment: (
-                                                                <InputAdornment position="start">
-                                                                    <PersonIcon color="action" />
-                                                                </InputAdornment>
-                                                            ),
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    <TextField
-                                                        fullWidth
-                                                        label="Profile Image URL"
-                                                        name="teacherImage"
-                                                        value={formData.teacherImage}
-                                                        onChange={handleChange}
-                                                        placeholder="Enter URL to your profile image"
-                                                        helperText="Leave blank to use default avatar"
-                                                        InputProps={{
-                                                            sx: { borderRadius: '8px' }
-                                                        }}
-                                                    />
-                                                    {formData.teacherImage && (
-                                                        <Box sx={{ textAlign: 'center' }}>
-                                                            <Avatar
-                                                                src={formData.teacherImage}
-                                                                alt="Preview"
-                                                                sx={{ width: 80, height: 80, mx: 'auto', mb: 1 }}
-                                                            />
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                Image Preview
-                                                            </Typography>
-                                                        </Box>
-                                                    )}
-                                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                        <Button
-                                                            variant="contained"
-                                                            color="primary"
-                                                            startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                                                            onClick={handleSubmit}
-                                                            disabled={saving}
-                                                            sx={{
-                                                                borderRadius: '8px',
-                                                                px: 4,
-                                                                bgcolor: 'var(--theme-color)',
-                                                                '&:hover': {
-                                                                    bgcolor: 'var(--hover-color)'
-                                                                }
-                                                            }}
-                                                        >
-                                                            {saving ? 'Saving...' : 'Save Changes'}
-                                                        </Button>
-                                                    </Box>
-                                                </Stack>
-                                            </Box>
-                                        ) : (
-                                            // Display Profile - Vertical layout
-                                            <Box>
-                                                <Typography variant="h6" sx={{ mb: 2 }}>Profile Details</Typography>
-                                                <Stack spacing={2.5}>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            First Name
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.teacherFirstName}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Last Name
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.teacherLastName}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Email Address
-                                                        </Typography>
-                                                        <Typography variant="body1" fontWeight="medium">
-                                                            {profile?.teacherEmail}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Role
-                                                        </Typography>
-                                                        <Typography
-                                                            variant="body2"
-                                                            sx={{
-                                                                display: 'inline-block',
-                                                                bgcolor: 'primary.main',
-                                                                color: 'primary.contrastText',
-                                                                px: 2,
-                                                                py: 0.5,
-                                                                borderRadius: '16px',
-                                                                fontWeight: 'medium',
-                                                                textTransform: 'capitalize'
-                                                            }}
-                                                        >
-                                                            {profile?.role || 'Teacher'}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Account Created
-                                                        </Typography>
-                                                        <Typography variant="body1">
-                                                            {new Date(profile?.createdAt).toLocaleDateString('en-US', {
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric'
-                                                            })}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                                            Last Activity
-                                                        </Typography>
-                                                        <Typography variant="body1">
-                                                            {profile?.loginTime && profile.loginTime.length > 0
-                                                                ? new Date(profile.loginTime[profile.loginTime.length - 1]).toLocaleString('en-US', {
-                                                                    year: 'numeric',
-                                                                    month: 'long',
-                                                                    day: 'numeric',
-                                                                    hour: '2-digit',
-                                                                    minute: '2-digit'
-                                                                })
-                                                                : 'No activity recorded'}
-                                                        </Typography>
-                                                    </Box>
-                                                </Stack>
-                                            </Box>
-                                        )}
-                                    </Grid>
+                            <Divider sx={{ my: 3, width: '100%' }} />
 
-                                    {/* Quick Actions - Vertical layout */}
-                                    <Grid item xs={12} md={6}>
-                                        <Box>
-                                            <Typography variant="h6" sx={{ mb: 2 }}>Quick Actions</Typography>
-                                            <Stack spacing={2}>
-                                                <Button
-                                                    fullWidth
-                                                    variant="outlined"
-                                                    color="primary"
-                                                    startIcon={<DashboardIcon />}
-                                                    onClick={() => navigate('/teacher/dashboard/competitions')}
-                                                    sx={{
-                                                        p: 2,
-                                                        borderRadius: '8px',
-                                                        justifyContent: 'flex-start',
-                                                        borderWidth: '2px',
-                                                        height: '100%'
-                                                    }}
-                                                >
-                                                    <Box sx={{ textAlign: 'left' }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">
-                                                            Manage Competitions
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            Create, edit and track your competitions
-                                                        </Typography>
-                                                    </Box>
-                                                </Button>
-                                                <Button
-                                                    fullWidth
-                                                    variant="outlined"
-                                                    color="secondary"
-                                                    startIcon={<EmojiEventsIcon />}
-                                                    onClick={() => navigate('/teacher/dashboard/results')}
-                                                    sx={{
-                                                        p: 2,
-                                                        borderRadius: '8px',
-                                                        justifyContent: 'flex-start',
-                                                        borderWidth: '2px',
-                                                        height: '100%'
-                                                    }}
-                                                >
-                                                    <Box sx={{ textAlign: 'left' }}>
-                                                        <Typography variant="subtitle1" fontWeight="bold">
-                                                            View Results
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            See student performance and grades
-                                                        </Typography>
-                                                    </Box>
-                                                </Button>
-                                                <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Card
-                                                        variant="outlined"
+                            <Box sx={{ width: '100%' }}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    startIcon={<EditIcon />}
+                                    onClick={() => setIsEditing(true)}
+                                    sx={{
+                                        mb: 2,
+                                        borderRadius: '12px',
+                                        py: 1.2,
+                                        boxShadow: '0 6px 16px rgba(var(--primary-color-rgb), 0.3)',
+                                        bgcolor: 'var(--theme-color)',
+                                        '&:hover': {
+                                            boxShadow: '0 6px 16px rgba(var(--primary-color-rgb), 0.3)',
+                                            bgcolor: 'var(--hover-color)'
+                                        }
+                                    }}
+                                >
+                                    Edit Profile
+                                </Button>
+
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    startIcon={<LockIcon />}
+                                    onClick={() => setPasswordDialog(true)}
+                                    sx={{
+                                        borderRadius: '12px',
+                                        py: 1.2,
+                                        borderWidth: '2px',
+                                        '&:hover': {
+                                            borderWidth: '2px'
+                                        }
+                                    }}
+                                >
+                                    Change Password
+                                </Button>
+                            </Box>
+                        </Paper>
+                    </Grid>
+
+                    {/* Profile Details and Quick Actions */}
+                    <Grid item xs={12} md={8} order={{ xs: 1, md: 2 }}>
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: { xs: 3, md: 3 },
+                                height: '100%',
+                                borderRadius: '20px',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                background: `linear-gradient(180deg, 
+                                    ${theme.palette.background.paper} 0%, 
+                                    ${isDark ? 'rgba(66, 66, 66, 0.8)' : 'rgba(246, 246, 246, 0.8)'} 100%)`,
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
+                            }}
+                        >
+
+                            {/* Main content area with Profile Details and Quick Actions side by side */}
+                            <Grid container spacing={3}>
+                                {/* Profile Details - Left side with vertical layout */}
+                                <Grid item xs={12} md={6}>
+                                    {isEditing ? (
+                                        <Stack spacing={3}>
+                                            <TextField
+                                                fullWidth
+                                                label="Profile Image URL"
+                                                name="teacherImage"
+                                                value={formData.teacherImage}
+                                                onChange={handleChange}
+                                                variant="filled"
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <PhotoCamera />
+                                                        </InputAdornment>
+                                                    ),
+                                                    sx: { borderRadius: '12px' }
+                                                }}
+                                            />
+                                            {formData.teacherImage && (
+                                                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                                    <Avatar
+                                                        src={formData.teacherImage}
+                                                        alt="Preview"
                                                         sx={{
-                                                            borderRadius: '8px',
-                                                            p: 2,
-                                                            width: '100%'
+                                                            width: 80,
+                                                            height: 80,
+                                                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                                         }}
-                                                    >
-                                                        <CardContent sx={{ p: 0 }}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                                                                <Typography variant="subtitle1" fontWeight="bold">
-                                                                    Current Session
+                                                    />
+                                                </Box>
+                                            )}
+                                            <TextField
+                                                fullWidth
+                                                required
+                                                label="First Name"
+                                                name="teacherFirstName"
+                                                value={formData.teacherFirstName}
+                                                onChange={handleChange}
+                                                variant="filled"
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <PersonIcon />
+                                                        </InputAdornment>
+                                                    ),
+                                                    sx: { borderRadius: '12px' }
+                                                }}
+                                            />
+                                            <TextField
+                                                fullWidth
+                                                required
+                                                label="Last Name"
+                                                name="teacherLastName"
+                                                value={formData.teacherLastName}
+                                                onChange={handleChange}
+                                                variant="filled"
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <PersonIcon />
+                                                        </InputAdornment>
+                                                    ),
+                                                    sx: { borderRadius: '12px' }
+                                                }}
+                                            />
+                                            <TextField
+                                                fullWidth
+                                                required
+                                                label="Email Address"
+                                                name="teacherEmail"
+                                                type="email"
+                                                value={formData.teacherEmail}
+                                                onChange={handleChange}
+                                                variant="filled"
+                                                InputProps={{
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <EmailIcon />
+                                                        </InputAdornment>
+                                                    ),
+                                                    sx: { borderRadius: '12px' }
+                                                }}
+                                            />
+                                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={() => {
+                                                        setIsEditing(false);
+                                                        setFormData({
+                                                            teacherFirstName: profile?.teacherFirstName || '',
+                                                            teacherLastName: profile?.teacherLastName || '',
+                                                            teacherEmail: profile?.teacherEmail || '',
+                                                            teacherImage: profile?.teacherImage || ''
+                                                        });
+                                                    }}
+                                                    disabled={saving}
+                                                    sx={{
+                                                        borderRadius: '12px',
+                                                        px: 3
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={handleSubmit}
+                                                    disabled={saving}
+                                                    startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                                                    sx={{
+                                                        borderRadius: '12px',
+                                                        px: 3,
+                                                        boxShadow: '0 4px 12px rgba(var(--primary-color-rgb), 0.2)',
+                                                        bgcolor: 'var(--theme-color)',
+                                                        '&:hover': {
+                                                            boxShadow: '0 6px 16px rgba(var(--primary-color-rgb), 0.3)',
+                                                            bgcolor: 'var(--hover-color)'
+                                                        }
+                                                    }}
+                                                >
+                                                    {saving ? 'Saving...' : 'Save Changes'}
+                                                </Button>
+                                            </Box>
+                                        </Stack>
+                                    ) : (
+                                        <Box>
+                                            <Typography variant="h6" sx={{ mb: 2 }}>Profile Details</Typography>
+                                            <Stack spacing={3}>
+                                                <Card
+                                                    elevation={0}
+                                                    sx={{
+                                                        borderRadius: '16px',
+                                                        border: '1px solid',
+                                                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                                        '&:hover': {
+                                                            transform: 'translateY(-4px)',
+                                                            boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
+                                                        }
+                                                    }}
+                                                >
+                                                    <CardContent sx={{ p: 2.5 }}>
+                                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                            {/* First Name field */}
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                <Avatar sx={{
+                                                                    bgcolor: 'primary.main',
+                                                                    mr: 2,
+                                                                    width: 36,
+                                                                    height: 36
+                                                                }}>
+                                                                    <PersonIcon fontSize="small" />
+                                                                </Avatar>
+                                                                <Box>
+                                                                    <Typography variant="body2" color="text.secondary" fontWeight="medium">
+                                                                        First Name
+                                                                    </Typography>
+                                                                    <Typography variant="h6" sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1rem' }}>
+                                                                        {profile?.teacherFirstName}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+
+                                                            {/* Last Name field */}
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                <Avatar sx={{
+                                                                    bgcolor: 'primary.main',
+                                                                    mr: 2,
+                                                                    width: 36,
+                                                                    height: 36
+                                                                }}>
+                                                                    <PersonIcon fontSize="small" />
+                                                                </Avatar>
+                                                                <Box>
+                                                                    <Typography variant="body2" color="text.secondary" fontWeight="medium">
+                                                                        Last Name
+                                                                    </Typography>
+                                                                    <Typography variant="h6" sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1rem' }}>
+                                                                        {profile?.teacherLastName}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+
+                                                            {/* Email field */}
+                                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                                <Avatar sx={{
+                                                                    bgcolor: 'secondary.main',
+                                                                    mr: 2,
+                                                                    width: 36,
+                                                                    height: 36
+                                                                }}>
+                                                                    <EmailIcon fontSize="small" />
+                                                                </Avatar>
+                                                                <Box>
+                                                                    <Typography variant="body2" color="text.secondary" fontWeight="medium">
+                                                                        Email Address
+                                                                    </Typography>
+                                                                    <Typography variant="h6" sx={{ mt: 0.25, fontWeight: 'bold', fontSize: '1rem' }}>
+                                                                        {profile?.teacherEmail}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
+                                                    </CardContent>
+                                                </Card>
+
+                                                <Card
+                                                    elevation={0}
+                                                    sx={{
+                                                        borderRadius: '16px',
+                                                        border: '1px solid',
+                                                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                                                        background: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(var(--primary-color-rgb), 0.02)',
+                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                                        '&:hover': {
+                                                            transform: 'translateY(-4px)',
+                                                            boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
+                                                        }
+                                                    }}
+                                                >
+                                                    <CardContent sx={{ p: 2.5 }}>
+                                                        <Box sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'flex-start'
+                                                        }}>
+                                                            <Avatar sx={{
+                                                                mr: 2,
+                                                                width: 36,
+                                                                height: 36,
+                                                                background: 'linear-gradient(45deg, var(--theme-color), var(--hover-color))'
+                                                            }}>
+                                                                <LockIcon fontSize="small" />
+                                                            </Avatar>
+                                                            <Box sx={{ flex: 1 }}>
+                                                                <Typography variant="body2" color="text.secondary" fontWeight="medium">
+                                                                    Role & Account Status
+                                                                </Typography>
+                                                                <Typography variant="subtitle1" sx={{ mt: 0.25, mb: 1.5, fontWeight: 'bold', textTransform: 'capitalize' }}>
+                                                                    {profile?.role || 'Teacher'}
                                                                 </Typography>
                                                             </Box>
-                                                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                                Current User: {CURRENT_USER}
-                                                            </Typography>
-                                                            <Typography variant="body2" color="text.secondary">
-                                                                Login Time: {CURRENT_DATE_TIME}
-                                                            </Typography>
-                                                        </CardContent>
-                                                    </Card>
-                                                </Box>
+                                                        </Box>
+                                                    </CardContent>
+                                                </Card>
                                             </Stack>
                                         </Box>
-                                    </Grid>
+                                    )}
                                 </Grid>
-                            </Paper>
-                        </Grid>
+
+                                {/* Quick Actions - Right side with vertical layout */}
+                                <Grid item xs={12} md={6}>
+                                    <Box>
+                                        <Typography variant="h6" sx={{ mb: 2 }}>Quick Actions</Typography>
+                                        <Stack spacing={2}>
+                                            <Button
+                                                fullWidth
+                                                variant="outlined"
+                                                color="primary"
+                                                startIcon={<DashboardIcon />}
+                                                onClick={() => navigate('/teacher/competitions')}
+                                                sx={{
+                                                    p: 2,
+                                                    borderRadius: '12px',
+                                                    justifyContent: 'flex-start',
+                                                    borderWidth: '2px',
+                                                    height: '100%'
+                                                }}
+                                            >
+                                                <Box sx={{ textAlign: 'left' }}>
+                                                    <Typography variant="subtitle1" fontWeight="bold">
+                                                        Manage Competitions
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        Create, edit and track your competitions
+                                                    </Typography>
+                                                </Box>
+                                            </Button>
+
+                                            <Button
+                                                fullWidth
+                                                variant="outlined"
+                                                color="secondary"
+                                                startIcon={<EmojiEventsIcon />}
+                                                onClick={() => navigate('/teacher/results')}
+                                                sx={{
+                                                    p: 2,
+                                                    borderRadius: '12px',
+                                                    justifyContent: 'flex-start',
+                                                    borderWidth: '2px',
+                                                    height: '100%'
+                                                }}
+                                            >
+                                                <Box sx={{ textAlign: 'left' }}>
+                                                    <Typography variant="subtitle1" fontWeight="bold">
+                                                        View Results
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        See student performance and grades
+                                                    </Typography>
+                                                </Box>
+                                            </Button>
+
+                                        </Stack>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </Paper>
                     </Grid>
-                )}
-            </Container>
+                </Grid>
+            )}
 
             {/* Password Change Dialog */}
             <Dialog
                 open={passwordDialog}
                 onClose={() => !saving && setPasswordDialog(false)}
                 PaperProps={{
-                    sx: { borderRadius: '12px' }
+                    sx: { borderRadius: '16px' }
                 }}
+                maxWidth="sm"
+                fullWidth
             >
-                <DialogTitle>Change Password</DialogTitle>
+                <DialogTitle sx={{ pb: 1 }}>Change Password</DialogTitle>
                 <DialogContent>
-                    <Box sx={{ pt: 1, width: { sm: '400px' } }}>
+                    <Box component="form" noValidate sx={{ mt: 1 }}>
                         <TextField
-                            fullWidth
                             margin="normal"
-                            label="Current Password"
+                            required
+                            fullWidth
                             name="currentPassword"
+                            label="Current Password"
                             type={showCurrentPassword ? 'text' : 'password'}
                             value={passwordData.currentPassword}
                             onChange={handlePasswordChange}
@@ -756,7 +803,7 @@ const ProfilePage = () => {
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         <IconButton
-                                            aria-label="toggle current password visibility"
+                                            aria-label="toggle password visibility"
                                             onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                                             edge="end"
                                         >
@@ -767,21 +814,23 @@ const ProfilePage = () => {
                                 sx: { borderRadius: '8px' }
                             }}
                         />
+
                         <TextField
-                            fullWidth
                             margin="normal"
-                            label="New Password"
+                            required
+                            fullWidth
                             name="newPassword"
+                            label="New Password"
                             type={showNewPassword ? 'text' : 'password'}
                             value={passwordData.newPassword}
                             onChange={handlePasswordChange}
                             error={!!passwordErrors.newPassword}
-                            helperText={passwordErrors.newPassword || "Password must be at least 6 characters"}
+                            helperText={passwordErrors.newPassword}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         <IconButton
-                                            aria-label="toggle new password visibility"
+                                            aria-label="toggle password visibility"
                                             onClick={() => setShowNewPassword(!showNewPassword)}
                                             edge="end"
                                         >
@@ -792,11 +841,13 @@ const ProfilePage = () => {
                                 sx: { borderRadius: '8px' }
                             }}
                         />
+
                         <TextField
-                            fullWidth
                             margin="normal"
-                            label="Confirm New Password"
+                            required
+                            fullWidth
                             name="confirmPassword"
+                            label="Confirm New Password"
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={passwordData.confirmPassword}
                             onChange={handlePasswordChange}
@@ -806,7 +857,7 @@ const ProfilePage = () => {
                                 endAdornment: (
                                     <InputAdornment position="end">
                                         <IconButton
-                                            aria-label="toggle confirm password visibility"
+                                            aria-label="toggle password visibility"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                             edge="end"
                                         >
@@ -819,18 +870,17 @@ const ProfilePage = () => {
                         />
                     </Box>
                 </DialogContent>
-                <DialogActions sx={{ p: 2, pt: 0 }}>
+                <DialogActions sx={{ px: 3, py: 2 }}>
                     <Button
                         onClick={() => setPasswordDialog(false)}
-                        color="inherit"
                         disabled={saving}
+                        sx={{ borderRadius: '8px' }}
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={handlePasswordUpdate}
                         variant="contained"
-                        color="primary"
                         disabled={saving}
                         startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                         sx={{
@@ -862,7 +912,68 @@ const ProfilePage = () => {
                     {notification.message}
                 </Alert>
             </Snackbar>
-        </>
+        </Box>
+    );
+};
+
+// Profile loading skeleton
+const ProfileSkeleton = () => {
+    return (
+        <Grid container spacing={3} direction={{ xs: 'column-reverse', md: 'row' }}>
+            <Grid item xs={12} md={4} order={{ xs: 2, md: 1 }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 3,
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center'
+                    }}
+                >
+                    <Skeleton variant="circular" width={120} height={120} sx={{ mb: 2 }} />
+                    <Skeleton variant="text" width="60%" sx={{ mb: 1 }} />
+                    <Skeleton variant="rectangular" width={100} height={32} sx={{ mb: 2, borderRadius: '16px' }} />
+                    <Skeleton variant="text" width="80%" sx={{ mb: 1 }} />
+                    <Skeleton variant="text" width="60%" sx={{ mb: 2 }} />
+
+                    <Divider sx={{ my: 2, width: '100%' }} />
+
+                    <Skeleton variant="rectangular" width="100%" height={36} sx={{ mb: 2, borderRadius: '8px' }} />
+                    <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: '8px' }} />
+                </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={8} order={{ xs: 1, md: 2 }}>
+                <Paper
+                    elevation={0}
+                    sx={{
+                        p: 3,
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: 'divider'
+                    }}
+                >
+                    <Skeleton variant="text" width="30%" sx={{ mb: 2 }} />
+                    <Divider sx={{ mb: 3 }} />
+
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                            <Skeleton variant="rectangular" height={120} sx={{ borderRadius: '8px', mb: 2 }} />
+                            <Skeleton variant="rectangular" height={120} sx={{ borderRadius: '8px' }} />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Skeleton variant="rectangular" height={80} sx={{ borderRadius: '8px', mb: 2 }} />
+                            <Skeleton variant="rectangular" height={80} sx={{ borderRadius: '8px', mb: 2 }} />
+                            <Skeleton variant="rectangular" height={80} sx={{ borderRadius: '8px' }} />
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </Grid>
+        </Grid>
     );
 };
 

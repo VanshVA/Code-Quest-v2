@@ -36,7 +36,9 @@ import {
   PhotoCamera,
   Dashboard as DashboardIcon,
   Settings as SettingsIcon,
-  Refresh
+  Refresh,
+  EmojiEvents as EmojiEventsIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import moment from 'moment';
 import axios from 'axios';
@@ -519,46 +521,6 @@ const ProfilePage = () => {
                 boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
               }}
             >
-              <Box sx={{
-                mb: 2,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                pb: 1.5,
-                borderBottom: `2px solid ${theme.palette.divider}`
-              }}>
-                <Typography variant="h6" fontWeight="bold" sx={{
-                  position: 'relative',
-                  '&:after': {
-                    content: '""',
-                    position: 'absolute',
-                    bottom: -8,
-                    left: 0,
-                    width: '30px',
-                    height: '3px',
-                    backgroundColor: 'primary.main',
-                    borderRadius: '2px'
-                  }
-                }}>
-                  {isEditing ? 'Edit Profile' : 'Profile Information'}
-                </Typography>
-                {!isEditing && (
-                  <Button
-                    variant="text"
-                    startIcon={<Edit />}
-                    onClick={handleStartEditing}
-                    size="small"
-                    sx={{
-                      color: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'rgba(var(--primary-color-rgb), 0.08)'
-                      }
-                    }}
-                  >
-                    Edit
-                  </Button>
-                )}
-              </Box>
 
               {/* Main content area with Profile Details and Quick Actions side by side */}
               <Grid container spacing={3}>
@@ -802,6 +764,7 @@ const ProfilePage = () => {
                         variant="outlined"
                         color="primary"
                         startIcon={<DashboardIcon />}
+                        onClick={() => navigate('/admin/competitions')}
                         sx={{
                           p: 2,
                           borderRadius: '12px',
@@ -809,14 +772,13 @@ const ProfilePage = () => {
                           borderWidth: '2px',
                           height: '100%'
                         }}
-                        onClick={() => navigate('/admin/dashboard')}
                       >
                         <Box sx={{ textAlign: 'left' }}>
                           <Typography variant="subtitle1" fontWeight="bold">
-                            Dashboard
+                            Manage Competitions
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Manage all your activities
+                            Create, edit and track your competitions
                           </Typography>
                         </Box>
                       </Button>
@@ -825,7 +787,8 @@ const ProfilePage = () => {
                         fullWidth
                         variant="outlined"
                         color="secondary"
-                        startIcon={<SettingsIcon />}
+                        startIcon={<EmojiEventsIcon />}
+                        onClick={() => navigate('/admin/results')}
                         sx={{
                           p: 2,
                           borderRadius: '12px',
@@ -833,17 +796,17 @@ const ProfilePage = () => {
                           borderWidth: '2px',
                           height: '100%'
                         }}
-                        onClick={() => navigate('/admin/settings')}
                       >
                         <Box sx={{ textAlign: 'left' }}>
                           <Typography variant="subtitle1" fontWeight="bold">
-                            System Settings
+                            View Results
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Configure system preferences
+                            See student performance and grades
                           </Typography>
                         </Box>
                       </Button>
+
                     </Stack>
                   </Box>
                 </Grid>

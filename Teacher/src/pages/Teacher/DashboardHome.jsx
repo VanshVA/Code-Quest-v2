@@ -48,6 +48,7 @@ const API_BASE_URL = "http://localhost:5000/api/teacher/dashboard";
 
 const TeacherHome = () => {
   const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
 
   // Loading state
@@ -163,6 +164,7 @@ const TeacherHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -201,6 +203,7 @@ const TeacherHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -239,6 +242,7 @@ const TeacherHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -277,6 +281,7 @@ const TeacherHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -329,6 +334,7 @@ const TeacherHome = () => {
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -397,6 +403,7 @@ const TeacherHome = () => {
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -477,6 +484,7 @@ const TeacherHome = () => {
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
+               bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ 

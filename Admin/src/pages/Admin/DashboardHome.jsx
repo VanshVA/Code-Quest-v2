@@ -208,7 +208,7 @@ const AdminHome = () => {
               p: 2,
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-              bgcolor:isDark ? '#312f2f' : 'black',
+              bgcolor:isDark ? '#312f2f' : 'white',
               height: '100%',
             }}
           >
@@ -248,7 +248,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor:isDark ? '#312f2f' : 'black',
+              bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -287,7 +287,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor:isDark ? '#312f2f' : 'black',
+              bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -326,7 +326,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor:isDark ? '#312f2f' : 'black',
+              bgcolor:isDark ? '#312f2f' : 'white',
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -360,7 +360,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor:isDark ? '#312f2f' : 'black'
+              bgcolor:isDark ? '#312f2f' : 'white'
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -397,7 +397,7 @@ const AdminHome = () => {
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor:isDark ? '#312f2f' : 'black',
+              bgcolor:isDark ? '#312f2f' : 'white',
               overflow: 'hidden',
             }}
           >
@@ -442,14 +442,14 @@ const AdminHome = () => {
 
         {/* User Distribution Chart */}
         <Grid item xs={12} md={5}>
-          <Paper
-            elevation={0}
+          <Paper 
+            elevation={0} 
             sx={{
               p: 3,
               borderRadius: '16px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
-              bgcolor:isDark ? '#312f2f' : 'black'
+              bgcolor:isDark ? '#312f2f' : 'white'
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -488,7 +488,7 @@ const AdminHome = () => {
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               height: '100%',
               overflow: 'hidden',
-              bgcolor:isDark ? '#312f2f' : 'black'
+              bgcolor:isDark ? '#312f2f' : 'white'
             }}
           >
             <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

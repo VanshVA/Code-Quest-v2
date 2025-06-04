@@ -41,7 +41,7 @@ import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfi
 import SendIcon from '@mui/icons-material/Send';
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import VolunteerActivismIcon from '@mui/icons-material/VolunteerActivism';
-import { motion } from 'framer-motion';
+import { color, motion } from 'framer-motion';
 import { AccessTime, Apps, AutoAwesome, Category, CheckCircleOutline, CheckCircleOutlineOutlined, Comment, Email, EventNote, Extension, InfoOutlined, Person, Phone, Schedule, Star, SupportAgent, Update } from '@mui/icons-material';
 
 // import { useAuth } from '../contexts/AuthContext';
@@ -124,7 +124,7 @@ const Feedback = () => {
     const MotionTypography = motion(Typography);
   // const { currentUser } = useAuth();
   const currentUser = {
-    name: 'Anuj Prajapati'};
+    name: ''};
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -133,8 +133,8 @@ const Feedback = () => {
    const isDark = theme.palette.mode === 'dark';
   // Form state
   const [formData, setFormData] = useState({
-    name: currentUser?.name || 'Anuj Prajapati',
-    email: currentUser?.email || 'anuj.prajapati@example.com',
+    name: currentUser?.name ,
+    email: currentUser?.email,
     feedback: '',
     feedbackType: 'general',
     source: 'website',
@@ -457,23 +457,8 @@ const Feedback = () => {
         <Typography variant="body1" paragraph sx={{ mb: 4 }}>
           {formData.contactConsent ? 'A member of our team may reach out to you for more details if needed.' : 'If you have more to share, please don\'t hesitate to reach out again.'}
         </Typography>
+      
         
-        {/* Submission timestamp */}
-        <Box 
-          sx={{ 
-            mb: 4, 
-            p: 1.5,
-            borderRadius: '8px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            bgcolor: theme => alpha(theme.palette.success.main, 0.05),
-          }}
-        >
-          <ScheduleIcon fontSize="small" sx={{ mr: 1, color: 'success.main' }} />
-          <Typography variant="caption" fontFamily="'Roboto Mono', monospace">
-            Submitted on 2025-05-30 17:59:13 UTC by Anuj-prajapati-SDE
-          </Typography>
-        </Box>
         
         <Grid container spacing={2} justifyContent="center">
           <Grid item>
@@ -515,13 +500,14 @@ const Feedback = () => {
       </Paper>
     </motion.div>
   ) : (
-    <Grid container spacing={4}>
+    <Grid container spacing={4}     >
       {/* Feedback Form */}
       <Grid item xs={12} md={8}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+      
         >
           <Paper
             elevation={0}
@@ -531,6 +517,8 @@ const Feedback = () => {
               borderRadius: 3,
               position: 'relative',
               overflow: 'hidden',
+              borderColor: isDark? 'white' : 'black',
+              borderTop:'none',
             }}
           >
             {/* Decorative accent gradient */}
@@ -571,7 +559,8 @@ const Feedback = () => {
                     required
                     label="Name"
                     name="name"
-                    value={formData.name || "Anuj-prajapati-SDE"} // Pre-fill with current username
+                    placeholder="Enter your name"
+                    value={formData.name} // Pre-fill with current username
                     onChange={handleChange}
                     InputProps={{
                       startAdornment: (
@@ -589,6 +578,27 @@ const Feedback = () => {
                     type="email"
                     label="Email Address"
                     name="email"
+                    placeholder="Enter your email address"
+                    value={formData.email}
+                    onChange={handleChange}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    type="occupation"
+                    label="Occupation"
+                    name="occupation"
+                    placeholder="e.g. Software Engineer, Student, etc."
+                    
                     value={formData.email}
                     onChange={handleChange}
                     InputProps={{
@@ -627,33 +637,12 @@ const Feedback = () => {
                   </TextField>
                 </Grid>
                 
-                {/* Source */}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    select
-                    label="Which part of EventHub are you giving feedback on?"
-                    name="source"
-                    value={formData.source}
-                    onChange={handleChange}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Apps fontSize="small" sx={{color:isDark ? 'white' : 'black'}}/>
-                        </InputAdornment>
-                      ),
-                    }}
-                  >
-                    {sources.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
                 
-                {/* Overall Satisfaction Rating */}
+                
+                
+                
+       
+               <div display="inline-flex" style={{width:"93%"}}>
                 <Grid item xs={12}>
                   <Divider sx={{ mb: 2 }}>
                     <Chip 
@@ -663,15 +652,17 @@ const Feedback = () => {
                     />
                   </Divider>
                 </Grid>
-                
+                </div>
                 <Grid item xs={12}>
+                   
                   <Paper 
                     variant="outlined" 
                     sx={{ 
                       p: 3, 
                       borderRadius: 3, 
-                      bgcolor: theme => alpha(theme.palette.primary.main, 0.03),
+                      // bgcolor: theme => alpha(theme.palette.primary.main, 0.03),
                       mb: 2,
+                      borderColor: isDark ? 'white' : 'black',
                       position: 'relative',
                       overflow: 'hidden',
                     }}
@@ -691,10 +682,10 @@ const Feedback = () => {
                         position: 'absolute',
                         top: 0,
                         left: 0,
+                            
                         right: 0,
                         bottom: 0,
                         opacity: 0.035,
-                        background: "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230366d6' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E\")",
                         pointerEvents: 'none',
                       }}
                     />
@@ -702,11 +693,11 @@ const Feedback = () => {
                     <Typography variant="subtitle1" fontWeight="bold" align="center" gutterBottom>
                       How would you rate your overall experience with Code Quest?
                     </Typography>
-                    <Box sx={{ position: 'relative', zIndex: 2 }}>
+                    <Box sx={{ position: 'relative', zIndex: 2,  }}>
                       <CustomRating 
                         value={formData.ratingGeneral} 
                         onChange={(value) => handleRatingChange('ratingGeneral', value)}
-                        
+                        sx={{ color: isDark ? 'white' : 'black' }}
                       />
                     </Box>
                   </Paper>
@@ -719,6 +710,7 @@ const Feedback = () => {
                       p: 3, 
                       borderRadius: 3, 
                       height: '100%',
+                            borderColor: isDark ? 'white' : 'black',
                       transition: 'all 0.2s ease',
                         color:isDark ? 'white' : 'black',
                       '&:hover': {
@@ -746,6 +738,7 @@ const Feedback = () => {
                     variant="outlined" 
                     sx={{ 
                       p: 3, 
+                            borderColor: isDark ? 'white' : 'black',
                       borderRadius: 3, 
                       height: '100%',
                       transition: 'all 0.2s ease',
@@ -767,6 +760,7 @@ const Feedback = () => {
                     </Box>
                   </Paper>
                 </Grid>
+            
                 
                 {/* Specific Features */}
                 <Grid item xs={12}>
@@ -816,7 +810,7 @@ const Feedback = () => {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start" sx={{ mt: 1.5, ml: 1 }}>
-                          <Comment fontSize="small" />
+                          <Comment fontSize="small" sx={{ position:"relative", top:'-62px', color: isDark?"white": "black" }}/>
                         </InputAdornment>
                       ),
                     }}
@@ -858,7 +852,7 @@ const Feedback = () => {
       </Grid>
       
       {/* Enhanced Sidebar */}
-      <Grid item xs={12} md={4} sx={{width:"100%"}}>
+      <Grid item xs={12} md={4} sx={{width:"100%",}}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -873,6 +867,8 @@ const Feedback = () => {
                 p: 3, 
                 borderRadius: 3, 
                 mb: 3,
+                             borderColor: isDark? 'white' : 'black',
+                             borderLeft:"none",
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   boxShadow: '0 8px 24px rgba(0,0,0,0.07)',
@@ -900,16 +896,7 @@ const Feedback = () => {
               <Typography variant="body2" paragraph>
                 Your feedback directly influences our product development roadmap and helps us prioritize features that matter most to our users.
               </Typography>
-              <Box 
-                component="img" 
-                src="/img/feedback-illustration.svg" 
-                alt="Feedback" 
-                sx={{ 
-                  width: '100%', 
-                  height: 'auto',
-                  mb: 2
-                }} 
-              />
+             
               <Box
                 sx={{
                   display: 'flex',
@@ -939,6 +926,9 @@ const Feedback = () => {
               sx={{ 
                 p: 3, 
                 borderRadius: 3, 
+                
+                             borderColor: isDark? 'white' : 'black',
+                           
                 mb: 3,
                 transition: 'all 0.3s ease',
                 '&:hover': {
@@ -996,9 +986,12 @@ const Feedback = () => {
               sx={{ 
                 p: 3, 
                 borderRadius: 3,
+                
+                             borderColor: isDark? 'white' : 'black',
+                            
                 background: theme => `linear-gradient(135deg, ${alpha(theme.palette.background.default, 0.5)} 0%, ${alpha(theme.palette.background.paper, 0.8)} 100%)`,
                 backdropFilter: 'blur(10px)',
-                border: theme => `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+               
                 position: 'relative',
                 overflow: 'hidden',
               }}
@@ -1041,7 +1034,7 @@ const Feedback = () => {
                 <Typography 
                   variant="body2"
                   component="a"
-                  href="mailto:support@eventhub.com"
+                  href="mailto:codequest.server@gmail.com"
                   sx={{
                     display: 'block',
                     color: theme => theme.palette.text.primary,
@@ -1053,7 +1046,7 @@ const Feedback = () => {
                     }
                   }}
                 >
-                  support@eventhub.com
+                codequest.server@gmail.com
                 </Typography>
               </Box>
               <Box>
@@ -1076,7 +1069,7 @@ const Feedback = () => {
                     }
                   }}
                 >
-                  +1 (800) 555-1234
+                  +91 9897868221
                 </Typography>
               </Box>
               <Button

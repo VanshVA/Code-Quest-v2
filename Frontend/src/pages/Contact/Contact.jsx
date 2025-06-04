@@ -664,7 +664,8 @@ const ContactPage = () => {
                       bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
                       color:isDark ? 'white' : 'black',
                       '&:hover': {
-                        bgcolor: theme.palette.primary.main,
+                      
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                          color:isDark ? 'white' : 'black',
                         transform: 'translateY(-3px)',
                       },

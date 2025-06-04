@@ -276,14 +276,12 @@ const Footer = ({ isAuthenticated = false }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{ 
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? 'rgba(255,255,255,0.05)'
-                          : 'rgba(0,0,0,0.03)',
+                           backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                           color:isDark ? 'white' : 'black',
                         '&:hover': { 
                           scale: 1.1,
-                          backgroundColor: theme.palette.primary.main,
-                          color: '#fff',
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                         color:isDark ? 'white' : 'black',
                           transform: 'translateY(-3px)', // Added movement
                           transition: 'all 0.3s ease',
                         },

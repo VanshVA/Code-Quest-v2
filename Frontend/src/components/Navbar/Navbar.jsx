@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import {
   AppBar,
@@ -48,6 +48,7 @@ import {
   Help,
   Logout,
   QuestionAnswer,
+ 
 } from '@mui/icons-material';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,6 +56,10 @@ import { useColorMode } from '../../context/ThemeContext';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
+// const [CheackUser, setCheckUser] = useState([]);
+// Check if user is authenticated 
+
+
 
 // Logo component with animation
 const Logo = () => {
@@ -224,7 +229,7 @@ const navItems = [
 
 ];
 
-const Navbar = ({ isAuthenticated = false }) => {
+const Navbar = () => {
   const theme = useTheme();
   const { toggleColorMode } = useColorMode();
   const location = useLocation();
@@ -235,7 +240,19 @@ const Navbar = ({ isAuthenticated = false }) => {
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const [megaMenuTimeout, setMegaMenuTimeout] = useState(null);
+  const gettoken = localStorage.getItem('token');
+  const getUser = localStorage.getItem('user');
+useEffect(() => {
+  if (!gettoken || !getUser) {
+    // Redirect to login or handle unauthenticated state
+    console.log('User is not authenticated', );
+  } else {
+    // User is authenticated, you can set user state or perform other actions
+    console.log('User is authenticated',gettoken, getUser);
+  }
 
+
+}, [gettoken, getUser]);
 
 
   useEffect(() => {
@@ -347,22 +364,19 @@ const Navbar = ({ isAuthenticated = false }) => {
       </Box>
 
       {/* Drawer user section */}
-      {isAuthenticated ? (
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-          <Avatar
-            alt="Anuj Prajapati"
-            src="/assets/user-avatar.jpg"
-            sx={{ width: 40, height: 40, mr: 2 }}
-          />
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              Anuj Prajapati
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Student
-            </Typography>
+      {getUser || gettoken ? (
+        <Box sx={{ p: 2 }}>
+          <Button
+            fullWidth 
+            variant="contained"
+            color="primary"
+            component={RouterLink}
+            to="/login"
+            sx={{ mb: 1 }}
+          >
+            Login
+          </Button>
           </Box>
-        </Box>
       ) : (
         <Box sx={{ p: 2 }}>
           <Button
@@ -719,131 +733,45 @@ const Navbar = ({ isAuthenticated = false }) => {
                 </>
               )}
 
-              {isAuthenticated ? (
+              {getUser || gettoken ? (
                 <>
-                  {!isSmall && (
-                    <Tooltip title="Notifications">
-                      <IconButton
-                        color="inherit"
+                 
+               <Box sx={{ p: 2 }}>
+                  <MotionBox
+                        component={RouterLink}
+                        to="/student/dashboard"
+                        variants={buttonVariants}
+                        initial="initial"
+                        animate="animate"
+                        whileHover="hover"
+                        whileTap="tap"
+                        transition={{ duration: 0.2 }}
                         sx={{
-                          mr: 2,
-                          backgroundColor: scrolled ? 'transparent' : 'rgba(255,255,255,0.1)',
+                          py: 1,
+                          px: 3,
+                          color: scrolled ? "#f47061" : '#fff',
+                          border: `2px solid ${scrolled ? theme.palette.primary.main : '#fff'}`,
+                          borderRadius: '50px',
+                          textDecoration: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.9rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          transition: 'all 0.3s ease',
                           '&:hover': {
-                            backgroundColor: scrolled ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.2)',
+                            color: scrolled ? '#f47061' : '#fff',
+                            backgroundColor: scrolled ? 'rgba(188, 64, 55, 0.04)' : 'rgba(255, 255, 255, 0.1)',
                           }
                         }}
                       >
-                        <Badge badgeContent={3} color="error">
-                          <Notifications />
-                        </Badge>
-                      </IconButton>
-                    </Tooltip>
-                  )}
-
-                  <Box sx={{ position: 'relative' }}>
-                    <Tooltip title="Account settings">
-                      <IconButton
-                        onClick={handleOpenUserMenu}
-                        sx={{
-                          p: 0,
-                          border: `2px solid ${scrolled ? theme.palette.primary.main : 'rgba(255,255,255,0.7)'}`,
-                          transition: 'all 0.2s ease',
-                        }}
-                      >
-                        <Avatar
-                          alt="Anuj Prajapati"
-                          src="/assets/user-avatar.jpg"
-                          sx={{ width: 36, height: 36 }}
-                        />
-                      </IconButton>
-                    </Tooltip>
-                    <Menu
-                      sx={{ mt: '45px' }}
-                      id="menu-appbar"
-                      anchorEl={anchorElUser}
-                      anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                      keepMounted
-                      transformOrigin={{
-                        vertical: 'top',
-                        horizontal: 'right',
-                      }}
-                      open={Boolean(anchorElUser)}
-                      onClose={handleCloseUserMenu}
-                      slotProps={{
-                        paper: {
-                          elevation: 3,
-                          sx: {
-                            overflow: 'visible',
-                            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-                            borderRadius: '12px',
-                            mt: 1.5,
-                            width: 250,
-                            '&:before': {
-                              content: '""',
-                              display: 'block',
-                              position: 'absolute',
-                              top: 0,
-                              right: 14,
-                              width: 10,
-                              height: 10,
-                              bgcolor: 'background.paper',
-                              transform: 'translateY(-50%) rotate(45deg)',
-                              zIndex: 0,
-                            },
-                          },
-                        }
-                      }}
-                    >
-                      <Box sx={{ px: 2, py: 1.5 }}>
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          Anuj Prajapati
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          anuj@example.com
-                        </Typography>
-                      </Box>
-                      <Divider sx={{ mx: 2 }} />
-                      <MenuItem component={RouterLink} to="/dashboard">
-                        <ListItemIcon>
-                          <Home fontSize="small" />
-                        </ListItemIcon>
-                        <Typography textAlign="left">Dashboard</Typography>
-                      </MenuItem>
-                      <MenuItem component={RouterLink} to="/profile">
-                        <ListItemIcon>
-                          <AccountCircle fontSize="small" />
-                        </ListItemIcon>
-                        <Typography textAlign="left">Profile</Typography>
-                      </MenuItem>
-                      <MenuItem component={RouterLink} to="/settings">
-                        <ListItemIcon>
-                          <Settings fontSize="small" />
-                        </ListItemIcon>
-                        <Typography textAlign="left">Settings</Typography>
-                      </MenuItem>
-                      <MenuItem component={RouterLink} to="/help">
-                        <ListItemIcon>
-                          <Help fontSize="small" />
-                        </ListItemIcon>
-                        <Typography textAlign="left">Help</Typography>
-                      </MenuItem>
-                      <Divider sx={{ mx: 2 }} />
-                      <MenuItem component={RouterLink} to="/login" sx={{ color: theme.palette.error.main }}>
-                        <ListItemIcon sx={{ color: theme.palette.error.main }}>
-                          <Logout fontSize="small" />
-                        </ListItemIcon>
-                        <Typography textAlign="left">Logout</Typography>
-                      </MenuItem>
-                    </Menu>
-                  </Box>
+                         Dashboard
+                      </MotionBox>
+        </Box>
                 </>
               ) : (
                 <>
                   {!isMobile && (
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={1}> 
                       <MotionBox
                         component={RouterLink}
                         to="/login"

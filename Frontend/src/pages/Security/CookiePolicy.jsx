@@ -334,7 +334,14 @@ const CookiePolicy = () => {
                   component={RouterLink}
                   to="/privacy-policy"
                   fullWidth
-                  sx={{ mb: 2, textTransform: "none" }}
+                  sx={{ mb: 2, color: "white", textTransform: "none", "&:hover": {
+                
+                  color: "white",
+                  transform: "translateY(-3px)",
+                  "&::after": {
+                    left: "100%",
+                  },
+                }, }}
                 >
                   Privacy Policy
                 </Button>
@@ -344,7 +351,14 @@ const CookiePolicy = () => {
                   component={RouterLink}
                   to="/terms-of-service"
                   fullWidth
-                  sx={{ textTransform: "none" }}
+                   sx={{ mb: 2, color: "white", textTransform: "none", "&:hover": {
+                
+                  color: "white",
+                  transform: "translateY(-3px)",
+                  "&::after": {
+                    left: "100%",
+                  },
+                }, }}
                 >
                   Terms of Service
                 </Button>
@@ -687,16 +701,15 @@ const CookiePolicy = () => {
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   Email:{" "}
-                  <Link href="mailto:privacy@codequest.com">
-                    privacy@codequest.com
+                  <Link href="mailto:codequest.server@gmail.com">
+                    codequest.server@gmail.com
                   </Link>
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 1 }}>
-                  Postal Address: 88 Tech Boulevard, Silicon Valley, CA 94043,
-                  USA
+                  Pachokra, Haridwar Road, Moradabad - 244 001 (U.P.) INDIA
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 4 }}>
-                  Phone: +1 (555) 234-5678
+                  Phone: +91 9897868221
                 </Typography>
 
                 <Button
@@ -705,7 +718,14 @@ const CookiePolicy = () => {
                   component={RouterLink}
                   to="/contact"
                   startIcon={<ArrowRight />}
-                  sx={{ textTransform: "none", borderRadius: 2 }}
+                  sx={{ textTransform: "none", borderRadius: 2, "&:hover": {
+             
+                  color: "white",
+                  transform: "translateY(-3px)",
+                  "&::after": {
+                    left: "100%",
+                  },
+                }, }}
                 >
                   Contact Our Privacy Team
                 </Button>

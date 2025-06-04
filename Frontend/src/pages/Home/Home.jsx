@@ -76,6 +76,7 @@ const CURRENT_USER = "Anuj-prajapati-SDE";
 
 const HomePage = () => {
   const theme = useTheme();
+
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const isSmall = useMediaQuery(theme.breakpoints.down("sm"));
   const isExtraSmall = useMediaQuery(theme.breakpoints.down("xs"));
@@ -671,6 +672,7 @@ const HomePage = () => {
                 },
                 "&:hover": {
                   boxShadow: "0 15px 25px rgba(188, 64, 55, 0.3)",
+                  color: "white",
                   transform: "translateY(-3px)",
                   "&::after": {
                     left: "100%",
@@ -689,6 +691,7 @@ const HomePage = () => {
                     repeat: Infinity,
                     repeatDelay: 3,
                   }}
+                  sx={{top:'4px', position: 'relative' }}
                 >
                   <PlayArrow />
                 </Box>
@@ -714,6 +717,8 @@ const HomePage = () => {
                 color: theme.palette.primary.main,
                 "&:hover": {
                   borderWidth: 2,
+                      borderColor: theme.palette.primary.main,
+                  color: theme.palette.primary.main,
                   background: "rgba(188, 64, 55, 0.04)",
                   transform: "translateY(-3px)",
                 },
@@ -1149,7 +1154,7 @@ const HomePage = () => {
                         pl: 2,
                       }}
                     >
-                      // Current user: Anuj-prajapati-SDE
+                      // Current user: Code-Quest Pro
                     </Typography>
                     <Typography
                       component="div"
@@ -1217,6 +1222,7 @@ const HomePage = () => {
                 sx={{
                   position: "absolute",
                   top: 30,
+                 
                   left: "50%",
                   transform: "translateX(-50%)",
                   borderRadius: "12px",
@@ -1249,6 +1255,7 @@ const HomePage = () => {
                 >
                   👨‍💻
                 </Box>
+               
                 <Typography
                   variant="body2"
                   sx={{
@@ -1256,8 +1263,12 @@ const HomePage = () => {
                     color: isDark ? "white" : "text.primary",
                   }}
                 >
+                 
+                   
                   CODE-QUEST Professional Edition
+                  
                 </Typography>
+              
               </Box>
 
               {/* Activity Status Badge */}
@@ -1300,7 +1311,10 @@ const HomePage = () => {
                     color: isDark ? "white" : "text.primary",
                   }}
                 >
+                   <a href="https://github.com/VanshVA/Code-Quest-v2"style={{ color: isDark ? "white" : "#3B5966",}} target="_blank" rel="noopener noreferrer">
+                   
                   Connected to GitHub
+                   </a>
                 </Typography>
               </Box>
 
@@ -1313,7 +1327,7 @@ const HomePage = () => {
                 whileHover={{ scale: 1.05 }}
                 sx={{
                   position: "absolute",
-                  bottom: 30,
+                  bottom: 50,
                   left: "50%",
                   transform: "translateX(-50%)",
                   borderRadius: "100px",
@@ -1333,6 +1347,7 @@ const HomePage = () => {
                   sx={{
                     fontWeight: 600,
                     display: "flex",
+                    color: "white",
                     alignItems: "center",
                   }}
                 >
@@ -1440,7 +1455,7 @@ const HomePage = () => {
 
     {/* Enhanced Scroll Down Indicator */}
     <MotionBox
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.5, duration: 0.5 }}
       sx={{
@@ -1477,6 +1492,7 @@ const HomePage = () => {
           backgroundColor: isDark
             ? "rgba(255, 255, 255, 0.1)"
             : "rgba(0, 0, 0, 0.05)",
+            color: isDark ? "#fff" : "#3B5966",
           "&:hover": {
             backgroundColor: isDark
               ? "rgba(255, 255, 255, 0.15)"
@@ -1489,8 +1505,8 @@ const HomePage = () => {
             animation: "bounce 2s infinite",
             "@keyframes bounce": {
               "0%, 20%, 50%, 80%, 100%": { transform: "translateY(0)" },
-              "40%": { transform: "translateY(-10px)" },
-              "60%": { transform: "translateY(-5px)" },
+              "40%": { transform: "translateY(10px)" },
+              "60%": { transform: "translateY(5px)" },
             },
           }}
         />
@@ -1647,7 +1663,7 @@ const HomePage = () => {
         }}
       >
         Our platform combines cutting-edge technology with professional-grade tools 
-        to elevate your coding and assessment experience. Updated for {/* Current user */}Anuj-prajapati-SDE 
+        to elevate your coding and assessment experience. Updated for Code Quest's 
         with the latest features as of {/* Current date - formatted nicely */}May 30th, 2025.
       </Typography>
       
@@ -1951,97 +1967,158 @@ const HomePage = () => {
 
     <Grid container spacing={6} alignItems="center">
       {/* Left Column - Text Content */}
-      <Grid item xs={12} md={5}>
-        <MotionBox
-          initial={{ opacity: 0, x: -30 }}
+      <Grid item xs={12} md={5} minWidth={"100%"}>
+
+         <MotionBox
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+      viewport={{ once: true, margin: "-100px" }}
+      sx={{
+        textAlign: "center",
+        mb: { xs: 8, md: 3 },
+        mx: "auto",
+        maxWidth: "800px",
+        position: "relative"
+      }}
+    >
+      {/* Decorative dots */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: -60,
+          left: { xs: "5%", md: "15%" },
+          display: "flex",
+          gap: 1,
+        }}
+      >
+        {[...Array(3)].map((_, i) => (
+          <Box
+            key={i}
+            component={motion.div}
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            transition={{ delay: i * 0.1, duration: 0.4, type: "spring" }}
+            viewport={{ once: true }}
+            sx={{
+              width: (i + 1) * 4,
+              height: (i + 1) * 4,
+              borderRadius: "50%",
+              backgroundColor: theme.palette.primary.main,
+              opacity: 0.7 - i * 0.2
+            }}
+          />
+        ))}
+      </Box>
+
+      {/* Animated overline with line */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mb: 2,
+        }}
+      >
+        <Box
+          component={motion.div}
+          initial={{ width: 0 }}
+          whileInView={{ width: 40 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          sx={{
+            height: 3,
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 3,
+            mr: 2,
+          }}
+        />
+        <Typography
+          variant="overline"
+          component={motion.div}
+          initial={{ opacity: 0, x: -10 }}
           whileInView={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          viewport={{ once: true }}
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: 700,
+            letterSpacing: 2,
+            fontSize: "0.9rem",
+          }}
         >
-          <Box sx={{ position: 'relative', mb: 2 }}>
-            <Typography
-              variant="overline"
-              component={motion.div}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              sx={{
-                color: theme.palette.primary.main,
-                fontWeight: 700,
-                letterSpacing: 2,
-                fontSize: '0.85rem',
-                display: 'inline-block',
-                position: 'relative',
-                pl: 3,
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  left: 0,
-                  top: '50%',
-                  width: 20,
-                  height: 2,
-                  backgroundColor: theme.palette.primary.main,
-                  transform: 'translateY(-50%)'
-                }
-              }}
-            >
-              COMPREHENSIVE SUPPORT
-            </Typography>
-          </Box>
+          COMPREHENSIVE SUPPORT
+        </Typography>
+        <Box
+          component={motion.div}
+          initial={{ width: 0 }}
+          whileInView={{ width: 40 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          sx={{
+            height: 3,
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 3,
+            ml: 2,
+          }}
+        />
+      </Box>
 
-          <Typography
-            variant="h2"
-            component={motion.h2}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            viewport={{ once: true }}
-            sx={{
-              fontWeight: 800,
-              mb: 3,
-              fontSize: { xs: "2.2rem", md: "3.2rem" },
-              background: isDark
-                ? "linear-gradient(135deg, #ffffff 0%, #b0b0b0 100%)"
-                : "linear-gradient(135deg, #1a1a2e 0%, #4a4a6a 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Language Support
-          </Typography>
+      <Typography
+        variant="h2"
+        component={motion.h2}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        viewport={{ once: true }}
+        sx={{
+          fontWeight: 800,
+          mb: 3,
+          fontSize: { xs: "2.2rem", md: "3.5rem" },
+          background: isDark
+            ? "linear-gradient(135deg, #ffffff 0%, #b0b0b0 100%)"
+            : "linear-gradient(135deg, #1a1a2e 0%, #4a4a6a 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          letterSpacing: "-0.5px",
+          position: "relative",
+        }}
+      >
+     Language Support
+    
+      </Typography>
 
-          <Typography
-            variant="body1"
-            color="textSecondary"
-            component={motion.p}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            sx={{
-              mb: 4,
-              fontSize: "1.1rem",
-              lineHeight: 1.7,
-              maxWidth: '90%'
-            }}
-          >
+      <Typography
+        variant="h6"
+        color="textSecondary"
+        component={motion.p}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        viewport={{ once: true }}
+        sx={{
+          fontWeight: 400,
+          mb: 5,
+          mx: "auto",
+          maxWidth: "650px",
+          lineHeight: 1.6,
+        }}
+      >
+         
             Our platform offers comprehensive support for all major
             programming languages, with specialized compiler optimizations
             and language-specific features. Our team continuously updates and expands
             language capabilities to support your development needs.
-          </Typography>
-
-          <Box 
+      </Typography>
+      <Box 
             component={motion.div}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
-            <Stack direction="row" spacing={3} sx={{ mb: 5 }}>
-              <Box sx={{ textAlign: 'center' }}>
+            <Stack direction="row"  spacing={3} sx={{ mb: 5,justifyContent: 'center', alignItems: 'center' }}>
+              <Box sx={{  textAlign: 'center' }}>
                 <Typography 
                   variant="h4" 
                   sx={{ 
@@ -2117,7 +2194,9 @@ const HomePage = () => {
           >
             View All Languages
           </Button>
-        </MotionBox>
+      
+    </MotionBox>
+        
       </Grid>
       
       {/* Right Column - Language Cards Grid */}
@@ -2166,17 +2245,7 @@ const HomePage = () => {
                   Runtime optimization level and feature coverage
                 </Typography>
               </Box>
-              <IconButton
-                size="small"
-                sx={{
-                  bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                  '&:hover': {
-                    bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                  }
-                }}
-              >
-                <MoreVert fontSize="small" />
-              </IconButton>
+             
             </Box>
 
             {/* Language progress bars */}
@@ -2573,53 +2642,7 @@ const HomePage = () => {
             </Grid>
 
             {/* Footer with recent update info */}
-            <Box 
-              sx={{ 
-                mt: 4, 
-                pt: 3, 
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderTop: '1px solid',
-                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Update 
-                  fontSize="small" 
-                  sx={{ 
-                    mr: 1,
-                    color: theme.palette.primary.main
-                  }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  Last framework update: <strong>2025-05-30</strong>
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                  Current user:
-                </Typography>
-                <Chip
-                  label="Anuj-prajapati-SDE"
-                  size="small"
-                  avatar={<Avatar sx={{ bgcolor: theme.palette.primary.main, width: 16, height: 16, fontSize: '0.6rem' }}>A</Avatar>}
-                  sx={{
-                    height: 20,
-                    '& .MuiChip-label': { 
-                      px: 1,
-                      fontSize: '0.65rem',
-                      fontWeight: 600,
-                    },
-                    '& .MuiChip-avatar': {
-                      width: 16,
-                      height: 16,
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
+            
           </Paper>
         </MotionBox>
       </Grid>
@@ -2667,9 +2690,7 @@ const HomePage = () => {
         ))}
       </Grid>
       
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-        Updated: 2025-05-30 12:02:19 UTC • User: Anuj-prajapati-SDE
-      </Typography>
+     
     </Box>
   </Container>
 </Box>
@@ -2709,18 +2730,58 @@ const HomePage = () => {
               maxWidth: "800px",
             }}
           >
-            <Typography
-              variant="overline"
-              component="div"
-              sx={{
-                color: theme.palette.primary.main,
-                fontWeight: 600,
-                letterSpacing: 1.5,
-                mb: 1,
-              }}
-            >
-              JOIN THE CHALLENGE
-            </Typography>
+          {/* Animated overline with line */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mb: 2,
+        }}
+      >
+        <Box
+          component={motion.div}
+          initial={{ width: 0 }}
+          whileInView={{ width: 40 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          sx={{
+            height: 3,
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 3,
+            mr: 2,
+          }}
+        />
+        <Typography
+          variant="overline"
+          component={motion.div}
+          initial={{ opacity: 0, x: -10 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          viewport={{ once: true }}
+          sx={{
+            color: theme.palette.primary.main,
+            fontWeight: 700,
+            letterSpacing: 2,
+            fontSize: "0.9rem",
+          }}
+        > 
+          JOIN THE CHALLENGE
+        </Typography>
+        <Box
+          component={motion.div}
+          initial={{ width: 0 }}
+          whileInView={{ width: 40 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          sx={{
+            height: 3,
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 3,
+            ml: 2,
+          }}
+        />
+      </Box>
 
             <Typography
               variant="h2"

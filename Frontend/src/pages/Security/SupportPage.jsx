@@ -385,21 +385,7 @@ const SupportPage = () => {
                       }}
                     >
                       <CardContent sx={{ position: 'relative', p: 3 }}>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleFavoriteToggle(article.id)}
-                          sx={{ 
-                            position: 'absolute', 
-                            right: 16, 
-                            top: 16,
-                            color: favoriteArticles.includes(article.id) 
-                              ? 'warning.main' 
-                              : 'action.disabled'
-                          }}
-                        >
-                          {favoriteArticles.includes(article.id) ? <Star /> : <StarBorder />}
-                        </IconButton>
-                        
+                     
                         <Typography 
                           variant="h6" 
                           component={Link} 
@@ -546,18 +532,7 @@ const SupportPage = () => {
                           }}
                         >
                           <CardContent sx={{ position: 'relative', p: 3 }}>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleFavoriteToggle(article.id)}
-                              sx={{ 
-                                position: 'absolute', 
-                                right: 16, 
-                                top: 16,
-                                color: 'warning.main' 
-                              }}
-                            >
-                              <Star />
-                            </IconButton>
+                            
                             
                             <Typography 
                               variant="h6" 

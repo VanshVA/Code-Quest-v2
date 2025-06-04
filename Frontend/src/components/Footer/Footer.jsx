@@ -67,7 +67,7 @@ const footerLinks = [
     links: [
       { name: 'About Us', path: '/about' },
       { name: 'Contact', path: '/contact' },
-      { name: 'Blog', path: '/blog' },
+      { name: 'Testimonial', path: '/Testimonial' },
       { name: 'Feedback', path: '/feedback' },
     ]
   },
@@ -85,6 +85,7 @@ const footerLinks = [
 
 const Footer = ({ isAuthenticated = false }) => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { toggleColorMode } = useColorMode();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -265,7 +266,7 @@ const Footer = ({ isAuthenticated = false }) => {
                   direction="row" 
                   spacing={1.5}
                 >
-                  {socialLinks.map((social, index) => (
+                  {socialLinks.map((social, index) => ( 
                     <IconButton
                       key={social.name}
                       color="primary"
@@ -278,6 +279,7 @@ const Footer = ({ isAuthenticated = false }) => {
                         backgroundColor: theme.palette.mode === 'dark' 
                           ? 'rgba(255,255,255,0.05)'
                           : 'rgba(0,0,0,0.03)',
+                          color:isDark ? 'white' : 'black',
                         '&:hover': { 
                           scale: 1.1,
                           backgroundColor: theme.palette.primary.main,

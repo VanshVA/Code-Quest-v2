@@ -49,6 +49,7 @@ import {
   Logout,
   QuestionAnswer,
 } from '@mui/icons-material';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { useColorMode } from '../../context/ThemeContext';
 
@@ -365,7 +366,7 @@ const Navbar = ({ isAuthenticated = false }) => {
       ) : (
         <Box sx={{ p: 2 }}>
           <Button
-            fullWidth
+            fullWidth 
             variant="contained"
             color="primary"
             component={RouterLink}
@@ -680,7 +681,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                           ))}
                         </Box>
                       </Popover>
-                    )}
+                    )} 
                   </Box>
                 ))}
               </Box>
@@ -855,7 +856,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                         sx={{
                           py: 1,
                           px: 3,
-                          color: scrolled ? theme.palette.primary.main : '#fff',
+                          color: scrolled ? "#f47061" : '#fff',
                           border: `2px solid ${scrolled ? theme.palette.primary.main : '#fff'}`,
                           borderRadius: '50px',
                           textDecoration: 'none',
@@ -865,6 +866,7 @@ const Navbar = ({ isAuthenticated = false }) => {
                           alignItems: 'center',
                           transition: 'all 0.3s ease',
                           '&:hover': {
+                            color: scrolled ? '#f47061' : '#fff',
                             backgroundColor: scrolled ? 'rgba(188, 64, 55, 0.04)' : 'rgba(255, 255, 255, 0.1)',
                           }
                         }}
@@ -892,8 +894,11 @@ const Navbar = ({ isAuthenticated = false }) => {
                           fontSize: '0.9rem',
                           display: 'flex',
                           alignItems: 'center',
-                          // FIX 3: Reduced box-shadow for Sign Up button
-                          // boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                          '&:hover': {
+                            color: scrolled ? '#fff' : '#fff',
+                      
+                          }
+                         
                         }}
                       >
                         Sign Up

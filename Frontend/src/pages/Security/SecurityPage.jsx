@@ -323,7 +323,7 @@ const SecurityPage = () => {
             <Box>
               <Grid container spacing={3}>
                 {securityFeatures.map((feature, index) => (
-                  <Grid item xs={12} md={6} key={feature.title}>
+                  <Grid item xs={12} md={6} key={feature.title} sx={{minWidth:"100%"}}>
                     <MotionCard 
                       elevation={1}
                       initial={{ opacity: 0, y: 20 }}
@@ -488,8 +488,8 @@ const SecurityPage = () => {
                 Our platform is designed with security and compliance in mind. Below you can find information about our compliance certifications and download relevant documentation.
               </Alert>
               
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
+              <Grid container spacing={4} sx={{  minWidth: '100%' }}>
+                <Grid item xs={12} md={6} sx={{ justifyContent: 'center', display: 'flex', alignItems:"center",  }}>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
                     Compliance Certifications
                   </Typography>
@@ -635,85 +635,7 @@ const SecurityPage = () => {
           </Grid>
         </Box>
         
-        {/* Security Resources */}
-        <Box sx={{ mb: 6 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
-            Security Resources
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={4}>
-              <ResourceCard
-                title="Security Best Practices"
-                description="Learn how to enhance your account security and protect your data"
-                link="/security/best-practices"
-                color="#3f51b5"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <ResourceCard
-                title="Bug Bounty Program"
-                description="Help improve our platform security and earn rewards"
-                link="/security/bug-bounty"
-                color="#ff9800"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <ResourceCard
-                title="Security FAQ"
-                description="Find answers to common security questions"
-                link="/security/faq"
-                color="#009688"
-              />
-            </Grid>
-          </Grid>
-        </Box>
-        
-        {/* Contact Security Team */}
-        <Box 
-          sx={{ 
-            bgcolor: isDark ? 'rgba(0, 0, 0, 0.15)' : '#f0f7ff',
-            p: { xs: 3, md: 4 },
-            borderRadius: 2,
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
-          }}
-        >
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                Contact Our Security Team
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                If you believe you've found a security vulnerability or have concerns about our platform's security, please contact us directly.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  component={RouterLink}
-                  to="/security/report"
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
-                >
-                  Report a Vulnerability
-                </Button>
-                <Button
-                  variant="outlined"
-                  href="mailto:security@codequest.com"
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
-                >
-                  Email Security Team
-                </Button>
-              </Stack>
-            </Grid>
-            <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'block' } }}>
-              <Box 
-                component="img"
-                src="/assets/security-contact.svg"
-                alt="Contact Security Team"
-                sx={{ maxWidth: '100%', display: 'block', mx: 'auto' }}
-              />
-            </Grid>
-          </Grid>
-        </Box>
+       
       </Container>
       
     </Box>

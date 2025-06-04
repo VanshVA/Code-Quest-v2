@@ -1431,7 +1431,7 @@ const AboutPage = () => {
                   </Typography>
                   <Typography 
                     variant="body1"
-                    color="primary"
+                    color={isDark ? 'white' : '#3B5966'}
                     sx={{ fontWeight: 600 }}
                   >
                     contact@code-quest.com
@@ -1465,7 +1465,7 @@ const AboutPage = () => {
                   </Typography>
                   <Typography 
                     variant="body1"
-                    sx={{ color: '#3a47d5', fontWeight: 600 }}
+                    sx={{ color: isDark ? 'white': "#3B5966", fontWeight: 600 }}
                   >
                     support@code-quest.com
                   </Typography>
@@ -1498,7 +1498,7 @@ const AboutPage = () => {
                   </Typography>
                   <Typography 
                     variant="body1"
-                    sx={{ color: '#2C3E50', fontWeight: 600 }}
+                    sx={{ color: isDark ? 'white': "#3B5966", fontWeight: 600 }}
                   >
                     partners@code-quest.com
                   </Typography>
@@ -1509,7 +1509,6 @@ const AboutPage = () => {
             <Box sx={{ mt: 6 }}>
               <Button
                 variant="contained"
-                color="primary"
                 size="large"
                 component={RouterLink}
                 to="/contact"
@@ -1519,7 +1518,16 @@ const AboutPage = () => {
                   py: 1.5,
                   background: theme.palette.gradients.primary,
                   fontWeight: 600,
+                  color: isDark ? 'white': "#3B5966",
                   textTransform: 'none',
+                  "&:hover": {
+                   
+                    color: "white",
+                    transform: "translateY(-3px)",
+                    "&::after": {
+                      left: "100%",
+                    },
+                  },
                 }}
                 endIcon={<ArrowForward />}
               >

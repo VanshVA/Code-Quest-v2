@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import emailjs from '@emailjs/browser';
 import {
   Alert,
   Avatar,
@@ -44,9 +45,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
-// Current date and user info as specified
-const CURRENT_DATE_TIME = "2025-05-30 19:18:20";
-const CURRENT_USER = "Anuj-prajapati-SDE";
+
 
 // Contact information
 const contactInfo = {
@@ -58,119 +57,143 @@ const contactInfo = {
     { name: "LinkedIn", icon: <LinkedIn />, url: "https://linkedin.com/company/code-quest" },
     { name: "Twitter", icon: <Twitter />, url: "https://twitter.com/codequest" },
     { name: "GitHub", icon: <GitHub />, url: "https://github.com/VanshVA/Code-Quest-v2" },
-
-
   ]
 };
-
-// Support departments
-const departments = [
-  { value: "technical", label: "Technical Support" },
-  { value: "billing", label: "Billing & Payments" },
-  { value: "account", label: "Account Management" },
-  { value: "partnership", label: "Business Partnership" },
-  { value: "careers", label: "Careers & Opportunities" }
-];
-
 const ContactPage = () => {
   const theme = useTheme();
   const MotionBox = motion(Box);
   const MotionTypography = motion(Typography);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
-  
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    department: '',
+   
     message: '',
   });
-  
+
   const [formErrors, setFormErrors] = useState({});
   const [submitStatus, setSubmitStatus] = useState(null);
-  
+
+  // Add a form reference for EmailJS (not strictly needed for .send, but kept for your structure)
+  const formRef = useRef();
+
   // Validate form
   const validateForm = () => {
     const errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\+?[0-9\s\-()]{8,20}$/;
-    
+
     if (!formData.name.trim()) {
       errors.name = 'Name is required';
     }
-    
+
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
     } else if (!emailRegex.test(formData.email.trim())) {
       errors.email = 'Please enter a valid email address';
     }
-    
+
     if (formData.phone.trim() && !phoneRegex.test(formData.phone.trim())) {
       errors.phone = 'Please enter a valid phone number';
     }
-    
-    if (!formData.department) {
-      errors.department = 'Please select a department';
-    }
-    
+
     if (!formData.message.trim()) {
       errors.message = 'Message is required';
     } else if (formData.message.trim().length < 20) {
       errors.message = 'Message should be at least 20 characters long';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
+
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when field is edited
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: null }));
     }
   };
-  
-  // Handle form submission
+
+  // Handle form submission with EmailJS integration
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
-      // Simulate API call
       setSubmitStatus('loading');
-      
-      setTimeout(() => {
-        setSubmitStatus('success');
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          department: '',
-          message: '',
+
+      // ====== REPLACE THESE WITH YOUR REAL VALUES FROM EMAILJS DASHBOARD ======
+      const serviceId = 'service_nauuuy2';         // EmailJS service ID
+      const templateId = 'template_vev11b5';       // EmailJS template ID
+      const publicKey = 'MoEOsizhLlz0mBZix';// <-- MUST start with 'public_'
+      // =======================================================================
+
+      // Format current date and time
+      const now = new Date();
+      const formattedDateTime = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+
+      // Prepare template parameters based on your form data
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        from_phone: formData.phone || 'Not provided',
+        message: formData.message,
+        submission_time: formattedDateTime
+      };
+
+      // Send email using EmailJS
+      emailjs.send(serviceId, templateId, templateParams, publicKey)
+        .then((response) => {
+          console.log('SUCCESS!', response.status, response.text);
+          setSubmitStatus('success');
+
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+   
+            message: '',
+          });
+
+          setTimeout(() => {
+            setSubmitStatus(null);
+          }, 5000);
+        })
+        .catch((error) => {
+          // Enhanced logging: show exact error from EmailJS
+          if (error && error.text) {
+            alert('EmailJS Error: ' + error.text);
+          }
+          console.error('EmailJS FAILED:', error);
+          setSubmitStatus('error');
         });
-        
-        // Reset after some time
-        setTimeout(() => {
-          setSubmitStatus(null);
-        }, 5000);
-      }, 1500);
     } else {
       setSubmitStatus('error');
     }
   };
-  
+
   // Handle alert close
   const handleCloseAlert = () => {
     setSubmitStatus(null);
   };
 
+  // The rest of your UI remains untouched...
   return (
-    <Box sx={{ bgcolor: isDark ? 'background.default' : '#f8f9fa', minHeight: '100vh' }}>
+   <Box sx={{ bgcolor: isDark ? 'background.default' : '#f8f9fa', minHeight: '100vh' }}>
       
        {/* Hero Section */}
             <Box 
@@ -452,6 +475,7 @@ const ContactPage = () => {
               <Box 
                 component="form" 
                 onSubmit={handleSubmit}
+                ref={formRef}
                 sx={{ mt: 4 }}
                 noValidate
               >
@@ -527,8 +551,8 @@ const ContactPage = () => {
                       />
                     </FormControl>
                   </Grid>
+
               
-                  
                   <Grid item xs={12}   sx={{minWidth:"100%"}}>
                     <FormControl  error={!!formErrors.message} sx={{minWidth:"100%"}}>
                       <TextField
@@ -543,7 +567,7 @@ const ContactPage = () => {
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5, mr: 1 }}>
-                              <MessageOutlined   sx={{color:isDark ? 'white' : 'black'}} />
+                              <MessageOutlined   sx={{color:isDark ? 'white' : 'black', position:"relative", top:"-10px"}} />
                             </InputAdornment>
                           ),
                           sx: { borderRadius: '8px' }
@@ -596,6 +620,28 @@ const ContactPage = () => {
                   </Grid>
                 </Grid>
               </Box>
+
+              {/* Success/Error Alert - Adding these to handle EmailJS responses */}
+              {submitStatus === 'success' && (
+                <Alert 
+                  severity="success"
+                  sx={{ mt: 3, borderRadius: '8px' }}
+                  icon={<CheckCircle />}
+                  onClose={handleCloseAlert}
+                >
+                  Your message has been sent successfully. We'll get back to you soon!
+                </Alert>
+              )}
+              
+              {submitStatus === 'error' && (
+                <Alert 
+                  severity="error"
+                  sx={{ mt: 3, borderRadius: '8px' }}
+                  onClose={handleCloseAlert}
+                >
+                  There was an error sending your message. Please try again later.
+                </Alert>
+              )}
             </Paper>
           </Grid>
           
@@ -685,15 +731,11 @@ const ContactPage = () => {
           </Grid>
         </Grid>
       </Container>
-      
-    
-      
-    
     </Box>
   );
 };
 
-// FAQ Component
+// FAQ Component remains the same
 const FAQ = ({ question, answer }) => {
   return (
     <Box>

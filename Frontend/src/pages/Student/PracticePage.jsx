@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     Box, Typography, Paper, Button, CircularProgress,
-    Tab, Tabs, Divider, Grid, IconButton,
+    Tab, Tabs, Divider, Grid, IconButton, Snackbar, Alert,
     Breadcrumbs, Link, Select, MenuItem, FormControl, InputLabel,
     Card, CardContent, Stack, Tooltip, alpha, useTheme,
     Chip, LinearProgress
 } from '@mui/material';
-import toast, { Toaster } from 'react-hot-toast';
 import {
     Refresh, Save, Delete, NavigateNext, Code as CodeIcon,
     EmojiEvents as TrophyIcon, Assignment, Timer as TimerIcon,
@@ -140,7 +139,11 @@ const PracticePage = () => {
         // Simulate refreshing stats
         setTimeout(() => {
             setRefreshing(false);
-            toast.success('Stats refreshed successfully!');
+            setNotification({
+                open: true,
+                message: 'Stats refreshed successfully!',
+                severity: 'success'
+            });
         }, 1500);
     };
 
@@ -288,7 +291,11 @@ const PracticePage = () => {
         setLastSaved(now);
 
         if (!isAutoSave) {
-            toast.success('Progress saved to browser storage');
+            setNotification({
+                open: true,
+                message: 'Progress saved to browser storage',
+                severity: 'success'
+            });
         }
     };
 
@@ -300,7 +307,11 @@ const PracticePage = () => {
         setOutput('');
         setLastSaved(null);
 
-        toast.info('All progress cleared');
+        setNotification({
+            open: true,
+            message: 'All progress cleared',
+            severity: 'info'
+        });
     };
 
     // Handle language change
@@ -346,9 +357,6 @@ const PracticePage = () => {
                 pt: 2
             }}
         >
-            {/* Toast Container */}
-            <Toaster position="top-center" />
-            
             {/* Welcome Banner */}
             <MotionBox
                 initial={{ opacity: 0, y: 20 }}
@@ -857,6 +865,18 @@ const PracticePage = () => {
                     </Box>
                 </Card>
             </MotionBox>
+
+            {/* Notification */}
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={4000}
+                onClose={handleCloseNotification}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: '100%' }}>
+                    {notification.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

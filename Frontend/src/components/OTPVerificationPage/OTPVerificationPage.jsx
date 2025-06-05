@@ -30,7 +30,6 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import authService from '../../services/authService';
-import toast, { Toaster } from 'react-hot-toast'; // Import react-hot-toast
 
 // Current date and user info from global state
 const CURRENT_DATE_TIME = "2025-05-30 04:25:46";
@@ -62,6 +61,7 @@ const OTPVerificationPage = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState('');
   const [remainingTime, setRemainingTime] = useState(120); // 2 minutes countdown
+  const [statusAlert, setStatusAlert] = useState({ show: false, type: '', message: '' });
   
   // Refs for OTP input fields
   const inputRefs = useRef([]);
@@ -243,58 +243,105 @@ const OTPVerificationPage = () => {
   // Resend OTP - updated with API integration
   const handleResendOtp = async () => {
     try {
+      setStatusAlert({
+        show: true,
+        type: 'info',
+        message: 'Sending new verification code...',
+      });
+      
+      // API call to resend OTP
+      if (verificationType === 'signup') {
+        await authService.resendSignupOTP(email);
+      } else {
+        await authService.requestPasswordResetOTP(email);
+      }
+      
+      // Reset OTP fields
+      setOtpDigits(['', '', '', '', '', '']);
+      
+      // Reset error
+      setError('');
+      
+      // Reset timer
       setRemainingTime(120);
       
-      // Show loading toast
-      const loadingToast = toast.loading('Sending new OTP...');
+      // Show success alert
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: 'A new verification code has been sent to your email.',
+      });
       
-      // Make API call to resend OTP
-      const response = await authService.resendOtp(email, verificationType);
-      
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast);
-      toast.success('New OTP sent to your email address');
+      // Focus on first input
+      if (inputRefs.current[0]) {
+        inputRefs.current[0].focus();
+      }
     } catch (error) {
-      toast.error(error.message || 'Failed to resend OTP. Please try again.');
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Failed to resend verification code. Please try again.',
+      });
     }
   };
   
   // Verify OTP - updated with API integration
   const handleVerifyOtp = async () => {
+    // Check if all digits are entered
+    if (otpDigits.some(digit => digit === '')) {
+      setError('Please enter all digits of the verification code');
+      return;
+    }
+    
+    // Start verification process
+    setIsVerifying(true);
+    
     try {
-      setIsVerifying(true);
+      const enteredOtp = otpDigits.join('');
       
-      // Join the OTP digits
-      const otpValue = otpDigits.join('');
-      
-      // Validate OTP format
-      if (otpValue.length !== 6 || !/^\d+$/.test(otpValue)) {
-        toast.error('Please enter a valid 6-digit OTP');
-        return;
+      let response;
+      if (verificationType === 'signup') {
+        // Call signup OTP verification
+        response = await authService.verifySignupOTP(email, enteredOtp);
+      } else {
+        // Call password reset OTP verification
+        response = await authService.verifyPasswordResetOTP(email, enteredOtp);
       }
       
-      // Make API call to verify OTP
-      const response = await authService.verifySignOTP(email, otpValue, verificationType);
-      
-      // Handle verification success
       setIsVerified(true);
-      toast.success('Email verified successfully!');
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: verificationType === 'signup' 
+          ? 'Your account has been verified successfully!' 
+          : 'Verification successful! You can now reset your password.',
+      });
       
       // Redirect based on verification type
       setTimeout(() => {
         if (verificationType === 'signup') {
-          navigate('/login');
-        } else if (verificationType === 'reset-password') {
-          navigate(`/reset-password?email=${encodeURIComponent(email)}`);
+          // For signup, redirect to dashboard or login
+          navigate('/dashboard');
         } else {
-          navigate('/');
+          // For password reset, redirect to reset password page
+          navigate(`/reset-password?email=${encodeURIComponent(email)}`);
         }
       }, 2000);
     } catch (error) {
-      toast.error(error.message || 'Invalid OTP. Please try again.');
+      setError('Invalid verification code. Please try again.');
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Invalid verification code. Please check and try again.',
+      });
     } finally {
       setIsVerifying(false);
     }
+  };
+  
+  // Handle alert close
+  const handleCloseAlert = () => {
+    setStatusAlert({ ...statusAlert, show: false });
   };
   
   // Update headings based on verification type
@@ -316,425 +363,439 @@ const OTPVerificationPage = () => {
   }, []);
 
   return (
-    <>
-      <Toaster position="top-center" />
-      <Box
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 4,
+        position: 'relative',
+      }}
+    >
+      {/* Canvas Background for Premium Gradient Animation */}
+      <Box sx={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+        overflow: 'hidden',
+      }}>
+        <canvas 
+          ref={canvasRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        />
+        {/* Overlay for better text contrast */}
+        <Box 
+          sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(30px)',
+          }} 
+        />
+      </Box>
+      
+      {/* Current Time Display */}
+      <MotionBox
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
         sx={{
-          minHeight: '100vh',
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          zIndex: 10,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          py: 4,
-          position: 'relative',
+          px: 2.5,
+          py: 1,
+          borderRadius: '100px',
+          backdropFilter: 'blur(10px)',
+          backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+          boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
         }}
       >
-        {/* Canvas Background for Premium Gradient Animation */}
-        <Box sx={{ 
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: -1,
-          overflow: 'hidden',
-        }}>
-          <canvas 
-            ref={canvasRef}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-            }}
-          />
-          {/* Overlay for better text contrast */}
-          <Box 
-            sx={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.85)' : 'rgba(255, 255, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-            }} 
-          />
-        </Box>
-        
-        {/* Current Time Display */}
-        <MotionBox
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        <Typography
+          variant="body2" 
           sx={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            zIndex: 10,
+            fontFamily: 'monospace',
+            fontWeight: 500,
             display: 'flex',
             alignItems: 'center',
-            px: 2.5,
-            py: 1,
-            borderRadius: '100px',
-            backdropFilter: 'blur(10px)',
-            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-            border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
-            boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+            color: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.7)',
           }}
         >
-          <Typography
-            variant="body2" 
+          UTC: {CURRENT_DATE_TIME}
+          <Box 
+            component="span"
             sx={{
-              fontFamily: 'monospace',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              color: isDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.7)',
+              display: 'inline-block',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: theme.palette.success.main,
+              ml: 1.5,
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%': { opacity: 0.6, transform: 'scale(0.9)' },
+                '50%': { opacity: 1, transform: 'scale(1.1)' },
+                '100%': { opacity: 0.6, transform: 'scale(0.9)' },
+              },
             }}
-          >
-            UTC: {CURRENT_DATE_TIME}
-            <Box 
-              component="span"
-              sx={{
-                display: 'inline-block',
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                backgroundColor: theme.palette.success.main,
-                ml: 1.5,
-                animation: 'pulse 2s infinite',
-                '@keyframes pulse': {
-                  '0%': { opacity: 0.6, transform: 'scale(0.9)' },
-                  '50%': { opacity: 1, transform: 'scale(1.1)' },
-                  '100%': { opacity: 0.6, transform: 'scale(0.9)' },
-                },
-              }}
-            />
-          </Typography>
-        </MotionBox>
-        
-        {/* Main Content */}
-        <Container maxWidth="xs">
-          <MotionPaper
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            sx={{ 
-              p: { xs: 3, md: 5 }, 
-              borderRadius: '24px',
-              backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-              backdropFilter: 'blur(24px)',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
-              boxShadow: isDark ? '0 25px 65px rgba(0, 0, 0, 0.3)' : '0 25px 65px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            {!isVerified ? (
-              <>
-                {/* Title and Description */}
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
-                  <Box 
-                    sx={{ 
-                      display: 'flex',
-                      justifyContent: 'center',
-                      mb: 2,
+          />
+        </Typography>
+      </MotionBox>
+      
+      {/* Main Content */}
+      <Container maxWidth="xs">
+        <MotionPaper
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          sx={{ 
+            p: { xs: 3, md: 5 }, 
+            borderRadius: '24px',
+            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+            backdropFilter: 'blur(24px)',
+            border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'}`,
+            boxShadow: isDark ? '0 25px 65px rgba(0, 0, 0, 0.3)' : '0 25px 65px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          {!isVerified ? (
+            <>
+              {/* Title and Description */}
+              <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <Box 
+                  sx={{ 
+                    display: 'flex',
+                    justifyContent: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <MotionBox
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 20,
+                      delay: 0.2,
                     }}
                   >
-                    <MotionBox
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ 
-                        type: "spring",
-                        stiffness: 260,
-                        damping: 20,
-                        delay: 0.2,
+                    <Box 
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: '16px',
+                        background: theme.palette.gradients.primary,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 12px 24px rgba(188, 64, 55, 0.3)',
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
                     >
+                      {/* Shine animation */}
                       <Box 
-                        sx={{
-                          width: 60,
-                          height: 60,
-                          borderRadius: '16px',
-                          background: theme.palette.gradients.primary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          boxShadow: '0 12px 24px rgba(188, 64, 55, 0.3)',
-                          position: 'relative',
-                          overflow: 'hidden',
+                        component={motion.div}
+                        animate={{
+                          x: ['-100%', '100%'],
                         }}
-                      >
-                        {/* Shine animation */}
-                        <Box 
-                          component={motion.div}
-                          animate={{
-                            x: ['-100%', '100%'],
-                          }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            repeatDelay: 3,
-                          }}
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
-                            zIndex: 1,
-                          }}
-                        />
-                        <VerifiedUser sx={{ color: 'white', fontSize: '2rem', zIndex: 2 }} />
-                      </Box>
-                    </MotionBox>
-                  </Box>
-                  <MotionTypography 
-                    variant="h4"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    sx={{ 
-                      fontWeight: 800,
-                      mb: 1,
-                    }}
-                  >
-                    {getPageTitle()}
-                  </MotionTypography>
-                  <MotionTypography
-                    variant="body1"
-                    color="textSecondary"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    sx={{ mb: 1 }}
-                  >
-                    {getVerificationMessage()}
-                  </MotionTypography>
-                  <MotionTypography
-                    variant="body1"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                    sx={{ fontWeight: 600 }}
-                  >
-                    {email}
-                  </MotionTypography>
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          repeatDelay: 3,
+                        }}
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                          zIndex: 1,
+                        }}
+                      />
+                      <VerifiedUser sx={{ color: 'white', fontSize: '2rem', zIndex: 2 }} />
+                    </Box>
+                  </MotionBox>
                 </Box>
-                
-                {/* OTP Input */}
-                <Box sx={{ mb: 4 }}>
-                  <Box 
-                    sx={{ 
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: { xs: 1, sm: 2 },
-                    }}
-                  >
-                    {otpDigits.map((digit, index) => (
-                      <TextField
-                        key={index}
-                        inputRef={(el) => (inputRefs.current[index] = el)}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(e, index)}
-                        onKeyDown={(e) => handleKeyDown(e, index)}
-                        onPaste={index === 0 ? handlePaste : null}
-                        variant="outlined"
-                        inputProps={{ 
-                          maxLength: 1,
-                          style: { 
-                            textAlign: 'center',
-                            fontSize: '1.5rem',
-                            fontWeight: 700,
-                            padding: '12px 0',
-                          }
-                        }}
-                        sx={{
-                          width: '100%',
-                          maxWidth: '50px',
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                            '&.Mui-focused': {
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: theme.palette.primary.main,
-                                borderWidth: 2,
+                <MotionTypography 
+                  variant="h4"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  sx={{ 
+                    fontWeight: 800,
+                    mb: 1,
+                  }}
+                >
+                  {getPageTitle()}
+                </MotionTypography>
+                <MotionTypography
+                  variant="body1"
+                  color="textSecondary"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  sx={{ mb: 1 }}
+                >
+                  {getVerificationMessage()}
+                </MotionTypography>
+                <MotionTypography
+                  variant="body1"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                  sx={{ fontWeight: 600 }}
+                >
+                  {email}
+                </MotionTypography>
+              </Box>
+              
+              {/* OTP Input */}
+              <Box sx={{ mb: 4 }}>
+                <Box 
+                  sx={{ 
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: { xs: 1, sm: 2 },
+                  }}
+                >
+                  {otpDigits.map((digit, index) => (
+                    <TextField
+                      key={index}
+                      inputRef={(el) => (inputRefs.current[index] = el)}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(e, index)}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
+                      onPaste={index === 0 ? handlePaste : null}
+                      variant="outlined"
+                      inputProps={{ 
+                        maxLength: 1,
+                        style: { 
+                          textAlign: 'center',
+                          fontSize: '1.5rem',
+                          fontWeight: 700,
+                          padding: '12px 0',
+                        }
+                      }}
+                      sx={{
+                        width: '100%',
+                        maxWidth: '50px',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '12px',
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.primary.main,
+                              borderWidth: 2,
                             }
                           }
                         }
-                        }}
-                        error={!!error && digit === ''}
-                      />
-                    ))}
-                  </Box>
-                  {error && (
-                    <FormHelperText error sx={{ textAlign: 'center', mt: 1 }}>
-                      {error}
-                    </FormHelperText>
-                  )}
-                </Box>
-                
-                {/* Verify Button */}
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  onClick={handleVerifyOtp}
-                  disabled={isVerifying || otpDigits.some(digit => digit === '')}
-                  sx={{ 
-                    mt: 1,
-                    borderRadius: '12px',
-                    py: 1.8,
-                    background: theme.palette.gradients.primary,
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: '-100%',
-                      width: '100%',
-                      height: '100%',
-                      background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
-                      transition: 'all 0.5s ease',
-                    },
-                    '&:hover': {
-                      boxShadow: '0 10px 20px rgba(188, 64, 55, 0.3)',
-                      '&::after': {
-                        left: '100%',
-                      }
-                    },
-                  }}
-                >
-                  {isVerifying ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Verify Code'
-                  )}
-                </Button>
-                
-                {/* Resend Code */}
-                <Box sx={{ mt: 4, textAlign: 'center' }}>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    Didn't receive the code?
-                  </Typography>
-                  {remainingTime > 0 ? (
-                    <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace' }}>
-                      Resend in {formatTime(remainingTime)}
-                    </Typography>
-                  ) : (
-                    <Button
-                      variant="text"
-                      color="primary"
-                      onClick={handleResendOtp}
-                      startIcon={<Refresh />}
-                      sx={{ 
-                        textTransform: 'none',
-                        fontWeight: 600,
                       }}
-                    >
-                      Resend Code
-                    </Button>
-                  )}
+                      error={!!error && digit === ''}
+                    />
+                  ))}
                 </Box>
-                
-                {/* Back Link */}
-                <Box sx={{ mt: 4, textAlign: 'center' }}>
+                {error && (
+                  <FormHelperText error sx={{ textAlign: 'center', mt: 1 }}>
+                    {error}
+                  </FormHelperText>
+                )}
+              </Box>
+              
+              {/* Verify Button */}
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                onClick={handleVerifyOtp}
+                disabled={isVerifying || otpDigits.some(digit => digit === '')}
+                sx={{ 
+                  mt: 1,
+                  borderRadius: '12px',
+                  py: 1.8,
+                  background: theme.palette.gradients.primary,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  fontSize: '1rem',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: '-100%',
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                    transition: 'all 0.5s ease',
+                  },
+                  '&:hover': {
+                    boxShadow: '0 10px 20px rgba(188, 64, 55, 0.3)',
+                    '&::after': {
+                      left: '100%',
+                    }
+                  },
+                }}
+              >
+                {isVerifying ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Verify Code'
+                )}
+              </Button>
+              
+              {/* Resend Code */}
+              <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  Didn't receive the code?
+                </Typography>
+                {remainingTime > 0 ? (
+                  <Typography variant="body2" sx={{ fontWeight: 600, fontFamily: 'monospace' }}>
+                    Resend in {formatTime(remainingTime)}
+                  </Typography>
+                ) : (
                   <Button
-                    component={RouterLink}
-                    to={verificationType === 'signup' ? '/signup' : '/forgot-password'}
-                    startIcon={<ArrowBack />}
+                    variant="text"
+                    color="primary"
+                    onClick={handleResendOtp}
+                    startIcon={<Refresh />}
                     sx={{ 
                       textTransform: 'none',
                       fontWeight: 600,
                     }}
                   >
-                    {verificationType === 'signup' ? 'Back to Signup' : 'Back to Forgot Password'}
+                    Resend Code
                   </Button>
-                </Box>
-              </>
-            ) : (
-              // Success Message - updated for different verification types
-              <Box sx={{ textAlign: 'center', py: 2 }}>
-                <MotionBox
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20,
-                  }}
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    backgroundColor: theme.palette.success.main,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto',
-                    mb: 3,
-                    boxShadow: '0 12px 24px rgba(76, 175, 80, 0.3)',
+                )}
+              </Box>
+              
+              {/* Back Link */}
+              <Box sx={{ mt: 4, textAlign: 'center' }}>
+                <Button
+                  component={RouterLink}
+                  to={verificationType === 'signup' ? '/signup' : '/forgot-password'}
+                  startIcon={<ArrowBack />}
+                  sx={{ 
+                    textTransform: 'none',
+                    fontWeight: 600,
                   }}
                 >
-                  <CheckCircleOutline sx={{ fontSize: 50, color: 'white' }} />
-                </MotionBox>
-                <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-                  Verification Successful
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
-                  {verificationType === 'signup' 
-                    ? 'Your account has been verified successfully. You will be redirected to the dashboard shortly.' 
-                    : 'Your identity has been verified. You will be redirected to reset your password.'}
-                </Typography>
-                <CircularProgress size={30} color="primary" />
+                  {verificationType === 'signup' ? 'Back to Signup' : 'Back to Forgot Password'}
+                </Button>
               </Box>
-            )}
-          </MotionPaper>
-          
-          {/* Footer */}
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Typography variant="caption" color="textSecondary">
-              © {new Date().getFullYear()} Code-Quest. All rights reserved.
-            </Typography>
-            <Box sx={{ mt: 1 }}>
-              <Link 
-                component={RouterLink} 
-                to="/terms"
-                variant="caption"
-                color="textSecondary"
-                underline="hover"
-                sx={{ mx: 1 }}
+            </>
+          ) : (
+            // Success Message - updated for different verification types
+            <Box sx={{ textAlign: 'center', py: 2 }}>
+              <MotionBox
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20,
+                }}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  backgroundColor: theme.palette.success.main,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto',
+                  mb: 3,
+                  boxShadow: '0 12px 24px rgba(76, 175, 80, 0.3)',
+                }}
               >
-                Terms of Service
-              </Link>
-              <Link 
-                component={RouterLink} 
-                to="/privacy"
-                variant="caption"
-                color="textSecondary"
-                underline="hover"
-                sx={{ mx: 1 }}
-              >
-                Privacy Policy
-              </Link>
-              <Link 
-                component={RouterLink} 
-                to="/help"
-                variant="caption"
-                color="textSecondary"
-                underline="hover"
-                sx={{ mx: 1 }}
-              >
-                Help Center
-              </Link>
+                <CheckCircleOutline sx={{ fontSize: 50, color: 'white' }} />
+              </MotionBox>
+              <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+                Verification Successful
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary' }}>
+                {verificationType === 'signup' 
+                  ? 'Your account has been verified successfully. You will be redirected to the dashboard shortly.' 
+                  : 'Your identity has been verified. You will be redirected to reset your password.'}
+              </Typography>
+              <CircularProgress size={30} color="primary" />
             </Box>
+          )}
+        </MotionPaper>
+        
+        {/* Footer */}
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Typography variant="caption" color="textSecondary">
+            © {new Date().getFullYear()} Code-Quest. All rights reserved.
+          </Typography>
+          <Box sx={{ mt: 1 }}>
+            <Link 
+              component={RouterLink} 
+              to="/terms"
+              variant="caption"
+              color="textSecondary"
+              underline="hover"
+              sx={{ mx: 1 }}
+            >
+              Terms of Service
+            </Link>
+            <Link 
+              component={RouterLink} 
+              to="/privacy"
+              variant="caption"
+              color="textSecondary"
+              underline="hover"
+              sx={{ mx: 1 }}
+            >
+              Privacy Policy
+            </Link>
+            <Link 
+              component={RouterLink} 
+              to="/help"
+              variant="caption"
+              color="textSecondary"
+              underline="hover"
+              sx={{ mx: 1 }}
+            >
+              Help Center
+            </Link>
           </Box>
-        </Container>
-      </Box>
-    </>
+        </Box>
+      </Container>
+      
+      {/* Status Alert */}
+      <Snackbar
+        open={statusAlert.show}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={statusAlert.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {statusAlert.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

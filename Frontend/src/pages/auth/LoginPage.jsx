@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -15,6 +16,7 @@ import {
   InputAdornment,
   Link,
   Paper,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -22,7 +24,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import toast, { Toaster } from 'react-hot-toast';
 import {
   Apple,
   GitHub,
@@ -63,6 +64,7 @@ const LoginPage = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loginStatus, setLoginStatus] = useState({ show: false, type: '', message: '' });
   const [isLoading, setIsLoading] = useState(false);
   
   // Enhanced Canvas animation for background
@@ -268,7 +270,11 @@ const LoginPage = () => {
         const response = await authService.login(formData.email, formData.password);
         
         // Handle successful login
-        toast.success('Login successful! Redirecting to dashboard...');
+        setLoginStatus({
+          show: true,
+          type: 'success',
+          message: 'Login successful! Redirecting to dashboard...',
+        });
         
         // If "remember me" is checked, store this preference
         if (formData.rememberMe) {
@@ -282,18 +288,35 @@ const LoginPage = () => {
           navigate('/student/dashboard');
         }, 1500);
       } catch (error) {
-        toast.error(error.message || 'Invalid email or password. Please try again.');
+        setLoginStatus({
+          show: true,
+          type: 'error',
+          message: error.message || 'Invalid email or password. Please try again.',
+        });
       } finally {
         setIsLoading(false);
       }
     } else {
-      toast.error('Please correct the errors in the form.');
+      setLoginStatus({
+        show: true,
+        type: 'error',
+        message: 'Please correct the errors in the form.',
+      });
     }
   };
   
   // Handle social login
   const handleSocialLogin = (provider) => {
-    toast.info(`${provider} login is not implemented yet.`);
+    setLoginStatus({
+      show: true,
+      type: 'info',
+      message: `${provider} login is not implemented yet.`,
+    });
+  };
+  
+  // Close status alert
+  const handleCloseAlert = () => {
+    setLoginStatus({ ...loginStatus, show: false });
   };
 
   return (
@@ -307,9 +330,6 @@ const LoginPage = () => {
         position: 'relative',
       }}
     >
-      {/* Toast Container */}
-      <Toaster position="top-center" />
-      
       {/* Canvas Background for Premium Gradient Animation */}
       <Box sx={{ 
         position: 'fixed',
@@ -343,6 +363,8 @@ const LoginPage = () => {
           }} 
         />
       </Box>
+      
+     
       
       {/* Main Content */}
       <Container maxWidth="sm">
@@ -702,6 +724,23 @@ const LoginPage = () => {
           </Box>
         </Box>
       </Container>
+      
+      {/* Login Status Alert */}
+      <Snackbar
+        open={loginStatus.show}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={loginStatus.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {loginStatus.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

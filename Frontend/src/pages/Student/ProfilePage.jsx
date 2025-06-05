@@ -10,6 +10,10 @@ import {
   Avatar,
   CircularProgress,
   Divider,
+  Alert,
+  Snackbar,
+  Card,
+  CardContent,
   Dialog,
   DialogActions,
   DialogContent,
@@ -51,7 +55,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import dashboardService from '../../services/dashboardService';
-import toast, { Toaster } from 'react-hot-toast';
+
 
 // Create motion variants for animations
 const MotionContainer = motion(Container);
@@ -210,7 +214,11 @@ const ProfilePage = () => {
     fetchProfile().then(() => {
       setTimeout(() => {
         setRefreshing(false);
-        toast.success("Profile refreshed");
+        setNotification({
+          open: true,
+          message: "Profile refreshed",
+          type: "success",
+        });
       }, 800);
     });
   };
@@ -259,7 +267,11 @@ const ProfilePage = () => {
         }));
 
         // Show success notification
-        toast.success("Profile updated successfully");
+        setNotification({
+          open: true,
+          message: "Profile updated successfully",
+          type: "success",
+        });
 
         // Exit edit mode
         setIsEditing(false);
@@ -269,7 +281,11 @@ const ProfilePage = () => {
     } catch (err) {
       console.error("Error updating profile:", err);
 
-      toast.error(err.response?.data?.message || err.message || "Failed to update profile");
+      setNotification({
+        open: true,
+        message: err.response?.data?.message || err.message || "Failed to update profile",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -324,7 +340,11 @@ const ProfilePage = () => {
         });
 
         // Show success notification
-        toast.success("Password updated successfully");
+        setNotification({
+          open: true,
+          message: "Password updated successfully",
+          type: "success",
+        });
       } else {
         throw new Error(response.message || "Failed to update password");
       }
@@ -341,11 +361,23 @@ const ProfilePage = () => {
           currentPassword: "Current password is incorrect",
         });
       } else {
-        toast.error(err.response?.data?.message || err.message || "Failed to update password");
+        setNotification({
+          open: true,
+          message: err.response?.data?.message || err.message || "Failed to update password",
+          type: "error",
+        });
       }
     } finally {
       setSaving(false);
     }
+  };
+
+  // Close notification
+  const handleCloseNotification = () => {
+    setNotification((prev) => ({
+      ...prev,
+      open: false,
+    }));
   };
 
   return (
@@ -356,9 +388,6 @@ const ProfilePage = () => {
     }}
 
     >
-      {/* Toast Container */}
-      <Toaster position="top-center" />
-      
       <Box sx={{ py: 0 }}>
         {/* Welcome Section */}
         <MotionBox
@@ -1162,6 +1191,27 @@ const ProfilePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          variant="filled"
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+          }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

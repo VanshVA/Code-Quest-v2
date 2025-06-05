@@ -577,8 +577,8 @@ const Footer = ({ isAuthenticated = false }) => {
                   sx={{ color: theme.palette.primary.main, mr: 0.5 }} 
                 />
                 <Typography variant="body2" color="text.secondary">
-                  +91 9897868221
-                </Typography>
+                  +91 8445965589
+                </Typography> 
               </Box>
             </Stack>
             

@@ -158,8 +158,308 @@ const features = [
     image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31',
   }
 ];
+import React, { useRef, useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  Divider,
+  Grid,
+  IconButton,
+  Link,
+  Paper,
+  Stack,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  LinearProgress,
+} from '@mui/material';
+import {
+  AccessTime,
+  AutoAwesome,
+  Check,
+  CheckCircleOutline,
+  Code,
+  Dataset,
+  DevicesOutlined,
+  FileDownloadDone,
+  GitHub,
+  KeyboardArrowDown,
+  KeyboardArrowRight,
+  Layers,
+  LockOutlined,
+  QueryStats,
+  Quiz,
+  Search,
+  Shield,
+  Speed,
+  StarOutline,
+  Terminal,
+  ViewInAr,
+} from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { keyframes } from '@emotion/react';
+
+// Current date and user info
+const CURRENT_DATE_TIME = "2025-06-04 22:52:32";
+const CURRENT_USER = "Anuj-prajapati-SDE";
+
+// Motion components
+const MotionBox = motion(Box);
+const MotionTypography = motion(Typography);
+const MotionPaper = motion(Paper);
+const MotionCard = motion(Card);
+const MotionGrid = motion(Grid);
+
+// Sample feature data
+const features = [
+  {
+    id: 'mcq-module',
+    title: 'MCQ Test Module',
+    subtitle: 'Comprehensive knowledge assessment',
+    description: 'Our advanced multiple-choice question system evaluates theoretical understanding across all programming concepts with adaptive difficulty.',
+    icon: <Quiz />,
+    color: '#9c27b0',
+    lightColor: 'rgba(156, 39, 176, 0.1)',
+    highlights: [
+      'Custom question bank with over 5,000 curated problems',
+      'Real-time grading with detailed explanations',
+      'Topic-based organization with difficulty levels',
+      'Anti-cheating measures with randomized question sets'
+    ],
+    image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c',
+  },
+  {
+    id: 'qa-module',
+    title: 'Q&A Session Module',
+    subtitle: 'Deep conceptual understanding',
+    description: 'Test critical thinking with open-ended questions that require detailed explanations, demonstrating true comprehension of programming concepts.',
+    icon: <Terminal />,
+    color: '#2196f3',
+    lightColor: 'rgba(33, 150, 243, 0.1)',
+    highlights: [
+      'AI-assisted grading with human verification',
+      'Keyword detection for concept recognition',
+      'Markdown support for formatting answers',
+      'Plagiarism detection to ensure originality'
+    ],
+    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998',
+  },
+  {
+    id: 'coding-module',
+    title: 'Coding Challenge Module',
+    subtitle: 'Practical programming assessment',
+    description: 'Our advanced coding environment supports multiple languages with real-time execution, testing, and performance analysis for comprehensive skill evaluation.',
+    icon: <Code />,
+    color: '#ff9800',
+    lightColor: 'rgba(255, 152, 0, 0.1)',
+    highlights: [
+      'Support for 15+ programming languages',
+      'Automated test cases with input/output validation',
+      'Code quality and performance metrics',
+      'Interactive debugging tools and syntax highlighting'
+    ],
+    image: 'https://images.unsplash.com/photo-1580894742597-87bc8789db3d',
+  },
+  {
+    id: 'analytics-module',
+    title: 'Advanced Analytics',
+    subtitle: 'Comprehensive performance insights',
+    description: 'Detailed performance analytics provide participants and organizers with insights into strengths, weaknesses, and improvement opportunities.',
+    icon: <QueryStats />,
+    color: '#4caf50',
+    lightColor: 'rgba(76, 175, 80, 0.1)',
+    highlights: [
+      'Visual performance dashboards with historical trends',
+      'Comparative analysis with peer benchmarking',
+      'Topic-specific strength and weakness identification',
+      'Exportable reports for personal development'
+    ],
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
+  },
+  {
+    id: 'security-module',
+    title: 'Enterprise-Grade Security',
+    subtitle: 'Secure competition environment',
+    description: 'Our platform employs industry-leading security measures to ensure fair competitions, protect participant data, and prevent cheating.',
+    icon: <Shield />,
+    color: '#f44336',
+    lightColor: 'rgba(244, 67, 54, 0.1)',
+    highlights: [
+      'End-to-end encryption for all data transmission',
+      'Advanced proctoring with AI-powered monitoring',
+      'Browser lockdown options for critical assessments',
+      'GDPR, FERPA, and SOC 2 compliant infrastructure'
+    ],
+    image: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7',
+  },
+  {
+    id: 'integration-module',
+    title: 'Enterprise Integrations',
+    subtitle: 'Seamless workflow connectivity',
+    description: 'Connect Code Quest with your existing tools and systems through our extensive API and pre-built integrations with popular platforms.',
+    icon: <Dataset />,
+    color: '#3f51b5',
+    lightColor: 'rgba(63, 81, 181, 0.1)',
+    highlights: [
+      'RESTful API with comprehensive documentation',
+      'LMS integrations (Canvas, Moodle, Blackboard)',
+      'Authentication with SSO providers',
+      'Webhooks for custom event handling'
+    ],
+    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31',
+  }
+];
 
 const FeaturePage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
+  
+  // Refs
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  
+  // State
+  const [activeFeature, setActiveFeature] = useState(0);
+  const [showAll, setShowAll] = useState(false);
+  
+  // Canvas animation for background
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resizeCanvas = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight * 2;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+    };
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // Premium gradient orbs class with improved rendering
+    class GradientOrb {
+      constructor() {
+        this.reset();
+      }
+      
+      reset() {
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.opacity = Math.random() * 0.12 + 0.04;
+        
+        // Premium color combinations
+        const colorSets = [
+          { start: '#bc4037', end: '#f47061' }, // Primary red
+          { start: '#9a342d', end: '#bd5c55' }, // Dark red
+          { start: '#2C3E50', end: '#4A6572' }, // Dark blue
+          { start: '#3a47d5', end: '#00d2ff' }, // Blue
+        ];
+        
+        this.colors = colorSets[Math.floor(Math.random() * colorSets.length)];
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        // Bounce effect at edges
+        if (this.x < -this.size) this.x = width + this.size;
+        if (this.x > width + this.size) this.x = -this.size;
+        if (this.y < -this.size) this.y = height + this.size;
+        if (this.y > height + this.size) this.y = -this.size;
+      }
+      
+      draw() {
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.size
+        );
+        
+        const startColor = this.hexToRgba(this.colors.start, this.opacity);
+        const endColor = this.hexToRgba(this.colors.end, 0);
+        
+        gradient.addColorStop(0, startColor);
+        gradient.addColorStop(1, endColor);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+      
+      hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    }
+    
+    // Create optimal number of orbs based on screen size
+    const orbCount = isMobile ? 6 : 10;
+    const orbs = Array(orbCount).fill().map(() => new GradientOrb());
+    
+    // Animation loop with performance optimization
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      
+      orbs.forEach((orb) => {
+        orb.update();
+        orb.draw();
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => {
+      cancelAnimationFrame(animationRef.current);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, [isMobile, isDark]);
+
+  // Floating animation
+  const float = keyframes`
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  `;
+
+  // Glow animation
+  const glow = keyframes`
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  `;
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));

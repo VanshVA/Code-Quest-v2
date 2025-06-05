@@ -1,23 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Avatar,
+  AvatarGroup,
+  Badge,
   Box,
   Button,
   Card,
-  CircularProgress,
-  Collapse,
+  CardContent,
+  Chip,
   Container,
   Divider,
   FormControl,
   Grid,
   IconButton,
   InputAdornment,
+  LinearProgress,
+  Link,
   MenuItem,
   Paper,
   Select,
   Stack,
-  Tab,
-  Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -25,1272 +35,1857 @@ import {
   useTheme,
 } from '@mui/material';
 import {
-  Search,
-  FilterList,
   ArrowDropDown,
-  EmojiEvents,
-  Star,
-  Code,
+  AutoAwesome,
   BarChart,
-  ArrowUpward,
-  WorkspacePremium,
+  Code,
+  EmojiEvents,
+  FilterList,
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+  KeyboardDoubleArrowUp,
+  Language,
+  MoreVert,
+  People,
+  PeopleAlt,
+  Person,
+  Search,
+  Share,
+  Star,
+  StarOutline,
+  Timeline,
+  TrendingUp,
   Verified,
-  Grade,
-  Close,
-  School,
-  Public,
+  Visibility,
+  WorkspacePremium,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { keyframes } from '@emotion/react';
 
-// Sample data for the leaderboard
+// Current date and user info
+const CURRENT_DATE_TIME = "2025-06-04 23:04:30";
+const CURRENT_USER = "Anuj-prajapati-SDE";
+
+// Motion components
+const MotionBox = motion(Box);
+const MotionTypography = motion(Typography);
+const MotionPaper = motion(Paper);
+const MotionCard = motion(Card);
+
+// Sample leaderboard data
 const leaderboardData = [
   {
-    id: 1,
-    username: 'CodeNinja',
-    name: 'Sarah Chen',
-    avatar: '/assets/avatars/user1.jpg',
-    score: 9875,
-    solved: 387,
     rank: 1,
-    tier: 'Diamond',
-    change: 0,
-    streak: 65,
-    country: 'United States',
-    badges: ['contest_winner', 'algorithm_master', 'challenge_creator'],
-    organization: 'Stanford University',
-    isVerified: true,
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    username: 'techmaster_93',
+    name: 'David Chen',
+    country: 'Singapore',
+    countryCode: 'SG',
+    score: 9845,
+    completionRate: 100,
+    efficiency: 98,
+    verified: true,
+    badges: ['contest_winner', 'top_contributor', 'algorithm_master'],
+    trend: 'stable',
+    percentile: 99.9,
+    contests: 27,
+    wins: 8,
+    languages: ['Python', 'C++', 'JavaScript'],
+    lastActive: '2025-06-04 12:31:22',
+    company: 'Google',
   },
   {
-    id: 2,
-    username: 'AlgoWizard',
-    name: 'Raj Patel',
-    avatar: '/assets/avatars/user2.jpg',
-    score: 9762,
-    solved: 372,
     rank: 2,
-    tier: 'Diamond',
-    change: 1,
-    streak: 78,
-    country: 'India',
-    badges: ['top_contributor', 'problem_solver'],
-    organization: 'Google',
-    isVerified: true,
-  },
-  {
-    id: 3,
-    username: 'ByteMaster',
-    name: 'Elena Volkov',
-    avatar: '/assets/avatars/user3.jpg',
-    score: 9645,
-    solved: 362,
-    rank: 3,
-    tier: 'Diamond',
-    change: -1,
-    streak: 42,
-    country: 'Russia',
-    badges: ['algorithm_master', 'challenge_champion'],
-    organization: 'Yandex',
-    isVerified: true,
-  },
-  {
-    id: 4,
-    username: 'DevGenius',
-    name: 'Michael Johnson',
-    avatar: '/assets/avatars/user4.jpg',
-    score: 9521,
-    solved: 347,
-    rank: 4,
-    tier: 'Diamond',
-    change: 0,
-    streak: 30,
-    country: 'Canada',
-    badges: ['problem_solver'],
-    organization: 'University of Toronto',
-    isVerified: true,
-  },
-  {
-    id: 5,
-    username: 'ProgramProdigy',
-    name: 'Wei Zhang',
-    avatar: '/assets/avatars/user5.jpg',
-    score: 9489,
-    solved: 341,
-    rank: 5,
-    tier: 'Diamond',
-    change: 2,
-    streak: 56,
-    country: 'China',
-    badges: ['challenge_creator', 'top_contributor'],
-    organization: 'Tsinghua University',
-    isVerified: false,
-  },
-  {
-    id: 6,
-    username: 'LogicLord',
-    name: 'Johannes Weber',
-    avatar: '/assets/avatars/user6.jpg',
-    score: 9356,
-    solved: 332,
-    rank: 6,
-    tier: 'Diamond',
-    change: -1,
-    streak: 29,
-    country: 'Germany',
-    badges: ['problem_solver'],
-    organization: 'TU Munich',
-    isVerified: true,
-  },
-  {
-    id: 7,
-    username: 'BugHunter',
-    name: 'Sophia Martinez',
-    avatar: '/assets/avatars/user7.jpg',
-    score: 9287,
-    solved: 325,
-    rank: 7,
-    tier: 'Diamond',
-    change: 1,
-    streak: 48,
-    country: 'Spain',
-    badges: ['top_contributor', 'algorithm_master'],
-    organization: 'Microsoft',
-    isVerified: true,
-  },
-  {
-    id: 8,
-    username: 'CodeCraftsman',
-    name: 'Oliver Lee',
-    avatar: '/assets/avatars/user8.jpg',
-    score: 9145,
-    solved: 313,
-    rank: 8,
-    tier: 'Diamond',
-    change: -2,
-    streak: 39,
-    country: 'United Kingdom',
-    badges: ['challenge_champion'],
-    organization: 'Oxford University',
-    isVerified: false,
-  },
-  {
-    id: 9,
-    username: 'SyntaxSavvy',
-    name: 'Anuj Prajapati',
-    avatar: '/assets/avatars/user9.jpg',
-    score: 9089,
-    solved: 307,
-    rank: 9,
-    tier: 'Diamond',
-    change: 5,
-    streak: 60,
-    country: 'India',
-    badges: ['contest_winner', 'top_contributor'],
-    organization: 'Amazon',
-    isVerified: true,
-  },
-  {
-    id: 10,
-    username: 'AlgorithmAce',
-    name: 'Park Jiwon',
-    avatar: '/assets/avatars/user10.jpg',
-    score: 8975,
-    solved: 298,
-    rank: 10,
-    tier: 'Diamond',
-    change: 0,
-    streak: 34,
-    country: 'South Korea',
-    badges: ['problem_solver', 'challenge_creator'],
-    organization: 'Samsung',
-    isVerified: true,
-  },
-  {
-    id: 11,
-    username: 'CrashOverride',
-    name: 'David Miller',
-    avatar: '/assets/avatars/user11.jpg',
-    score: 8742,
-    solved: 285,
-    rank: 11,
-    tier: 'Platinum',
-    change: 2,
-    streak: 22,
-    country: 'Australia',
-    badges: ['challenge_champion'],
-    organization: 'University of Melbourne',
-    isVerified: true,
-  },
-  {
-    id: 12,
-    username: 'ByteBaron',
-    name: 'Fatima Al-Hassan',
-    avatar: '/assets/avatars/user12.jpg',
-    score: 8698,
-    solved: 271,
-    rank: 12,
-    tier: 'Platinum',
-    change: -1,
-    streak: 17,
-    country: 'United Arab Emirates',
-    badges: ['problem_solver'],
-    organization: 'Dubai Institute of Technology',
-    isVerified: false,
-  },
-  {
-    id: 13,
-    username: 'DataDruid',
-    name: 'Isabella Romano',
-    avatar: '/assets/avatars/user13.jpg',
-    score: 8621,
-    solved: 263,
-    rank: 13,
-    tier: 'Platinum',
-    change: 3,
-    streak: 25,
-    country: 'Italy',
-    badges: ['algorithm_master'],
-    organization: 'University of Rome',
-    isVerified: true,
-  },
-  {
-    id: 14,
-    username: 'QuantumCoder',
-    name: 'Gabriel Santos',
-    avatar: '/assets/avatars/user14.jpg',
-    score: 8512,
-    solved: 259,
-    rank: 14,
-    tier: 'Platinum',
-    change: 0,
-    streak: 19,
-    country: 'Brazil',
-    badges: ['challenge_creator'],
-    organization: 'Facebook',
-    isVerified: true,
-  },
-  {
-    id: 15,
-    username: 'BinaryBard',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+    username: 'codeartisan',
     name: 'Emma Wilson',
-    avatar: '/assets/avatars/user15.jpg',
-    score: 8375,
-    solved: 247,
-    rank: 15,
-    tier: 'Platinum',
-    change: -3,
-    streak: 14,
+    country: 'United States',
+    countryCode: 'US',
+    score: 9812,
+    completionRate: 100,
+    efficiency: 97,
+    verified: true,
+    badges: ['top_contributor', 'algorithm_master'],
+    trend: 'up',
+    percentile: 99.8,
+    contests: 23,
+    wins: 5,
+    languages: ['Java', 'C#', 'TypeScript'],
+    lastActive: '2025-06-04 08:17:35',
+    company: 'Microsoft',
+  },
+  {
+    rank: 3,
+    avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
+    username: 'devninja',
+    name: 'Raj Patel',
+    country: 'India',
+    countryCode: 'IN',
+    score: 9756,
+    completionRate: 98,
+    efficiency: 95,
+    verified: true,
+    badges: ['algorithm_master', 'frontend_expert'],
+    trend: 'up',
+    percentile: 99.7,
+    contests: 19,
+    wins: 4,
+    languages: ['JavaScript', 'TypeScript', 'Python'],
+    lastActive: '2025-06-04 14:22:07',
+    company: 'Amazon',
+  },
+  {
+    rank: 4,
+    avatar: 'https://randomuser.me/api/portraits/women/22.jpg',
+    username: 'codepoet',
+    name: 'Sophia Rodriguez',
+    country: 'Spain',
+    countryCode: 'ES',
+    score: 9701,
+    completionRate: 100,
+    efficiency: 96,
+    verified: true,
+    badges: ['ml_specialist', 'top_contributor'],
+    trend: 'stable',
+    percentile: 99.5,
+    contests: 22,
+    wins: 3,
+    languages: ['Python', 'R', 'JavaScript'],
+    lastActive: '2025-06-03 23:51:45',
+    company: 'Netflix',
+  },
+  {
+    rank: 5,
+    avatar: 'https://randomuser.me/api/portraits/men/67.jpg',
+    username: 'algoking',
+    name: 'Jun Kim',
+    country: 'South Korea',
+    countryCode: 'KR',
+    score: 9684,
+    completionRate: 99,
+    efficiency: 98,
+    verified: true,
+    badges: ['backend_expert', 'database_guru'],
+    trend: 'up',
+    percentile: 99.4,
+    contests: 25,
+    wins: 5,
+    languages: ['C++', 'Go', 'Rust'],
+    lastActive: '2025-06-04 17:08:13',
+    company: 'Samsung',
+  },
+  {
+    rank: 6,
+    avatar: 'https://randomuser.me/api/portraits/women/15.jpg',
+    username: 'bytewizard',
+    name: 'Olivia Taylor',
     country: 'Canada',
-    badges: ['top_contributor'],
-    organization: 'University of British Columbia',
-    isVerified: false,
+    countryCode: 'CA',
+    score: 9629,
+    completionRate: 98,
+    efficiency: 94,
+    verified: true,
+    badges: ['ux_designer', 'frontend_expert'],
+    trend: 'down',
+    percentile: 99.3,
+    contests: 18,
+    wins: 2,
+    languages: ['JavaScript', 'React', 'CSS'],
+    lastActive: '2025-06-04 09:42:30',
+    company: 'Shopify',
+  },
+  {
+    rank: 7,
+    avatar: 'https://randomuser.me/api/portraits/men/92.jpg',
+    username: 'codesage',
+    name: 'Alexander Wang',
+    country: 'Australia',
+    countryCode: 'AU',
+    score: 9587,
+    completionRate: 97,
+    efficiency: 93,
+    verified: true,
+    badges: ['backend_expert', 'cloud_architect'],
+    trend: 'up',
+    percentile: 99.1,
+    contests: 20,
+    wins: 3,
+    languages: ['Python', 'Java', 'AWS'],
+    lastActive: '2025-06-04 05:24:51',
+    company: 'Atlassian',
+  },
+  {
+    rank: 8,
+    avatar: 'https://randomuser.me/api/portraits/women/28.jpg',
+    username: 'quantumcoder',
+    name: 'Aisha Mahmood',
+    country: 'UAE',
+    countryCode: 'AE',
+    score: 9553,
+    completionRate: 99,
+    efficiency: 95,
+    verified: true,
+    badges: ['algorithm_master', 'contest_winner'],
+    trend: 'stable',
+    percentile: 98.9,
+    contests: 21,
+    wins: 3,
+    languages: ['Java', 'Kotlin', 'C++'],
+    lastActive: '2025-06-04 11:17:42',
+    company: 'Oracle',
+  },
+  {
+    rank: 9,
+    avatar: 'https://randomuser.me/api/portraits/men/36.jpg',
+    username: 'pixelperfect',
+    name: 'Luca Rossi',
+    country: 'Italy',
+    countryCode: 'IT',
+    score: 9524,
+    completionRate: 97,
+    efficiency: 92,
+    verified: true,
+    badges: ['ui_expert', 'frontend_expert'],
+    trend: 'stable',
+    percentile: 98.7,
+    contests: 17,
+    wins: 1,
+    languages: ['JavaScript', 'Vue', 'CSS'],
+    lastActive: '2025-06-03 16:08:35',
+    company: 'Spotify',
+  },
+  {
+    rank: 10,
+    avatar: 'https://randomuser.me/api/portraits/women/54.jpg',
+    username: 'Anuj-prajapati-SDE',
+    name: 'Anuj Prajapati',
+    country: 'India',
+    countryCode: 'IN',
+    score: 9498,
+    completionRate: 96,
+    efficiency: 94,
+    verified: true,
+    badges: ['backend_expert', 'database_guru'],
+    trend: 'up',
+    percentile: 98.5,
+    contests: 19,
+    wins: 2,
+    languages: ['Java', 'Spring', 'PostgreSQL'],
+    lastActive: '2025-06-04 22:52:10',
+    company: 'Adobe',
+  },
+  {
+    rank: 11,
+    avatar: 'https://randomuser.me/api/portraits/men/57.jpg',
+    username: 'cloudcrafter',
+    name: 'Thomas Schmidt',
+    country: 'Germany',
+    countryCode: 'DE',
+    score: 9462,
+    completionRate: 96,
+    efficiency: 93,
+    verified: true,
+    badges: ['devops_expert', 'cloud_architect'],
+    trend: 'down',
+    percentile: 98.2,
+    contests: 18,
+    wins: 1,
+    languages: ['Python', 'AWS', 'Docker'],
+    lastActive: '2025-06-04 06:15:22',
+    company: 'SAP',
+  },
+  {
+    rank: 12,
+    avatar: 'https://randomuser.me/api/portraits/women/62.jpg',
+    username: 'codehawk',
+    name: 'Zoe Bennett',
+    country: 'United Kingdom',
+    countryCode: 'GB',
+    score: 9437,
+    completionRate: 95,
+    efficiency: 91,
+    verified: true,
+    badges: ['security_expert', 'backend_expert'],
+    trend: 'stable',
+    percentile: 97.9,
+    contests: 16,
+    wins: 1,
+    languages: ['Python', 'Go', 'C'],
+    lastActive: '2025-06-04 13:33:47',
+    company: 'Deloitte',
   },
 ];
 
-// Badge component with animations and tooltips
-const Badge = ({ type }) => {
-  const theme = useTheme();
-  
-  const badgeConfig = {
-    contest_winner: {
-      icon: <EmojiEvents fontSize="small" />,
-      label: 'Contest Winner',
-      color: '#FFD700',
-      bgColor: 'rgba(255, 215, 0, 0.1)'
-    },
-    algorithm_master: {
-      icon: <Code fontSize="small" />,
-      label: 'Algorithm Master',
-      color: '#9C27B0',
-      bgColor: 'rgba(156, 39, 176, 0.1)'
-    },
-    challenge_champion: {
-      icon: <Star fontSize="small" />,
-      label: 'Challenge Champion',
-      color: '#FF5722',
-      bgColor: 'rgba(255, 87, 34, 0.1)'
-    },
-    problem_solver: {
-      icon: <WorkspacePremium fontSize="small" />,
-      label: 'Problem Solver',
-      color: '#2196F3',
-      bgColor: 'rgba(33, 150, 243, 0.1)'
-    },
-    top_contributor: {
-      icon: <Grade fontSize="small" />,
-      label: 'Top Contributor',
-      color: '#4CAF50',
-      bgColor: 'rgba(76, 175, 80, 0.1)'
-    },
-    challenge_creator: {
-      icon: <BarChart fontSize="small" />,
-      label: 'Challenge Creator',
-      color: '#FF9800',
-      bgColor: 'rgba(255, 152, 0, 0.1)'
-    }
-  };
-
-  const config = badgeConfig[type];
-  
-  return (
-    <Tooltip title={config.label}>
-      <Box
-        component={motion.div}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 28,
-          height: 28,
-          borderRadius: '50%',
-          bgcolor: config.bgColor,
-          color: config.color,
-        }}
-      >
-        {config.icon}
-      </Box>
-    </Tooltip>
-  );
+// Badge information
+const badgeInfo = {
+  contest_winner: { color: '#FFD700', label: 'Contest Winner', icon: <EmojiEvents fontSize="small" /> },
+  top_contributor: { color: '#9c27b0', label: 'Top Contributor', icon: <StarOutline fontSize="small" /> },
+  algorithm_master: { color: '#2196f3', label: 'Algorithm Master', icon: <BarChart fontSize="small" /> },
+  frontend_expert: { color: '#ff9800', label: 'Frontend Expert', icon: <Visibility fontSize="small" /> },
+  backend_expert: { color: '#4caf50', label: 'Backend Expert', icon: <TrendingUp fontSize="small" /> },
+  database_guru: { color: '#607d8b', label: 'Database Guru', icon: <Timeline fontSize="small" /> },
+  ml_specialist: { color: '#e91e63', label: 'ML Specialist', icon: <Timeline fontSize="small" /> },
+  ux_designer: { color: '#009688', label: 'UX Designer', icon: <Visibility fontSize="small" /> },
+  cloud_architect: { color: '#3f51b5', label: 'Cloud Architect', icon: <BarChart fontSize="small" /> },
+  devops_expert: { color: '#795548', label: 'DevOps Expert', icon: <TrendingUp fontSize="small" /> },
+  security_expert: { color: '#f44336', label: 'Security Expert', icon: <Timeline fontSize="small" /> },
 };
 
-// Tier badge component
-const TierBadge = ({ tier }) => {
-  const tierConfig = {
-    'Diamond': {
-      color: '#B9F2FF',
-      borderColor: '#81D4FA',
-      bgColor: 'rgba(3, 169, 244, 0.1)'
-    },
-    'Platinum': {
-      color: '#E1BEE7',
-      borderColor: '#CE93D8',
-      bgColor: 'rgba(156, 39, 176, 0.1)'
-    },
-    'Gold': {
-      color: '#FFD54F',
-      borderColor: '#FFC107',
-      bgColor: 'rgba(255, 193, 7, 0.1)'
-    },
-    'Silver': {
-      color: '#B0BEC5',
-      borderColor: '#78909C',
-      bgColor: 'rgba(96, 125, 139, 0.1)'
-    },
-    'Bronze': {
-      color: '#BCAAA4',
-      borderColor: '#A1887F',
-      bgColor: 'rgba(121, 85, 72, 0.1)'
-    }
-  };
-  
-  const config = tierConfig[tier] || tierConfig['Bronze'];
-  
-  return (
-    <Box
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        px: 1,
-        py: 0.5,
-        borderRadius: '4px',
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        color: config.color,
-        border: `1px solid ${config.borderColor}`,
-        bgcolor: config.bgColor,
-      }}
-    >
-      {tier}
-    </Box>
-  );
-};
-
-// Rank change indicator component
-const RankChange = ({ change }) => {
-  if (change === 0) {
-    return (
-      <Typography 
-        variant="body2" 
-        component="span" 
-        sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', fontSize: '0.75rem' }}
-      >
-        -
-      </Typography>
-    );
+// Trophy glint animation
+const glint = keyframes`
+  0% {
+    background-position: -500px 0;
   }
-  
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        color: change > 0 ? 'success.main' : 'error.main',
-        fontSize: '0.75rem',
-      }}
-    >
-      {change > 0 ? (
-        <>
-          <ArrowUpward fontSize="inherit" />
-          <Typography variant="body2" component="span" sx={{ ml: 0.5 }}>
-            {change}
-          </Typography>
-        </>
-      ) : (
-        <>
-          <ArrowUpward 
-            fontSize="inherit" 
-            sx={{ 
-              transform: 'rotate(180deg)'
-            }}
-          />
-          <Typography variant="body2" component="span" sx={{ ml: 0.5 }}>
-            {Math.abs(change)}
-          </Typography>
-        </>
-      )}
-    </Box>
-  );
-};
+  100% {
+    background-position: 500px 0;
+  }
+`;
 
-const Leaderboard = () => {
+const LeaderboardPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   
-  const [tab, setTab] = useState(0);
-  const [timeframe, setTimeframe] = useState('all_time');
-  const [category, setCategory] = useState('overall');
-  const [filteredData, setFilteredData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  // Refs
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
   
-  // Handle tab change for different leaderboard types
-  const handleTabChange = (event, newValue) => {
-    setTab(newValue);
-  };
-
-  // Handle timeframe change
-  const handleTimeframeChange = (event) => {
-    setTimeframe(event.target.value);
-  };
+  // State
+  const [competitionFilter, setCompetitionFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [expandedUser, setExpandedUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
-  // Handle category change
-  const handleCategoryChange = (event) => {
-    setCategory(event.target.value);
+  // Current user data
+  const currentUser = leaderboardData.find(user => user.username === CURRENT_USER) || leaderboardData[9]; // Default to 10th position
+  
+  // Handling pagination
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
   };
   
-  // Filter data based on search query
-  const handleSearch = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
-  // Toggle filter visibility
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
   
-  // Filter and sort data based on current selections
+  // Canvas animation for background
   useEffect(() => {
-    setLoading(true);
+    if (!canvasRef.current) return;
     
-    // Simulate API request delay
-    const timer = setTimeout(() => {
-      let data = [...leaderboardData];
-      
-      // Apply filters based on tab
-      if (tab === 1) {
-        // Weekly leaders (just a subset for demonstration)
-        data = data.slice(0, 10).sort((a, b) => b.streak - a.streak);
-      } else if (tab === 2) {
-        // Organizations (sort by org name for demonstration)
-        data = data.sort((a, b) => a.organization.localeCompare(b.organization));
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    
+    const resizeCanvas = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight * 2;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+    };
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    // Premium gradient orbs class with improved rendering
+    class GradientOrb {
+      constructor() {
+        this.reset();
       }
       
-      // Apply search filter
-      if (searchQuery) {
-        data = data.filter(user => 
-          user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.organization.toLowerCase().includes(searchQuery.toLowerCase())
+      reset() {
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.opacity = Math.random() * 0.12 + 0.04;
+        
+        // Premium color combinations
+        const colorSets = [
+          { start: '#bc4037', end: '#f47061' }, // Primary red
+          { start: '#9a342d', end: '#bd5c55' }, // Dark red
+          { start: '#2C3E50', end: '#4A6572' }, // Dark blue
+          { start: '#3a47d5', end: '#00d2ff' }, // Blue
+        ];
+        
+        this.colors = colorSets[Math.floor(Math.random() * colorSets.length)];
+      }
+      
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        // Bounce effect at edges
+        if (this.x < -this.size) this.x = width + this.size;
+        if (this.x > width + this.size) this.x = -this.size;
+        if (this.y < -this.size) this.y = height + this.size;
+        if (this.y > height + this.size) this.y = -this.size;
+      }
+      
+      draw() {
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.size
         );
+        
+        const startColor = this.hexToRgba(this.colors.start, this.opacity);
+        const endColor = this.hexToRgba(this.colors.end, 0);
+        
+        gradient.addColorStop(0, startColor);
+        gradient.addColorStop(1, endColor);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
       }
       
-      setFilteredData(data);
-      setLoading(false);
-    }, 600);
+      hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+    }
     
-    return () => clearTimeout(timer);
-  }, [tab, timeframe, category, searchQuery]);
-  
-  // Animation variants for list items
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.05
-      } 
+    // Create optimal number of orbs based on screen size
+    const orbCount = isMobile ? 6 : 10;
+    const orbs = Array(orbCount).fill().map(() => new GradientOrb());
+    
+    // Animation loop with performance optimization
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      
+      orbs.forEach((orb) => {
+        orb.update();
+        orb.draw();
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => {
+      cancelAnimationFrame(animationRef.current);
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, [isMobile, isDark]);
+
+  // Get trend icon and color
+  const getTrendInfo = (trend) => {
+    switch(trend) {
+      case 'up':
+        return { 
+          icon: <KeyboardDoubleArrowUp fontSize="small" sx={{ transform: 'rotate(45deg)' }} />, 
+          color: theme.palette.success.main 
+        };
+      case 'down':
+        return { 
+          icon: <KeyboardDoubleArrowUp fontSize="small" sx={{ transform: 'rotate(-135deg)' }} />, 
+          color: theme.palette.error.main 
+        };
+      default:
+        return { 
+          icon: <KeyboardArrowRight fontSize="small" />, 
+          color: theme.palette.info.main 
+        };
     }
   };
   
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
+  // Get badge with tooltip
+  const getBadge = (badgeType) => {
+    const badge = badgeInfo[badgeType];
+    if (!badge) return null;
+    
+    return (
+      <Tooltip title={badge.label} key={badgeType}>
+        <Avatar
+          sx={{
+            width: 28,
+            height: 28,
+            bgcolor: `${badge.color}20`,
+            color: badge.color,
+          }}
+        >
+          {badge.icon}
+        </Avatar>
+      </Tooltip>
+    );
   };
-
-  // Page header with gradient background
-  const PageHeader = () => (
-    <Box 
-      sx={{
-        py: { xs: 4, md: 6 },
-        background: theme.palette.gradients.primary,
-        color: '#fff',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background pattern */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          opacity: 0.05,
-          backgroundImage: `radial-gradient(#fff 1px, transparent 1px)`,
-          backgroundSize: '20px 20px',
-          pointerEvents: 'none',
-        }}
-      />
-      
-      <Container maxWidth="lg">
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={8}>
-            <Typography 
-              variant="h3" 
-              component="h1" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 800,
-                textShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                mb: { xs: 1, md: 2 }
-              }}
-            >
-              Leaderboard
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 400, mb: 2, opacity: 0.9 }}>
-              Compete with the best coders and rise through the ranks
-            </Typography>
-            
-            {/* Key stats cards */}
-            <Stack 
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              sx={{ mt: 3 }}
-            >
-              <Paper 
-                sx={{ 
-                  py: 1.5, 
-                  px: 3,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderRadius: 2
-                }}
-              >
-                <EmojiEvents sx={{ mr: 1.5, fontSize: '1.25rem' }} />
-                <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                    Total Competitors
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    28,465
-                  </Typography>
-                </Box>
-              </Paper>
-              
-              <Paper 
-                sx={{ 
-                  py: 1.5, 
-                  px: 3,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderRadius: 2
-                }}
-              >
-                <Code sx={{ mr: 1.5, fontSize: '1.25rem' }} />
-                <Box>
-                  <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                    Challenges Completed
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    746,289
-                  </Typography>
-                </Box>
-              </Paper>
-            </Stack>
-          </Grid>
-          
-          {!isSmall && (
-            <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Box 
-                component="img"
-                src="/assets/leaderboard-illustration.svg" 
-                alt="Leaderboard illustration"
-                sx={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  maxHeight: '200px',
-                  filter: 'drop-shadow(0 5px 15px rgba(0,0,0,0.2))'
-                }}
-              />
-            </Grid>
-          )}
-        </Grid>
-      </Container>
-    </Box>
-  );
   
+  // Filter data based on search term
+  const filteredData = leaderboardData.filter(user => 
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.country.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <>
-      <PageHeader />
-      
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-        {/* Tabs and filters row */}
-        <Box sx={{ mb: 4 }}>
-          <Grid container spacing={2} alignItems="center" justifyContent="space-between">
-            <Grid item xs={12} md={7}>
-              <Tabs 
-                value={tab} 
-                onChange={handleTabChange}
-                textColor="primary"
-                indicatorColor="primary"
-                variant={isMobile ? "scrollable" : "standard"}
-                scrollButtons="auto"
+      {/* Canvas Background for Premium Gradient Animation */}
+      <Box sx={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: -1,
+        overflow: 'hidden',
+      }}>
+        <canvas 
+          ref={canvasRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+          }}
+        />
+        {/* Overlay for better text contrast */}
+        <Box 
+          sx={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(30px)',
+          }} 
+        />
+      </Box>
+
+      {/* Hero Section */}
+      <Box 
+        component="section" 
+        sx={{ 
+          position: 'relative',
+          pt: { xs: '100px', sm: '120px', md: '120px' },
+          pb: { xs: '60px', sm: '80px', md: '60px' },
+          overflow: 'hidden',
+        }}
+      >
+        <Container maxWidth="lg"> 
+          <Grid 
+            container 
+            spacing={{ xs: 4, md: 8 }}
+            alignItems="center" 
+            justifyContent="center"
+          >
+            <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
+              <MotionBox
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                sx={{ mb: 3, display: 'inline-block' }}
               >
-                <Tab label="Global Ranking" />
-                <Tab label="Weekly Leaders" />
-                <Tab label="Organizations" />
-              </Tabs>
-            </Grid>
-            
-            <Grid item xs={12} md={5}>
-              <Stack 
-                direction="row" 
-                spacing={1} 
-                alignItems="center"
-                justifyContent={{ xs: 'space-between', md: 'flex-end' }}
-              >
-                <TextField
-                  placeholder="Search users..."
-                  variant="outlined"
+                <Chip 
+                  label="GLOBAL RANKINGS" 
+                  color="primary"
                   size="small"
-                  value={searchQuery}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search fontSize="small" />
-                      </InputAdornment>
-                    ),
-                    sx: { borderRadius: '100px' }
-                  }}
-                  sx={{
-                    maxWidth: { xs: '100%', md: '200px' },
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '100px',
+                  icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem', }} />}
+                  sx={{ 
+                    background: theme.palette.gradients.primary,
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.7rem',
+                    letterSpacing: 1.2,
+                    py: 2.2,
+                    pl: 1,
+                    pr: 2,
+                    borderRadius: '100px',
+                    boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
+                    '& .MuiChip-icon': { 
+                      color: 'white',
+                      mr: 0.5
                     }
                   }}
                 />
-                
-                {/* Filter button */}
-                <Tooltip title={showFilters ? "Hide filters" : "Show filters"}>
-                  <IconButton 
-                    onClick={toggleFilters}
-                    color={showFilters ? "primary" : "default"}
-                    sx={{ 
-                      bgcolor: showFilters ? 'rgba(188, 64, 55, 0.1)' : 'transparent',
-                    }}
-                  >
-                    {showFilters ? <Close /> : <FilterList />}
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-            </Grid>
-          </Grid>
-        </Box>
-        
-        {/* Expandable filters section */}
-        <Collapse in={showFilters}>
-          <Paper
-            sx={{
-              p: 2,
-              mb: 3,
-              borderRadius: '12px',
-              boxShadow: theme.shadows[2],
-              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-            }}
-          >
-            <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Timeframe
-                </Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    value={timeframe}
-                    onChange={handleTimeframeChange}
-                    IconComponent={ArrowDropDown}
-                  >
-                    <MenuItem value="all_time">All Time</MenuItem>
-                    <MenuItem value="monthly">Monthly</MenuItem>
-                    <MenuItem value="weekly">Weekly</MenuItem>
-                    <MenuItem value="daily">Daily</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+              </MotionBox> 
               
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Category
-                </Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    value={category}
-                    onChange={handleCategoryChange}
-                    IconComponent={ArrowDropDown}
-                  >
-                    <MenuItem value="overall">Overall Score</MenuItem>
-                    <MenuItem value="algorithms">Algorithms</MenuItem>
-                    <MenuItem value="data_structures">Data Structures</MenuItem>
-                    <MenuItem value="problem_solving">Problem Solving</MenuItem>
-                    <MenuItem value="contests">Contests</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Region
-                </Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    defaultValue="all"
-                    IconComponent={ArrowDropDown}
-                  >
-                    <MenuItem value="all">All Regions</MenuItem>
-                    <MenuItem value="na">North America</MenuItem>
-                    <MenuItem value="eu">Europe</MenuItem>
-                    <MenuItem value="as">Asia</MenuItem>
-                    <MenuItem value="sa">South America</MenuItem>
-                    <MenuItem value="oc">Oceania</MenuItem>
-                    <MenuItem value="af">Africa</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12} sm={6} md={3}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Tier
-                </Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    defaultValue="all"
-                    IconComponent={ArrowDropDown}
-                  >
-                    <MenuItem value="all">All Tiers</MenuItem>
-                    <MenuItem value="diamond">Diamond</MenuItem>
-                    <MenuItem value="platinum">Platinum</MenuItem>
-                    <MenuItem value="gold">Gold</MenuItem>
-                    <MenuItem value="silver">Silver</MenuItem>
-                    <MenuItem value="bronze">Bronze</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-            
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button 
-                size="small" 
-                onClick={toggleFilters}
-                sx={{ borderRadius: '50px', px: 3 }}
-              >
-                Apply Filters
-              </Button>
-            </Box>
-          </Paper>
-        </Collapse>
-        
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress color="primary" />
-          </Box>
-        ) : (
-          <>
-            {/* Top 3 users cards for larger screens */}
-            {tab === 0 && !isMobile && (
-              <Box sx={{ mb: 6 }}>
-                <Typography 
-                  variant="h5" 
-                  gutterBottom 
-                  sx={{ fontWeight: 700, mb: 3 }}
-                >
-                  Top Performers
-                </Typography>
-                
-                <Grid 
-                  container 
-                  spacing={3}
-                  component={motion.div}
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                >
-                  {filteredData.slice(0, 3).map((user, index) => (
-                    <Grid item xs={12} md={4} key={user.id} component={motion.div} variants={itemVariants}>
-                      <Card
-                        sx={{
-                          p: 3,
-                          height: '100%',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          borderRadius: '16px',
-                          boxShadow: index === 0 
-                            ? '0 8px 20px rgba(255, 215, 0, 0.2)'
-                            : index === 1 
-                              ? '0 8px 20px rgba(192, 192, 192, 0.2)' 
-                              : '0 8px 20px rgba(205, 127, 50, 0.2)',
-                          position: 'relative',
-                          overflow: 'hidden',
-                          border: index === 0 
-                            ? '1px solid rgba(255, 215, 0, 0.3)'
-                            : index === 1 
-                              ? '1px solid rgba(192, 192, 192, 0.3)' 
-                              : '1px solid rgba(205, 127, 50, 0.3)',
-                        }}
-                      >
-                        {/* Crown or medal for top 3 */}
-                        <Box 
-                          sx={{
-                            position: 'absolute',
-                            top: 10,
-                            left: 10,
-                            width: 30,
-                            height: 30,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '50%',
-                            backgroundColor: index === 0 
-                              ? 'rgba(255, 215, 0, 0.9)'
-                              : index === 1 
-                                ? 'rgba(192, 192, 192, 0.9)' 
-                                : 'rgba(205, 127, 50, 0.9)',
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                            color: '#FFF',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          {index + 1}
-                        </Box>
-                        
-                        {/* User avatar */}
-                        <Box sx={{ position: 'relative', mb: 1 }}>
-                          <Avatar 
-                            src={user.avatar} 
-                            alt={user.username}
-                            sx={{ 
-                              width: 80,
-                              height: 80,
-                              border: '3px solid',
-                              borderColor: index === 0 
-                                ? 'rgba(255, 215, 0, 0.7)'
-                                : index === 1 
-                                  ? 'rgba(192, 192, 192, 0.7)' 
-                                  : 'rgba(205, 127, 50, 0.7)',
-                            }}
-                          />
-                          {user.isVerified && (
-                            <Box
-                              sx={{
-                                position: 'absolute',
-                                bottom: 0,
-                                right: 0,
-                                bgcolor: theme.palette.primary.main,
-                                borderRadius: '50%',
-                                width: 22,
-                                height: 22,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <Verified sx={{ fontSize: 16, color: 'white' }} />
-                            </Box>
-                          )}
-                        </Box>
-                        
-                        {/* User info */}
-                        <Typography variant="h6" sx={{ fontWeight: 700, textAlign: 'center', mb: 0.5 }}>
-                          {user.username}
-                        </Typography>
-                        
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <Public fontSize="small" sx={{ mr: 0.5, fontSize: '0.9rem' }} />
-                          {user.country}
-                        </Typography>
-                        
-                        {/* Tier badge */}
-                        <Box sx={{ mb: 2 }}>
-                          <TierBadge tier={user.tier} />
-                        </Box>
-                        
-                        <Divider sx={{ width: '100%', my: 2 }} />
-                        
-                        {/* Stats */}
-                        <Grid container spacing={2} sx={{ mb: 2 }}>
-                          <Grid item xs={6}>
-                            <Typography variant="body2" color="text.secondary" align="center">
-                              Score
-                            </Typography>
-                            <Typography variant="h6" align="center" sx={{ fontWeight: 700 }}>
-                              {user.score.toLocaleString()}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={6}>
-                            <Typography variant="body2" color="text.secondary" align="center">
-                              Solved
-                            </Typography>
-                            <Typography variant="h6" align="center" sx={{ fontWeight: 700 }}>
-                              {user.solved}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                        
-                        {/* Badges */}
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, width: '100%' }}>
-                          Badges
-                        </Typography>
-                        <Stack direction="row" spacing={1} justifyContent="center">
-                          {user.badges.map(badge => (
-                            <Badge key={badge} type={badge} />
-                          ))}
-                        </Stack>
-                        
-                        <Box sx={{ mt: 'auto', pt: 2, width: '100%' }}>
-                          <Button 
-                            fullWidth 
-                            variant="outlined"
-                            sx={{ borderRadius: '50px', mt: 2 }}
-                          >
-                            View Profile
-                          </Button>
-                        </Box>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
-            
-            {/* Main leaderboard table */}
-            <Box 
-              component={motion.div}
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <Paper
-                sx={{
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  boxShadow: theme.shadows[isMobile ? 1 : 3],
-                }}
-              >
-                {/* Table header */}
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: isMobile 
-                      ? '70px 1fr 100px' 
-                      : '70px minmax(200px, 1fr) 150px 150px 100px 150px',
-                    p: 2,
-                    borderBottom: `1px solid ${theme.palette.divider}`,
-                    bgcolor: theme.palette.mode === 'dark' 
-                      ? 'rgba(255,255,255,0.03)' 
-                      : 'rgba(0,0,0,0.02)',
+              <MotionBox>
+                {/* Page Title */}
+                <MotionTypography
+                  variant="h1"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  sx={{ 
+                    fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
+                    fontWeight: 800,
+                    lineHeight: 1.1,
+                    mb: { xs: 3, md: 4 },
+                    letterSpacing: '-0.02em',
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Rank</Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>User</Typography>
-                  {!isMobile && (
-                    <>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Organization</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Tier</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>Solved</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600, textAlign: 'right' }}>Score</Typography>
-                    </>
-                  )}
-                  {isMobile && (
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, textAlign: 'right' }}>Score</Typography>
-                  )}
-                </Box>
+                  Code Quest
+                  <Box 
+                    component="span" 
+                    sx={{
+                      display: 'block',
+                      background: theme.palette.gradients.primary,
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textFillColor: 'transparent',
+                    }}
+                  >
+                    Leaderboard
+                  </Box>
+                </MotionTypography>
                 
-                {/* Table rows */}
-                {filteredData.length > 0 ? (
-                  filteredData.map((user) => (
-                    <Box
-                      key={user.id}
-                      component={motion.div}
-                      variants={itemVariants}
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: isMobile 
-                          ? '70px 1fr 100px' 
-                          : '70px minmax(200px, 1fr) 150px 150px 100px 150px',
-                        p: 2,
-                        borderBottom: `1px solid ${theme.palette.divider}`,
-                        transition: 'background-color 0.2s',
-                        '&:hover': {
-                          bgcolor: theme.palette.mode === 'dark' 
-                            ? 'rgba(255,255,255,0.05)' 
-                            : 'rgba(0,0,0,0.01)',
-                          cursor: 'pointer'
-                        },
-                        // Highlight currently logged in user 
-                        ...(user.username === "SyntaxSavvy" && {
-                          bgcolor: theme.palette.mode === 'dark' 
-                            ? 'rgba(188, 64, 55, 0.1)' 
-                            : 'rgba(188, 64, 55, 0.05)',
-                        })
+                {/* Subheadline */}
+                <MotionTypography
+                  variant="h5"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  color="textSecondary"
+                  sx={{ 
+                    mb: 5,
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    fontSize: { xs: '1.1rem', md: '1.3rem' },
+                    maxWidth: '800px',
+                    mx: 'auto',
+                  }}
+                >
+                  Top performers from coding competitions around the world
+                </MotionTypography>
+              </MotionBox>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+      
+      {/* Top Performers Section */}
+      <Box
+        component="section"
+        sx={{ 
+          position: 'relative',
+          mb: 10,
+        }}
+      >
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {/* Top 3 Featured */}
+            {leaderboardData.slice(0, 3).map((user, index) => (
+              <Grid item xs={12} md={4} key={index}>
+                <MotionCard
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  sx={{
+                    borderRadius: '20px',
+                    overflow: 'visible',
+                    height: '100%',
+                    backgroundColor: isDark 
+                      ? 'rgba(30, 28, 28, 0.7)' 
+                      : 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid',
+                    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Trophy for Top 3 */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -30,
+                      left: 'calc(50% - 30px)',
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: index === 0 
+                        ? 'linear-gradient(45deg, #FFD700, #FFC400)' 
+                        : index === 1 
+                          ? 'linear-gradient(45deg, #C0C0C0, #E0E0E0)' 
+                          : 'linear-gradient(45deg, #CD7F32, #B87333)',
+                      boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                      zIndex: 2,
+                      border: '4px solid',
+                      borderColor: isDark ? '#121212' : 'white',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%)',
+                        backgroundSize: '1000px 100%',
+                        animation: `${glint} 2s infinite linear`,
+                        zIndex: -1,
+                      },
+                    }}
+                  >
+                    <Typography 
+                      variant="h4" 
+                      component="span" 
+                      sx={{ 
+                        fontWeight: 800,
+                        color: 'white',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
                       }}
                     >
-                      {/* Rank column */}
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box sx={{ 
-                          width: 32, 
-                          height: 32, 
-                          borderRadius: '50%', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          bgcolor: user.rank <= 3 
-                            ? user.rank === 1 
-                              ? 'rgba(255, 215, 0, 0.1)'
-                              : user.rank === 2 
-                                ? 'rgba(192, 192, 192, 0.1)'
-                                : 'rgba(205, 127, 50, 0.1)'
-                            : 'transparent',
-                          color: user.rank <= 3 
-                            ? user.rank === 1 
-                              ? 'rgba(255, 215, 0, 0.8)'
-                              : user.rank === 2 
-                                ? 'rgba(192, 192, 192, 0.8)'
-                                : 'rgba(205, 127, 50, 0.8)'
-                            : theme.palette.text.primary,
-                          fontWeight: user.rank <= 3 ? 600 : 400,
-                        }}>
-                          {user.rank}
-                        </Box>
-                        <RankChange change={user.change} />
-                      </Box>
-                      
-                      {/* User column */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-                        <Avatar 
-                          src={user.avatar} 
-                          alt={user.username}
-                          sx={{ 
-                            width: 40, 
-                            height: 40, 
-                            mr: 1.5,
-                            border: user.isVerified ? `2px solid ${theme.palette.primary.main}` : 'none'
+                      {index + 1}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ pt: 5, pb: 3, px: 3, textAlign: 'center' }}>
+                    {/* User Avatar */}
+                    <Box sx={{ mb: 2 }}>
+                      <Badge
+                        overlap="circular"
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        badgeContent={
+                          <Box
+                            component="img"
+                            src={`https://flagcdn.com/w20/${user.countryCode.toLowerCase()}.png`}
+                            alt={user.country}
+                            sx={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: '50%',
+                              border: '2px solid',
+                              borderColor: isDark ? '#121212' : 'white',
+                              boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                            }}
+                          />
+                        }
+                      >
+                        <Avatar
+                          src={user.avatar}
+                          alt={user.name}
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            border: '3px solid',
+                            borderColor: index === 0 
+                              ? '#FFD700' 
+                              : index === 1 
+                                ? '#C0C0C0' 
+                                : '#CD7F32',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
                           }}
                         />
-                        <Box sx={{ minWidth: 0 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography 
-                              variant="body1" 
-                              sx={{ 
-                                fontWeight: 600,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {user.username}
-                            </Typography>
-                            {user.isVerified && !isMobile && (
-                              <Verified sx={{ ml: 0.5, fontSize: 16, color: theme.palette.primary.main }} />
-                            )}
-                          </Box>
-                          {!isSmall && (
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary"
-                              sx={{ 
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {user.name}
-                            </Typography>
-                          )}
-                        </Box>
-                      </Box>
+                      </Badge>
+                    </Box>
+                    
+                    {/* User Info */}
+                    <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 0.5,
+                        }}
+                      >
+                        {user.name}
+                        {user.verified && (
+                          <Verified 
+                            sx={{ 
+                              fontSize: '1rem',
+                              color: theme.palette.primary.main,
+                              verticalAlign: 'middle',
+                            }} 
+                          />
+                        )}
+                      </Typography>
                       
-                      {/* Additional columns for larger screens */}
-                      {!isMobile && (
-                        <>
-                          {/* Organization column */}
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <School fontSize="small" sx={{ mr: 1, color: theme.palette.text.secondary, opacity: 0.7 }} />
-                            <Typography 
-                              variant="body2"
-                              sx={{ 
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {user.organization}
-                            </Typography>
-                          </Box>
-                          
-                          {/* Tier column */}
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <TierBadge tier={user.tier} />
-                          </Box>
-                          
-                          {/* Solved column */}
-                          <Box>
-                            <Typography variant="body1">
-                              {user.solved}
-                            </Typography>
-                          </Box>
-                        </>
-                      )}
+                      <Typography 
+                        variant="body2" 
+                        color="textSecondary"
+                      >
+                        @{user.username}
+                      </Typography>
                       
-                      {/* Score column */}
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                        <Typography 
-                          variant="body1" 
-                          sx={{ 
-                            fontWeight: 600,
-                            color: user.rank <= 3 
-                              ? theme.palette.primary.main
-                              : theme.palette.text.primary
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: 'block',
+                          mt: 0.5
+                        }}
+                      >
+                        {user.company}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Score Section */}
+                    <Box
+                      sx={{
+                        bgcolor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+                        p: 2,
+                        borderRadius: '12px',
+                        mb: 2,
+                      }}
+                    >
+                      <Typography 
+                        variant="h3" 
+                        sx={{ 
+                          fontWeight: 800,
+                          color: index === 0 
+                            ? '#FFD700' 
+                            : index === 1 
+                              ? '#C0C0C0' 
+                              : '#CD7F32',
+                          mb: 1,
+                        }}
+                      >
+                        {user.score.toLocaleString()}
+                      </Typography>
+                      
+                      <Typography variant="caption" component="div" sx={{ mb: 1 }}>
+                        Top {user.percentile}% of all participants
+                      </Typography>
+                      
+                      <Grid container spacing={1} sx={{ mt: 1 }}>
+                        <Grid item xs={6}>
+                          <Typography variant="overline" display="block" sx={{ fontSize: '0.6rem' }}>
+                            Contests Won
+                          </Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {user.wins}
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid item xs={6}>
+                          <Typography variant="overline" display="block" sx={{ fontSize: '0.6rem' }}>
+                            Total Contests
+                          </Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {user.contests}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                    
+                    {/* Badges */}
+                    <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
+                      {user.badges.map((badge) => getBadge(badge))}
+                    </Box>
+                    
+                    {/* Languages */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
+                      {user.languages.map((language, i) => (
+                        <Chip
+                          key={i}
+                          label={language}
+                          size="small"
+                          sx={{
+                            fontSize: '0.7rem',
+                            height: '22px',
+                            bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                           }}
-                        >
-                          {user.score.toLocaleString()}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                </MotionCard>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* User's Position Section */}
+      {currentUser && (
+        <Box component="section" sx={{ mb: 6 }}>
+          <Container maxWidth="lg">
+            <MotionPaper
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              sx={{
+                p: 0,
+                borderRadius: '16px',
+                overflow: 'hidden',
+                backgroundColor: isDark 
+                  ? 'rgba(35, 33, 33, 0.7)' 
+                  : 'rgba(245, 245, 245, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                position: 'relative',
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '4px',
+                  background: theme.palette.gradients.primary,
+                }}
+              />
+              
+              <Box sx={{ p: { xs: 2, md: 3 } }}>
+                <Grid container alignItems="center" spacing={2}>
+                  <Grid item xs={12} sm={7} md={8} sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          fontWeight: 800, 
+                          minWidth: 40,
+                          color: theme.palette.primary.main 
+                        }}
+                      >
+                        #{currentUser.rank}
+                      </Typography>
+                      
+                      <Avatar
+                        src={currentUser.avatar}
+                        alt={currentUser.name}
+                        sx={{
+                          width: 50,
+                          height: 50,
+                          ml: 2,
+                          mr: 3,
+                          border: '2px solid',
+                          borderColor: theme.palette.primary.main,
+                        }}
+                      />
+                      
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="h6" fontWeight={700}>
+                            {currentUser.name}
+                          </Typography>
+                          
+                          <Tooltip title={currentUser.country}>
+                            <Box
+                              component="img"
+                              src={`https://flagcdn.com/w20/${currentUser.countryCode.toLowerCase()}.png`}
+                              alt={currentUser.country}
+                              sx={{
+                                width: 20,
+                                height: 15,
+                                objectFit: 'cover',
+                                borderRadius: '2px',
+                                ml: 1,
+                              }}
+                            />
+                          </Tooltip>
+                        </Box>
+                        
+                        <Typography variant="body2" color="textSecondary">
+                          @{currentUser.username} • {currentUser.company}
                         </Typography>
                       </Box>
                     </Box>
-                  ))
-                ) : (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No users found matching your search.
-                    </Typography>
-                  </Box>
-                )}
-              </Paper>
-            </Box>
-            
-            {/* Pagination */}
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-              <Button 
-                variant="outlined" 
-                color="primary"
-                sx={{ 
-                  borderRadius: '50px',
-                  px: 4,
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={5} md={4}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, gap: 3 }}>
+                      <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                        <Typography variant="body2" color="textSecondary">
+                          Your Score
+                        </Typography>
+                        <Typography variant="h5" fontWeight={700}>
+                          {currentUser.score.toLocaleString()}
+                        </Typography>
+                      </Box>
+                      
+                      <Button
+                        variant="contained"
+                        sx={{
+                          borderRadius: '30px',
+                          textTransform: 'none',
+                          background: theme.palette.gradients.primary,
+                          px: 2,
+                          py: 1,
+                        }}
+                      >
+                        View Profile
+                      </Button>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+            </MotionPaper>
+          </Container>
+        </Box>
+      )}
+      
+      {/* Leaderboard Table Section */}
+      <Box component="section" sx={{ mb: 8 }}>
+        <Container maxWidth="lg">
+          {/* Filters & Search */}
+          <Grid 
+            container 
+            spacing={3} 
+            alignItems="center"
+            sx={{ mb: 3 }}
+          >
+            <Grid item xs={12} md={6}>
+              <TextField
+                placeholder="Search users, countries..."
+                variant="outlined"
+                fullWidth
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search color="action" />
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    borderRadius: '12px',
+                    bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)',
+                    '& fieldset': { border: 'none' },
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                  }
                 }}
-              >
-                Load More
-              </Button>
-            </Box>
+              />
+            </Grid>
             
-            {/* Call to action section */}
-            <Paper
-              sx={{
-                mt: 6,
-                p: { xs: 3, md: 5 },
-                borderRadius: '16px',
-                background: theme.palette.mode === 'dark' 
-                  ? 'linear-gradient(45deg, rgba(76, 25, 25, 0.9) 0%, rgba(33, 33, 81, 0.9) 100%)'
-                  : 'linear-gradient(45deg, rgba(255, 238, 238, 0.9) 0%, rgba(240, 240, 255, 0.9) 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              <Grid container spacing={3} alignItems="center">
-                <Grid item xs={12} md={8}>
-                  <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
-                    Ready to climb the ranks?
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 3 }}>
-                    Join thousands of programmers competing in challenges and improve your coding skills.
-                  </Typography>
-                  <Button 
-                    variant="contained" 
-                    color="secondary"
-                    sx={{ 
-                      borderRadius: '50px',
-                      px: 4,
-                      py: 1.5
+            <Grid item xs={12} md={6}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <FormControl 
+                  fullWidth 
+                  variant="outlined"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)',
+                      '& fieldset': { border: 'none' },
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                    }
+                  }}
+                >
+                  <Select
+                    value={competitionFilter}
+                    onChange={(e) => setCompetitionFilter(e.target.value)}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <FilterList fontSize="small" color="action" />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="all">All Competitions</MenuItem>
+                    <MenuItem value="recent">Recent Challenges</MenuItem>
+                    <MenuItem value="hackathon">Hackathons</MenuItem>
+                    <MenuItem value="weekly">Weekly Contests</MenuItem>
+                  </Select>
+                </FormControl>
+                
+                <FormControl 
+                  fullWidth 
+                  variant="outlined"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.9)',
+                      '& fieldset': { border: 'none' },
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                    }
+                  }}
+                >
+                  <Select
+                    value={timeFilter}
+                    onChange={(e) => setTimeFilter(e.target.value)}
+                    displayEmpty
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <Language fontSize="small" color="action" />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="all">Global Rankings</MenuItem>
+                    <MenuItem value="country">By Country</MenuItem>
+                    <MenuItem value="region">By Region</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Grid>
+          </Grid>
+          
+          {/* Leaderboard Table */}
+          <MotionPaper
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            sx={{
+              borderRadius: '20px',
+              overflow: 'hidden',
+              backgroundColor: isDark 
+                ? 'rgba(30, 28, 28, 0.7)' 
+                : 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid',
+              borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+              boxShadow: isDark 
+                ? '0 10px 40px rgba(0, 0, 0, 0.3)' 
+                : '0 10px 40px rgba(0, 0, 0, 0.06)',
+            }}
+          >
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 800 }}>
+                <TableHead>
+                  <TableRow
+                    sx={{
+                      bgcolor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)',
+                      '& th': {
+                        fontWeight: 700,
+                        py: 2,
+                      }
                     }}
                   >
-                    Join the Competition
-                  </Button>
-                </Grid>
+                    <TableCell align="center" sx={{ width: 70 }}>Rank</TableCell>
+                    <TableCell>User</TableCell>
+                    <TableCell align="center">Score</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>Contests</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Win Rate</TableCell>
+                    <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>Badges</TableCell>
+                    <TableCell align="center" sx={{ width: 60 }}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
                 
-                {!isSmall && (
-                  <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
-                    <EmojiEvents sx={{ fontSize: 160, opacity: 0.1, transform: 'rotate(15deg)' }} />
+                <TableBody>
+                  {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => {
+                    const isCurrentUser = user.username === CURRENT_USER;
+                    const isExpanded = expandedUser === user.username;
+                    const trendInfo = getTrendInfo(user.trend);
+                    const winRate = Math.round((user.wins / user.contests) * 100);
+                    
+                    return (
+                      <React.Fragment key={user.rank}>
+                        <TableRow
+                          hover
+                          sx={{
+                            bgcolor: isCurrentUser 
+                              ? (isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)') 
+                              : 'transparent',
+                            '& td': { 
+                              borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                            },
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => setExpandedUser(isExpanded ? null : user.username)}
+                        >
+                          <TableCell align="center">
+                            <Box sx={{ 
+                              fontWeight: 800,
+                              color: user.rank <= 3 
+                                ? user.rank === 1 
+                                  ? '#FFD700' 
+                                  : user.rank === 2 
+                                    ? '#C0C0C0' 
+                                    : '#CD7F32'
+                                : 'inherit',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 0.5,
+                            }}>
+                              {user.rank}
+                              <Box 
+                                sx={{ 
+                                  color: trendInfo.color,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                {trendInfo.icon}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Badge
+                                overlap="circular"
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                badgeContent={
+                                  <Box
+                                    component="img"
+                                    src={`https://flagcdn.com/w20/${user.countryCode.toLowerCase()}.png`}
+                                    alt={user.country}
+                                    sx={{
+                                      width: 16,
+                                      height: 16,
+                                      borderRadius: '50%',
+                                      border: '1px solid',
+                                      borderColor: isDark ? '#121212' : 'white',
+                                      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                                    }}
+                                  />
+                                }
+                              >
+                                <Avatar
+                                  src={user.avatar}
+                                  alt={user.name}
+                                  sx={{ 
+                                    width: 40,
+                                    height: 40,
+                                    mr: 2,
+                                    border: isCurrentUser 
+                                      ? `2px solid ${theme.palette.primary.main}` 
+                                      : 'none',
+                                  }}
+                                />
+                              </Badge>
+                              
+                              <Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Typography variant="subtitle2" fontWeight={600}>
+                                    {user.name}
+                                  </Typography>
+                                  
+                                  {user.verified && (
+                                    <Verified 
+                                      sx={{ 
+                                        fontSize: '0.85rem',
+                                        color: theme.palette.primary.main,
+                                        ml: 0.5,
+                                      }} 
+                                    />
+                                  )}
+                                </Box>
+                                
+                                <Typography variant="caption" color="textSecondary">
+                                  @{user.username}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          
+                          <TableCell align="center">
+                            <Typography variant="body2" fontWeight={700}>
+                              {user.score.toLocaleString()}
+                            </Typography>
+                          </TableCell>
+                          
+                          <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            <Typography variant="body2">
+                              {user.contests}
+                            </Typography>
+                          </TableCell>
+                          
+                          <TableCell align="center" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={winRate}
+                                sx={{
+                                  width: 60,
+                                  height: 6,
+                                  borderRadius: 3,
+                                  bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                                  '& .MuiLinearProgress-bar': {
+                                    bgcolor: winRate > 30 
+                                      ? theme.palette.success.main 
+                                      : winRate > 15 
+                                        ? theme.palette.warning.main 
+                                        : theme.palette.error.main,
+                                  }
+                                }}
+                              />
+                              <Typography variant="caption">
+                                {winRate}%
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          
+                          <TableCell align="center" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                            <AvatarGroup
+                              max={3}
+                              sx={{
+                                justifyContent: 'center',
+                                '& .MuiAvatar-root': {
+                                  width: 24,
+                                  height: 24,
+                                  fontSize: '0.75rem',
+                                },
+                              }}
+                            >
+                              {user.badges.map((badge, i) => getBadge(badge))}
+                            </AvatarGroup>
+                          </TableCell>
+                          
+                          <TableCell align="center">
+                            <IconButton size="small">
+                              <MoreVert fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {/* Expanded User Details */}
+                        {isExpanded && (
+                          <TableRow
+                            sx={{
+                              bgcolor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.015)',
+                              '& td': { 
+                                py: 2,
+                                px: 3,
+                                borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                              },
+                            }}
+                          >
+                            <TableCell colSpan={7}>
+                              <Grid container spacing={3}>
+                                <Grid item xs={12} sm={6} md={4}>
+                                  <Typography variant="overline" color="textSecondary" display="block">
+                                    Performance Metrics
+                                  </Typography>
+                                  
+                                  <Stack spacing={1} sx={{ mt: 1 }}>
+                                    <Box>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                        <Typography variant="caption" color="textSecondary">
+                                          Completion Rate
+                                        </Typography>
+                                        <Typography variant="caption" fontWeight={600}>
+                                          {user.completionRate}%
+                                        </Typography>
+                                      </Box>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={user.completionRate}
+                                        sx={{
+                                          height: 6,
+                                          borderRadius: 3,
+                                          bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                                          '& .MuiLinearProgress-bar': {
+                                            bgcolor: theme.palette.primary.main,
+                                          }
+                                        }}
+                                      />
+                                    </Box>
+                                    
+                                    <Box>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                        <Typography variant="caption" color="textSecondary">
+                                          Code Efficiency
+                                        </Typography>
+                                        <Typography variant="caption" fontWeight={600}>
+                                          {user.efficiency}%
+                                        </Typography>
+                                      </Box>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={user.efficiency}
+                                        sx={{
+                                          height: 6,
+                                          borderRadius: 3,
+                                          bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                                          '& .MuiLinearProgress-bar': {
+                                            bgcolor: theme.palette.info.main,
+                                          }
+                                        }}
+                                      />
+                                    </Box>
+                                    
+                                    <Box>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                        <Typography variant="caption" color="textSecondary">
+                                          Win Rate
+                                        </Typography>
+                                        <Typography variant="caption" fontWeight={600}>
+                                          {winRate}%
+                                        </Typography>
+                                      </Box>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={winRate}
+                                        sx={{
+                                          height: 6,
+                                          borderRadius: 3,
+                                          bgcolor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                                          '& .MuiLinearProgress-bar': {
+                                            bgcolor: theme.palette.success.main,
+                                          }
+                                        }}
+                                      />
+                                    </Box>
+                                  </Stack>
+                                </Grid>
+                                
+                                <Grid item xs={12} sm={6} md={4}>
+                                  <Typography variant="overline" color="textSecondary" display="block">
+                                    Preferred Languages
+                                  </Typography>
+                                  
+                                  <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {user.languages.map((language, i) => (
+                                      <Chip
+                                        key={i}
+                                        label={language}
+                                        size="small"
+                                        sx={{
+                                          fontSize: '0.7rem',
+                                        }}
+                                      />
+                                    ))}
+                                  </Box>
+                                  
+                                  <Typography variant="overline" color="textSecondary" display="block" sx={{ mt: 2 }}>
+                                    Last Active
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    {new Date(user.lastActive).toLocaleString()}
+                                  </Typography>
+                                </Grid>
+                                
+                                <Grid item xs={12} md={4}>
+                                  <Typography variant="overline" color="textSecondary" display="block">
+                                    Achievements
+                                  </Typography>
+                                  
+                                  <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                    {user.badges.map((badge) => (
+                                      <Chip
+                                        key={badge}
+                                        label={badgeInfo[badge].label}
+                                        size="small"
+                                        icon={badgeInfo[badge].icon}
+                                        sx={{
+                                          bgcolor: `${badgeInfo[badge].color}20`,
+                                          color: badgeInfo[badge].color,
+                                          borderColor: badgeInfo[badge].color,
+                                          fontSize: '0.7rem',
+                                          '& .MuiChip-icon': {
+                                            color: badgeInfo[badge].color,
+                                          }
+                                        }}
+                                      />
+                                    ))}
+                                  </Box>
+                                  
+                                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                                    <Button 
+                                      variant="outlined"
+                                      size="small"
+                                      startIcon={<Person />}
+                                      sx={{
+                                        borderRadius: '8px',
+                                        textTransform: 'none',
+                                      }}
+                                    >
+                                      Profile
+                                    </Button>
+                                    
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      startIcon={<Share />}
+                                      sx={{
+                                        borderRadius: '8px',
+                                        textTransform: 'none',
+                                      }}
+                                    >
+                                      Share
+                                    </Button>
+                                  </Box>
+                                </Grid>
+                              </Grid>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            {/* Pagination */}
+            <TablePagination
+              component="div"
+              count={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
+          </MotionPaper>
+        </Container>
+      </Box>
+      
+      {/* Statistics & Info Section */}
+      <Box component="section" sx={{ mb: 10 }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            {/* Competition Info */}
+            <Grid item xs={12} md={7}>
+              <MotionPaper
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                sx={{
+                  p: 4,
+                  borderRadius: '20px',
+                  backgroundColor: isDark 
+                    ? 'rgba(30, 28, 28, 0.7)' 
+                    : 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                  height: '100%',
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <WorkspacePremium
+                    sx={{
+                      fontSize: '2.5rem',
+                      color: theme.palette.primary.main,
+                      mr: 2,
+                    }}
+                  />
+                  
+                  <Box>
+                    <Typography variant="h5" fontWeight={700}>
+                      About the Rankings
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Updated {new Date(CURRENT_DATE_TIME).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Typography variant="body1" paragraph>
+                  The Code Quest Global Leaderboard showcases the top performers from our coding competitions worldwide. Rankings are based on a comprehensive scoring system that evaluates multiple aspects of programming proficiency.
+                </Typography>
+                
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                  Scoring Criteria:
+                </Typography>
+                
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                      <Box
+                        sx={{
+                          minWidth: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(244, 67, 54, 0.1)',
+                          color: '#f44336',
+                          mr: 2,
+                          mt: 0.5,
+                        }}
+                      >
+                        <TrendingUp fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Contest Performance
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Results from official competitions, weighted by difficulty and participation levels
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Grid>
-                )}
-              </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                      <Box
+                        sx={{
+                          minWidth: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(33, 150, 243, 0.1)',
+                          color: '#2196f3',
+                          mr: 2,
+                          mt: 0.5,
+                        }}
+                      >
+                        <BarChart fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Code Quality
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Assessment of code efficiency, readability, and best practices
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                      <Box
+                        sx={{
+                          minWidth: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(76, 175, 80, 0.1)',
+                          color: '#4caf50',
+                          mr: 2,
+                          mt: 0.5,
+                        }}
+                      >
+                        <Star fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Community Contributions
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Engagement in forums, mentoring, and open-source projects
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                 
               
-              {/* Decorative elements */}
-              <Box
+
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                      <Box
+                        sx={{
+                          minWidth: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(255, 193, 7, 0.1)',
+                          color: '#ffc107',
+                          mr: 2,
+                          mt: 0.5,
+                        }}
+                      >
+                        <People fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Peer Reviews
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Feedback and ratings from fellow coders on submitted solutions
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                      <Box
+                        sx={{
+                          minWidth: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(156, 39, 176, 0.1)',
+                          color: '#9c27b0',
+                          mr: 2,
+                          mt: 0.5,
+                        }}
+                      >
+                        <Code fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Innovation and Creativity
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Unique solutions and approaches to coding challenges
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                  </Grid>
+                </Grid>
+                <Typography variant="body2" color="textSecondary">
+                  Note: Rankings are updated weekly based on the latest competition results and community contributions.
+                </Typography>
+              </MotionPaper>
+            </Grid>
+            {/* Statistics Section */}
+
+            <Grid item xs={12} md={5}>
+              <MotionPaper
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
                 sx={{
-                  position: 'absolute',
-                  bottom: -20,
-                  right: -20,
-                  width: 140,
-                  height: 140,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
+                  p: 4,
+                  borderRadius: '20px',
+                  backgroundColor: isDark 
+                    ? 'rgba(30, 28, 28, 0.7)' 
+                    : 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                  height: '100%',
                 }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: -30,
-                  left: '40%',
-                  width: 100,
-                  height: 100,
-                  borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%)',
-                }}
-              />
-            </Paper>
-          </>
-        )}
-      </Container>
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <BarChart
+                    sx={{
+                      fontSize: '2.5rem',
+                      color: theme.palette.primary.main,
+                      mr: 2,
+                    }}
+                  />
+                  
+                  <Box>
+                    <Typography variant="h5" fontWeight={700}>
+                      Global Statistics
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Updated {new Date(CURRENT_DATE_TIME).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.primary.main,
+                          width: 48,
+                          height: 48,
+                          mr: 2,
+                        }}
+                      >
+                        <PeopleAlt />
+                      </Avatar>
+                      <Box>
+                        {/* <Typography variant="h6" fontWeight={700}>
+                          {totalUsers.toLocaleString()}
+                        </Typography> */}
+                        <Typography variant="body2" color="textSecondary">
+                          Total Users
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.success.main,
+                          width: 48,
+                          height: 48,
+                          mr: 2,
+                        }}
+                      >
+                        <Star />
+                      </Avatar>
+                      {/* <Box>
+                        <Typography variant="h6" fontWeight={700}>
+                          {totalContests.toLocaleString()}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Total Contests
+                        </Typography>
+                      </Box> */}
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.warning.main,
+                          width: 48,
+                          height: 48,
+                          mr: 2,
+                        }}
+                      >
+                        <Code />
+                      </Avatar>
+                      <Box>
+                        {/* <Typography variant="h6" fontWeight={700}>
+                          {totalLanguages}
+                        </Typography> */}
+                        <Typography variant="body2" color="textSecondary">
+                          Supported Languages
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.info.main,
+                          width: 48,
+                          height: 48,
+                          mr: 2,
+                        }}
+                      >
+                        <TrendingUp />
+                      </Avatar>
+                      <Box>
+                        {/* <Typography variant="h6" fontWeight={700}>
+                          {totalChallenges.toLocaleString()}
+                        </Typography> */}
+                        <Typography variant="body2" color="textSecondary">
+                          Total Challenges
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: theme.palette.error.main,
+                          width: 48,
+                          height: 48,
+                          mr: 2,
+                        }}
+                      >
+                        <EmojiEvents />
+                      </Avatar>
+                      <Box>
+                        {/* <Typography variant="h6" fontWeight={700}>
+                          {totalBadges.toLocaleString()}
+                        </Typography> */}
+                        <Typography variant="body2" color="textSecondary">
+                          Total Badges Earned
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                  </Grid>
+                </Grid>
+              </MotionPaper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
     </>
   );
-};
-
-export default Leaderboard;
+}
+export default LeaderboardPage;

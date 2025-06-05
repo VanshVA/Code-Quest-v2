@@ -50,7 +50,7 @@ import { motion } from 'framer-motion';
 // Contact information
 const contactInfo = {
   email: "codequest.server@gmail.com",
-  phone: "+91 9897868221",
+  phone: "+91 8445965589",
   address: "Pachokra, Haridwar Road, Moradabad",
   officeHours: "Monday - Friday: 9:00 AM - 6:00 PM (PST)",
   socialMedia: [
@@ -440,7 +440,7 @@ const ContactPage = () => {
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: theme.palette.text.primary,
+                      color: "#9a342d",
                       fontWeight: 500,
                     }}
                   >
@@ -689,7 +689,7 @@ const ContactPage = () => {
               >
                 <iframe
                   title="Office Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50740.71939576576!2d-122.08531224999999!3d37.38935994999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808fb7495bec0189%3A0x7c17d44a466baf9b!2sMountain%20View%2C%20CA%2C%20USA!5e0!3m2!1sen!2sin!4v1620942256304!5m2!1sen!2sin"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d111835.41187131825!2d78.68515073225483!3d28.843128411172835!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390afbea2f5646c9%3A0xb8c97ce4e95398db!2sMoradabad%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1749068730881!5m2!1sen!2sin"
                   width="100%"
                   height="300"
                   style={{ border: 0 }}

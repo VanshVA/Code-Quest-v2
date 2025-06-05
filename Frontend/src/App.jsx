@@ -13,6 +13,10 @@ import SupportPage from './pages/Security/SupportPage';
 import CookiePolicy from './pages/Security/CookiePolicy';
 import SecurityPage from './pages/Security/SecurityPage';
 import FeaturePage from './pages/Feature/FeaturePage';
+import DocumentationPage from './pages/Documentation/DocumentationPage';
+import CompetitionPage from './pages/Competition/CompetitionPage';
+import ReferencesPage from './pages/References/ReferencesPage';
+import TestimonialsPage from './pages/Testimonial/TestimonialPage';
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
@@ -123,7 +127,12 @@ function App() {
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/cookies" element={<CookiePolicy />} />
               <Route path="/security" element={<SecurityPage />} />
+              <Route path="/docs" element={<DocumentationPage />} />
+              <Route path="/competitions" element={<CompetitionPage />} />
+              <Route path="/Refrences" element={<ReferencesPage />} />
+              <Route path="/testimonial" element={<TestimonialsPage />} />
 
+  
               {/* Auth routes (redirect to dashboard if already logged in) */}
               <Route path="/login" element={
                 <AuthRoute>

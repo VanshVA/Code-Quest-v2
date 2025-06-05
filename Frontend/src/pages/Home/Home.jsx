@@ -61,6 +61,7 @@ import {
   useTransform,
   AnimatePresence,
 } from "framer-motion";
+import GuideSection from "../Guide/GuideSection";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -1919,6 +1920,7 @@ const HomePage = () => {
         </Button>
       </Stack>
     </Box>
+    <GuideSection></GuideSection>
       {/* Languages Support Section */}
       <Box
   component="section"

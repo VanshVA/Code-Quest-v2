@@ -21,7 +21,6 @@ import {
   Divider,
   Tooltip,
   Alert,
-  Snackbar,
   Dialog,
   DialogActions,
   DialogContent,
@@ -46,6 +45,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast'; // Import toast
 import SubmissionDetails from './SubmissionDetails';
 
 // API base URL
@@ -384,25 +384,27 @@ function ResultsManagement() {
       link.click();
       document.body.removeChild(link);
 
-      // Show success notification
-      setNotification({
-        open: true,
-        type: 'success',
-        message: 'Submissions exported successfully'
+      // Show success notification with toast
+      toast.success('Submissions exported successfully', {
+        duration: 3000,
+        position: 'top-center',
       });
 
     } catch (err) {
       console.error('Error exporting submissions:', err);
-      setNotification({
-        open: true,
-        type: 'error',
-        message: 'Failed to export submissions'
+      // Show error notification with toast
+      toast.error('Failed to export submissions', {
+        duration: 4000,
+        position: 'top-center',
       });
     }
   };
 
   return (
     <Box>
+      {/* Toast Container */}
+      <Toaster position="top-center" />
+      
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h5" fontWeight="bold">
@@ -1113,23 +1115,6 @@ function ResultsManagement() {
           competition={selectedCompetition}
         />
       )}
-
-      {/* Notifications */}
-      <Snackbar
-        open={notification.open}
-        autoHideDuration={6000}
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseNotification}
-          severity={notification.type}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

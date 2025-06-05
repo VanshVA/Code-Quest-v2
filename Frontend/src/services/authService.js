@@ -47,7 +47,7 @@ const authService = {
   },
 
   // Verify signup OTP
-  verifySignupOTP: async (email, otp) => {
+  verifySignOTP: async (email, otp) => {
     const response = await api.post('/verify-signup-otp', {
       email,
       otp

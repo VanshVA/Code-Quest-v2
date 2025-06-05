@@ -57,6 +57,24 @@ const generateToken = (id) => {
   });
 };
 
+// Function to schedule deletion of unverified accounts
+const scheduleAccountDeletion = async (studentId, expiryTimeMs) => {
+  setTimeout(async () => {
+    try {
+      // Find the student by ID
+      const student = await Student.findById(studentId);
+      
+      // If student exists and still has not been verified (has OTP and not allowed)
+      if (student && student.otp && !student.allowance) {
+        console.log(`Deleting unverified account for: ${student.studentEmail}`);
+        await Student.findByIdAndDelete(studentId);
+      }
+    } catch (error) {
+      console.error('Error in scheduled account deletion:', error);
+    }
+  }, expiryTimeMs);
+};
+
 // Controller methods
 const studentAuthController = {
   // Request OTP for signup
@@ -76,7 +94,8 @@ const studentAuthController = {
 
       // Generate and store OTP temporarily
       const otp = generateOTP();
-      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+      const otpExpiryTimeMs = 5 * 60 * 1000; // 5 minutes expiry in milliseconds
+      const otpExpires = new Date(Date.now() + otpExpiryTimeMs);
 
       // Store temporary user data and OTP in a new student document
       const tempStudent = new Student({
@@ -90,6 +109,9 @@ const studentAuthController = {
       });
 
       await tempStudent.save();
+
+      // Schedule deletion of unverified account after OTP expires
+      scheduleAccountDeletion(tempStudent._id, otpExpiryTimeMs);
 
       // Send OTP via email
       const emailSent = await sendOTP(
@@ -105,7 +127,7 @@ const studentAuthController = {
 
       res.status(200).json({
         success: true,
-        message: 'OTP sent to your email for verification',
+        message: 'OTP sent to your email for verification. This OTP will expire in 5 minutes.',
         student: {
           _id: tempStudent._id,
           email: tempStudent.studentEmail
@@ -185,11 +207,15 @@ const studentAuthController = {
 
       // Generate new OTP and update expiry
       const otp = generateOTP();
-      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+      const otpExpiryTimeMs = 5 * 60 * 1000; // 5 minutes expiry in milliseconds
+      const otpExpires = new Date(Date.now() + otpExpiryTimeMs);
 
       student.otp = otp;
       student.otpExpires = otpExpires;
       await student.save();
+
+      // Schedule deletion of unverified account after OTP expires
+      scheduleAccountDeletion(student._id, otpExpiryTimeMs);
 
       // Send OTP via email
       const emailSent = await sendOTP(
@@ -205,7 +231,7 @@ const studentAuthController = {
 
       res.status(200).json({
         success: true,
-        message: 'New OTP sent to your email'
+        message: 'New OTP sent to your email. This OTP will expire in 5 minutes.'
       });
     } catch (error) {
       console.error('Resend OTP error:', error);
@@ -286,7 +312,8 @@ const studentAuthController = {
 
       // Generate OTP and set expiry
       const otp = generateOTP();
-      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+      const otpExpiryTimeMs = 5 * 60 * 1000; // 5 minutes expiry in milliseconds
+      const otpExpires = new Date(Date.now() + otpExpiryTimeMs);
 
       student.otp = otp;
       student.otpExpires = otpExpires;
@@ -306,7 +333,7 @@ const studentAuthController = {
 
       res.status(200).json({
         success: true,
-        message: 'OTP sent to your email for password reset',
+        message: 'OTP sent to your email for password reset. This OTP will expire in 5 minutes.',
         student: {
           _id: student._id,
           email: student.studentEmail

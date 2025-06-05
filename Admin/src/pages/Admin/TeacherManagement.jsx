@@ -31,9 +31,7 @@ import {
   FormHelperText,
   Grid,
   CircularProgress,
-  useTheme,
-  Snackbar,
-  Alert
+  useTheme
 } from '@mui/material';
 import {
   Add,
@@ -54,6 +52,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
 // Current date and time
 const CURRENT_DATE_TIME = "2025-05-30 11:17:00";
@@ -83,11 +82,6 @@ const TeacherManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
   
   // Form state
   const [formData, setFormData] = useState({
@@ -141,11 +135,7 @@ const TeacherManagement = () => {
       setError('Failed to load teachers. Please try again.');
       
       // Show more detailed error in snackbar
-      setSnackbar({
-        open: true,
-        message: `Error: ${error.response?.data?.message || error.message}`,
-        severity: 'error'
-      });
+      toast.error(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -246,7 +236,7 @@ const TeacherManagement = () => {
     setFormDialogOpen(true);
   };
   
-  // Form input change handler
+  // Handle form input change
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -310,8 +300,9 @@ const TeacherManagement = () => {
     if (e) e.preventDefault();
     
     if (validateForm()) {
-      setFormLoading(true);
       try {
+        setFormLoading(true);
+        
         // Create submitData object, omitting password if not needed
         const submitData = { ...formData };
         
@@ -333,14 +324,6 @@ const TeacherManagement = () => {
               }
             }
           );
-          
-          if (response.data.success) {
-            setSnackbar({
-              open: true,
-              message: 'Teacher created successfully',
-              severity: 'success'
-            });
-          }
         } else {
           // Update existing teacher
           response = await axios.put(
@@ -353,30 +336,20 @@ const TeacherManagement = () => {
               }
             }
           );
-          
-          if (response.data.success) {
-            setSnackbar({
-              open: true,
-              message: 'Teacher updated successfully',
-              severity: 'success'
-            });
-          }
         }
+        
+        // Show success toast
+        toast.success(isCreating ? 'Teacher created successfully' : 'Teacher updated successfully');
         
         setFormDialogOpen(false);
         fetchTeachers(); // Refresh the teacher list
       } catch (error) {
         console.error('Error saving teacher:', error);
         
-        const errorMessage = error.response?.data?.message || 'An error occurred while saving teacher data';
+        // Show error toast
+        toast.error(error.response?.data?.message || 'Failed to save teacher data');
         
-        setSnackbar({
-          open: true,
-          message: errorMessage,
-          severity: 'error'
-        });
-        
-        // Set specific field errors if returned from API
+        // Handle field-specific errors if needed
         if (error.response?.data?.errors) {
           setFormErrors(error.response.data.errors);
         }
@@ -399,24 +372,16 @@ const TeacherManagement = () => {
         }
       );
       
-      if (response.data.success) {
-        setSnackbar({
-          open: true,
-          message: 'Teacher deleted successfully',
-          severity: 'success'
-        });
-        
-        setDeleteDialogOpen(false);
-        fetchTeachers(); // Refresh the teacher list
-      }
+      // Show success toast
+      toast.success('Teacher deleted successfully');
+      
+      setDeleteDialogOpen(false);
+      fetchTeachers(); // Refresh the teacher list
     } catch (error) {
       console.error('Error deleting teacher:', error);
       
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Failed to delete teacher',
-        severity: 'error'
-      });
+      // Show error toast
+      toast.error(error.response?.data?.message || 'Failed to delete teacher');
     } finally {
       setDeleteLoading(false);
     }
@@ -434,12 +399,6 @@ const TeacherManagement = () => {
     }
   };
 
-  // Close snackbar
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
-
   const convertToIST = (dateString) => {
     const utcDate = new Date(dateString);
     return utcDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
@@ -447,6 +406,18 @@ const TeacherManagement = () => {
 
   return (
     <Box>
+      {/* Toast Container - Repositioned */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            marginTop: '20px',
+            marginRight: '15px',
+            zIndex: 9999
+          },
+        }}
+      />
+      
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h5" fontWeight="bold">
@@ -979,23 +950,6 @@ const TeacherManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      
-      {/* Snackbar for notifications */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

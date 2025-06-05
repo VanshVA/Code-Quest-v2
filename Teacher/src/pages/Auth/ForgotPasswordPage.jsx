@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -12,7 +12,6 @@ import {
   InputAdornment,
   Link,
   Paper,
-  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -49,7 +48,6 @@ const ForgotPasswordPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [statusAlert, setStatusAlert] = useState({ show: false, type: '', message: '' });
   
   // Canvas animation for background
   useEffect(() => {
@@ -196,10 +194,10 @@ const ForgotPasswordPage = () => {
       // Call API to request password reset OTP for teacher
       await authService.requestPasswordResetOTP(email);
       
-      setStatusAlert({
-        show: true,
-        type: 'success',
-        message: 'Verification code sent! Please check your email inbox.',
+      // Show success toast notification
+      toast.success('Verification code sent! Please check your email inbox.', {
+        duration: 3000,
+        position: 'top-center',
       });
       
       setSubmitted(true);
@@ -213,10 +211,10 @@ const ForgotPasswordPage = () => {
       }, 3000);
       
     } catch (error) {
-      setStatusAlert({
-        show: true,
-        type: 'error',
-        message: error.message || 'Failed to send verification code. Please try again.',
+      // Show error toast notification
+      toast.error(error.message || 'Failed to send verification code. Please try again.', {
+        duration: 4000,
+        position: 'top-center',
       });
     } finally {
       setIsLoading(false);
@@ -227,11 +225,6 @@ const ForgotPasswordPage = () => {
   const handleTryAnotherEmail = () => {
     setSubmitted(false);
     setEmail('');
-  };
-  
-  // Handle alert close
-  const handleCloseAlert = () => {
-    setStatusAlert({ ...statusAlert, show: false });
   };
 
   return (
@@ -245,6 +238,9 @@ const ForgotPasswordPage = () => {
         position: 'relative',
       }}
     >
+      {/* Toast Container */}
+      <Toaster position="top-center" />
+      
       {/* Canvas Background for Premium Gradient Animation */}
       <Box sx={{ 
         position: 'fixed',
@@ -590,23 +586,6 @@ const ForgotPasswordPage = () => {
           </Box>
         </Box>
       </Container>
-      
-      {/* Status Alert */}
-      <Snackbar
-        open={statusAlert.show}
-        autoHideDuration={6000}
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={statusAlert.type}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {statusAlert.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

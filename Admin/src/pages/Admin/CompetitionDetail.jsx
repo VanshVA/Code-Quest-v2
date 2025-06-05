@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import { format } from 'date-fns';
+import toast, { Toaster } from 'react-hot-toast';
 
 // API base URL
 const API_BASE_URL = "http://localhost:5000/api/admin/dashboard";
@@ -1011,6 +1012,18 @@ const CompetitionDetail = ({ open, onClose, competitionId }) => {
                     Close
                 </Button>
             </DialogActions>
+
+            {/* Toast Container - Repositioned */}
+            <Toaster 
+                position="top-right"
+                toastOptions={{
+                    style: {
+                        marginTop: '20px',
+                        marginRight: '15px',
+                        zIndex: 9999
+                    },
+                }}
+            />
         </Dialog>
     );
 };

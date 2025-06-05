@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    Typography,
-    Box,
-    CircularProgress,
-    Tabs,
-    Tab,
-    Divider,
-    Grid,
-    Paper,
-    Alert,
-    IconButton,
-    Snackbar,
-    Backdrop,
-    Fade,
-    Chip
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Box,
+  CircularProgress,
+  Tabs,
+  Tab,
+  Divider,
+  Grid,
+  Paper,
+  Alert,
+  IconButton,
+  Snackbar,
+  Backdrop,
+  Fade,
+  Chip
 } from '@mui/material';
 import { Close, CheckCircle, GradeOutlined } from '@mui/icons-material';
+import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { format } from 'date-fns';
 
@@ -48,13 +49,6 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
     const [existingResult, setExistingResult] = useState(null);
     const [checkingResults, setCheckingResults] = useState(true);
     
-    // State for notifications
-    const [notification, setNotification] = useState({
-        open: false,
-        type: 'success',
-        message: ''
-    });
-
     // Fetch detailed submission on open
     useEffect(() => {
         if (open && submission) {
@@ -162,6 +156,8 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
             setGradingInProgress(true);
             setGradingError(null);
             
+            const loadingToast = toast.loading('Calculating results...');
+            
             const response = await axios.post(
                 `${API_BASE_URL}/competitions/${submission.submissionId}/assign-results`, 
                 {}, // No body needed for MCQ auto-grading
@@ -174,13 +170,11 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
             
             if (response.data.success) {
                 setGradingResults(response.data.data);
-                setNotification({
-                    open: true,
-                    type: 'success',
-                    message: response.data.data.isExisting 
-                        ? 'Results were already calculated. Displaying existing results.' 
-                        : 'Results calculated and assigned successfully!'
-                });
+                toast.success(response.data.data.isExisting 
+                  ? 'Results were already calculated. Displaying existing results.' 
+                  : 'Results calculated and assigned successfully!',
+                  { id: loadingToast }
+                );
                 
                 // After grading, fetch the full result details
                 checkForExistingResults();
@@ -190,11 +184,7 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
         } catch (err) {
             console.error('Error calculating results:', err);
             setGradingError(err.response?.data?.message || err.message || 'An error occurred while calculating results');
-            setNotification({
-                open: true,
-                type: 'error',
-                message: 'Failed to calculate results. Please try again.'
-            });
+            toast.error('Failed to calculate results. Please try again.');
         } finally {
             setGradingInProgress(false);
         }
@@ -205,6 +195,8 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
         try {
             setGradingInProgress(true);
             setGradingError(null);
+            
+            const loadingToast = toast.loading('Submitting grades...');
             
             const response = await axios.post(
                 `${API_BASE_URL}/competitions/${submission.submissionId}/grade-text-or-code-submission`,
@@ -218,11 +210,7 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
             
             if (response.data.success) {
                 setGradingResults(response.data.data);
-                setNotification({
-                    open: true,
-                    type: 'success',
-                    message: 'Submission graded successfully!'
-                });
+                toast.success('Submission graded successfully!', { id: loadingToast });
                 
                 // After grading, fetch the full result details
                 checkForExistingResults();
@@ -232,11 +220,7 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
         } catch (err) {
             console.error('Error submitting grades:', err);
             setGradingError(err.response?.data?.message || err.message || 'An error occurred while submitting grades');
-            setNotification({
-                open: true,
-                type: 'error',
-                message: 'Failed to submit grades. Please try again.'
-            });
+            toast.error('Failed to submit grades. Please try again.');
         } finally {
             setGradingInProgress(false);
         }
@@ -604,22 +588,16 @@ function SubmissionDetails({ open, onClose, submission, competition }) {
                 </Box>
             </Backdrop>
             
-            {/* Notification */}
-            <Snackbar
-                open={notification.open}
-                autoHideDuration={6000}
-                onClose={handleCloseNotification}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-                <Alert 
-                    onClose={handleCloseNotification} 
-                    severity={notification.type} 
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    {notification.message}
-                </Alert>
-            </Snackbar>
+            {/* Toast Container - Removed margin adjustment */}
+            <Toaster 
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    marginRight: '15px',
+                    zIndex: 9999
+                  },
+                }}
+            />
         </Dialog>
     );
 }

@@ -59,6 +59,7 @@ import {
   Check,
   Close,
 } from '@mui/icons-material';
+import toast, { Toaster } from 'react-hot-toast';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
@@ -98,11 +99,6 @@ const FeedbackPage = () => {
   const [error, setError] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [feedbackStats, setFeedbackStats] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
 
   // Fetch feedbacks
   const fetchFeedbacks = async () => {
@@ -155,12 +151,8 @@ const FeedbackPage = () => {
       console.error('Error fetching feedbacks:', error);
       setError('Failed to load feedbacks. Please try again.');
 
-      // Show more detailed error in snackbar
-      setSnackbar({
-        open: true,
-        message: `Error: ${error.response?.data?.message || error.message}`,
-        severity: 'error'
-      });
+      // Show error with toast
+      toast.error(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -334,11 +326,7 @@ const FeedbackPage = () => {
       );
 
       if (response.data.success) {
-        setSnackbar({
-          open: true,
-          message: 'Feedback deleted successfully',
-          severity: 'success'
-        });
+        toast.success('Feedback deleted successfully');
 
         setDeleteDialogOpen(false);
         fetchFeedbacks(); // Refresh the feedback list
@@ -346,12 +334,7 @@ const FeedbackPage = () => {
       }
     } catch (error) {
       console.error('Error deleting feedback:', error);
-
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Failed to delete feedback',
-        severity: 'error'
-      });
+      toast.error(error.response?.data?.message || 'Failed to delete feedback');
     } finally {
       setDeleteLoading(false);
     }
@@ -415,6 +398,17 @@ const FeedbackPage = () => {
 
   return (
     <Box>
+      {/* Toast Container - Removed margin adjustment */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            marginRight: '15px',
+            zIndex: 9999
+          },
+        }}
+      />
+      
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h5" fontWeight="bold">
@@ -1271,23 +1265,6 @@ const FeedbackPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      
-      {/* Snackbar for notifications */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

@@ -14,7 +14,6 @@ import {
   InputAdornment,
   Link,
   Paper,
-  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -30,6 +29,7 @@ import {
   ArrowBack,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast'; // Import toast
 import authService from '../../services/authService';
 
 // Current date and user info from global state - updated as specified
@@ -59,7 +59,6 @@ const LoginPage = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [loginStatus, setLoginStatus] = useState({ show: false, type: '', message: '' });
   const [isLoading, setIsLoading] = useState(false);
   
   // Enhanced Canvas animation for background
@@ -264,11 +263,10 @@ const LoginPage = () => {
         // Call login API with email and password
         const response = await authService.login(formData.email, formData.password);
         
-        // Handle successful login
-        setLoginStatus({
-          show: true,
-          type: 'success',
-          message: 'Login successful! Redirecting to dashboard...',
+        // Handle successful login with toast - using default styling
+        toast.success('Login successful! Redirecting to dashboard...', {
+          duration: 3000,
+          position: 'top-center',
         });
         
         // If "remember me" is checked, store this preference
@@ -283,26 +281,21 @@ const LoginPage = () => {
           navigate('/teacher/dashboard');
         }, 1500);
       } catch (error) {
-        setLoginStatus({
-          show: true,
-          type: 'error',
-          message: error.message || 'Invalid email or password. Please try again.',
+        // Show error toast - using default styling
+        toast.error(error.message || 'Invalid email or password. Please try again.', {
+          duration: 4000,
+          position: 'top-center',
         });
       } finally {
         setIsLoading(false);
       }
     } else {
-      setLoginStatus({
-        show: true,
-        type: 'error',
-        message: 'Please correct the errors in the form.',
+      // Show validation error toast - using default styling
+      toast.error('Please correct the errors in the form.', {
+        duration: 4000,
+        position: 'top-center',
       });
     }
-  };
-  
-  // Close status alert
-  const handleCloseAlert = () => {
-    setLoginStatus({ ...loginStatus, show: false });
   };
 
   return (
@@ -316,6 +309,9 @@ const LoginPage = () => {
         position: 'relative',
       }}
     >
+      {/* Toast Container */}
+      <Toaster position="top-center" />
+      
       {/* Canvas Background for Premium Gradient Animation */}
       <Box sx={{ 
         position: 'fixed',
@@ -634,23 +630,6 @@ const LoginPage = () => {
           </Box>
         </Box>
       </Container>
-      
-      {/* Login Status Alert */}
-      <Snackbar
-        open={loginStatus.show}
-        autoHideDuration={6000}
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={loginStatus.type}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {loginStatus.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

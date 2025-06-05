@@ -12,6 +12,7 @@ import {
   useTheme
 } from '@mui/material';
 import { Warning, Delete, Cancel } from '@mui/icons-material';
+import toast, { Toaster } from 'react-hot-toast';
 
 const CompetitionDeleteDialog = ({ open, onClose, onConfirm, competition, loading }) => {
   const theme = useTheme();
@@ -28,6 +29,17 @@ const CompetitionDeleteDialog = ({ open, onClose, onConfirm, competition, loadin
         sx: { borderRadius: '16px' }
       }}
     >
+      {/* Toast Container - Removed margin adjustment */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            marginRight: '15px',
+            zIndex: 9999
+          },
+        }}
+      />
+      
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Warning color="error" sx={{ fontSize: 24 }} />
         Confirm Competition Deletion

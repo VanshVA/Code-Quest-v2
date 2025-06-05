@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
-  Alert,
   Avatar,
   Box,
   Button,
@@ -17,7 +16,6 @@ import {
   InputAdornment,
   Link,
   Paper,
-  Snackbar,
   Stack,
   Stepper,
   Step,
@@ -27,6 +25,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import toast, { Toaster } from 'react-hot-toast';
 import {
   Apple,
   GitHub,
@@ -302,20 +301,12 @@ const SignupPage = () => {
           // Request signup OTP from API
           const response = await authService.requestSignupOTP(userData);
           
-          setSignupStatus({
-            show: true,
-            type: 'success',
-            message: 'Verification code sent to your email. Please check your inbox.',
-          });
+          toast.success('Verification code sent to your email. Please check your inbox.');
           
           // Navigate to OTP verification page with email in the URL
           navigate(`/verify-otp?email=${encodeURIComponent(formData.email)}&type=signup`);
         } catch (error) {
-          setSignupStatus({
-            show: true,
-            type: 'error',
-            message: error.message || 'Failed to create account. Please try again.',
-          });
+          toast.error(error.message || 'Failed to create account. Please try again.');
         } finally {
           setIsSubmitting(false);
         }
@@ -324,11 +315,7 @@ const SignupPage = () => {
         setActiveStep((prevStep) => prevStep + 1);
       }
     } else {
-      setSignupStatus({
-        show: true,
-        type: 'error',
-        message: 'Please correct the errors in the form.',
-      });
+      toast.error('Please correct the errors in the form.');
     }
   };
   
@@ -604,6 +591,9 @@ const SignupPage = () => {
         position: 'relative',
       }}
     >
+      {/* Toast Container */}
+      <Toaster position="top-center" />
+      
       {/* Canvas Background for Premium Gradient Animation */}
       <Box sx={{ 
         position: 'fixed',
@@ -637,8 +627,6 @@ const SignupPage = () => {
           }} 
         />
       </Box>
-      
-     
       
       {/* Main Content */}
       <Container maxWidth="sm">
@@ -940,23 +928,6 @@ const SignupPage = () => {
           </Box>
         </Box>
       </Container>
-      
-      {/* Status Alert */}
-      <Snackbar
-        open={signupStatus.show}
-        autoHideDuration={6000}
-        onClose={handleCloseAlert}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={handleCloseAlert} 
-          severity={signupStatus.type}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {signupStatus.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

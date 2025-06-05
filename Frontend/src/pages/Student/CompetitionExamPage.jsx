@@ -22,10 +22,9 @@ import {
   ListItemText,
   Divider,
   Avatar,
-  CircularProgress,
-  Snackbar,
-  Alert
+  CircularProgress
 } from '@mui/material';
+import toast, { Toaster } from 'react-hot-toast';
 import WarningIcon from '@mui/icons-material/Warning';
 import InfoIcon from '@mui/icons-material/Info';
 import RuleIcon from '@mui/icons-material/Gavel';
@@ -175,7 +174,7 @@ function CompetitionExamPage() {
     if (violationsCount < MAX_VIOLATIONS) {
       setViolationsCount(prev => prev + 1);
       setShowViolationWarning(true);
-      setError(`Security violation: ${reason}. Warning ${violationsCount + 1}/${MAX_VIOLATIONS}`);
+      toast.error(`Security violation: ${reason}. Warning ${violationsCount + 1}/${MAX_VIOLATIONS}`);
     } else {
       // Pass to the current component (MCQ/Code/Text) to handle disqualification
       setIsDisqualified(true);
@@ -353,7 +352,7 @@ function CompetitionExamPage() {
 
   const handleJoinCompetition = async () => {
     if (!competition?._id) {
-      setError('Competition details not available');
+      toast.error('Competition details not available');
       return;
     }
 
@@ -365,7 +364,7 @@ function CompetitionExamPage() {
       const response = await api.post(`/student/dashboard/competitions/${competition._id}/join`);
 
       if (response.data.success) {
-        setSuccess('Successfully joined the competition');
+        toast.success('Successfully joined the competition');
 
         // Start the exam - small delay for user to see success message
         setTimeout(() => {
@@ -373,10 +372,10 @@ function CompetitionExamPage() {
         }, 1000);
 
       } else {
-        setError(response.data.message || 'Failed to join competition');
+        toast.error(response.data.message || 'Failed to join competition');
       }
     } catch (error) {
-      setError(error.message || 'Error joining competition');
+      toast.error(error.message || 'Error joining competition');
       console.error('Error joining competition:', error);
     } finally {
       setJoinLoading(false);
@@ -555,30 +554,6 @@ function CompetitionExamPage() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={!!success}
-        autoHideDuration={6000}
-        onClose={() => setSuccess(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSuccess(null)} severity="success" sx={{ width: '100%' }}>
-          {success}
-        </Alert>
-      </Snackbar>
-
-      {/* Error Snackbar */}
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
 
       {/* Header */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
@@ -785,6 +760,9 @@ function CompetitionExamPage() {
           )}
         </Box>
       </Paper>
+
+      {/* Toast Container */}
+      <Toaster position="top-center" />
     </Container>
   );
 }

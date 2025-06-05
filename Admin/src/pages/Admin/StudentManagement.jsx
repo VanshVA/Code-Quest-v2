@@ -32,8 +32,6 @@ import {
   Grid,
   CircularProgress,
   useTheme,
-  Snackbar,
-  Alert,
   FormControlLabel,
   Switch
 } from '@mui/material';
@@ -58,6 +56,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
 // Current date and time
 const CURRENT_DATE_TIME = "2025-05-30 11:17:00";
@@ -87,11 +86,6 @@ const StudentManagement = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -144,12 +138,8 @@ const StudentManagement = () => {
       console.error('Error fetching students:', error);
       setError('Failed to load students. Please try again.');
 
-      // Show more detailed error in snackbar
-      setSnackbar({
-        open: true,
-        message: `Error: ${error.response?.data?.message || error.message}`,
-        severity: 'error'
-      });
+      // Show more detailed error with toast
+      toast.error(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -337,11 +327,7 @@ const StudentManagement = () => {
           );
 
           if (response.data.success) {
-            setSnackbar({
-              open: true,
-              message: 'Student created successfully',
-              severity: 'success'
-            });
+            toast.success('Student created successfully');
           }
         } else {
           // Update existing student
@@ -357,11 +343,7 @@ const StudentManagement = () => {
           );
 
           if (response.data.success) {
-            setSnackbar({
-              open: true,
-              message: 'Student updated successfully',
-              severity: 'success'
-            });
+            toast.success('Student updated successfully');
           }
         }
 
@@ -371,12 +353,7 @@ const StudentManagement = () => {
         console.error('Error saving student:', error);
 
         const errorMessage = error.response?.data?.message || 'An error occurred while saving student data';
-
-        setSnackbar({
-          open: true,
-          message: errorMessage,
-          severity: 'error'
-        });
+        toast.error(errorMessage);
 
         // Set specific field errors if returned from API
         if (error.response?.data?.errors) {
@@ -402,23 +379,13 @@ const StudentManagement = () => {
       );
 
       if (response.data.success) {
-        setSnackbar({
-          open: true,
-          message: 'Student deleted successfully',
-          severity: 'success'
-        });
-
+        toast.success('Student deleted successfully');
         setDeleteDialogOpen(false);
         fetchStudents(); // Refresh the student list
       }
     } catch (error) {
       console.error('Error deleting student:', error);
-
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Failed to delete student',
-        severity: 'error'
-      });
+      toast.error(error.response?.data?.message || 'Failed to delete student');
     } finally {
       setDeleteLoading(false);
     }
@@ -521,12 +488,6 @@ const StudentManagement = () => {
     );
   };
 
-  // Close snackbar
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
-
   const convertToIST = (dateString) => {
     const utcDate = new Date(dateString);
     return utcDate.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
@@ -537,12 +498,9 @@ const StudentManagement = () => {
     try {
       setActionMenuAnchorEl(null); // Close the menu
       
-      // Show loading in snackbar
-      setSnackbar({
-        open: true,
-        message: `${selectedStudent.blockedStatus ? 'Unblocking' : 'Blocking'} student account...`,
-        severity: 'info'
-      });
+      // Show loading in toast
+      toast.loading(`${selectedStudent.blockedStatus ? 'Unblocking' : 'Blocking'} student account...`, 
+        { id: 'block-status' });
       
       // Call the toggle API endpoint
       const response = await axios.put(
@@ -566,26 +524,30 @@ const StudentManagement = () => {
         const action = response.data.data.blockStatus ? 'blocked' : 'unblocked';
         
         // Show success message
-        setSnackbar({
-          open: true,
-          message: `Student account ${action} successfully`,
-          severity: 'success'
-        });
+        toast.success(`Student account ${action} successfully`, { id: 'block-status' });
       }
     } catch (error) {
       console.error('Error toggling student blocked status:', error);
       
       // Show error message
-      setSnackbar({
-        open: true,
-        message: error.response?.data?.message || 'Failed to update student account status',
-        severity: 'error'
-      });
+      toast.error(error.response?.data?.message || 'Failed to update student account status', 
+        { id: 'block-status' });
     }
   };
 
   return (
     <Box>
+      {/* Toast Container - Removed margin adjustment */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            marginRight: '15px',
+            zIndex: 9999
+          },
+        }}
+      />
+      
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="h5" fontWeight="bold">
@@ -1082,23 +1044,6 @@ const StudentManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

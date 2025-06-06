@@ -11,6 +11,7 @@ import {
     CircularProgress,
     Divider,
     Alert,
+    Snackbar,
     Card,
     CardContent,
     Dialog,
@@ -40,7 +41,6 @@ import {
     Settings as SettingsIcon,
     Refresh
 } from '@mui/icons-material';
-import toast, { Toaster } from 'react-hot-toast'; // Import toast
 import authService from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
@@ -174,10 +174,11 @@ const ProfilePage = () => {
                     teacherImage: formData.teacherImage
                 }));
 
-                // Show success notification with toast
-                toast.success('Profile updated successfully', {
-                    duration: 3000,
-                    position: 'top-center',
+                // Show success notification
+                setNotification({
+                    open: true,
+                    message: 'Profile updated successfully',
+                    type: 'success'
                 });
 
                 // Exit edit mode
@@ -188,10 +189,10 @@ const ProfilePage = () => {
         } catch (err) {
             console.error('Error updating profile:', err);
 
-            // Show error notification with toast
-            toast.error(err.message || 'Failed to update profile', {
-                duration: 4000,
-                position: 'top-center',
+            setNotification({
+                open: true,
+                message: err.message || 'Failed to update profile',
+                type: 'error'
             });
         } finally {
             setSaving(false);
@@ -246,10 +247,11 @@ const ProfilePage = () => {
                     confirmPassword: ''
                 });
 
-                // Show success notification with toast
-                toast.success('Password updated successfully', {
-                    duration: 3000,
-                    position: 'top-center',
+                // Show success notification
+                setNotification({
+                    open: true,
+                    message: 'Password updated successfully',
+                    type: 'success'
                 });
             }
         } catch (err) {
@@ -262,17 +264,17 @@ const ProfilePage = () => {
                     currentPassword: 'Current password is incorrect'
                 });
             } else {
-                // Show error notification with toast
-                toast.error(err.message || 'Failed to update password', {
-                    duration: 4000,
-                    position: 'top-center',
+                setNotification({
+                    open: true,
+                    message: err.message || 'Failed to update password',
+                    type: 'error'
                 });
             }
         } finally {
             setSaving(false);
         }
     };
-    
+
     // Close notification
     const handleCloseNotification = () => {
         setNotification(prev => ({
@@ -288,9 +290,6 @@ const ProfilePage = () => {
 
     return (
         <Box>
-            {/* Toast Container */}
-            <Toaster position="top-center" />
-            
             {/* Page title and header */}
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" fontWeight="bold">
@@ -896,6 +895,23 @@ const ProfilePage = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Notification Snackbar */}
+            <Snackbar
+                open={notification.open}
+                autoHideDuration={6000}
+                onClose={handleCloseNotification}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={handleCloseNotification}
+                    severity={notification.type}
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {notification.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

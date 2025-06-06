@@ -23,6 +23,13 @@ import {
   InputLabel,
   Divider,
   Tooltip,
+  Alert,
+  Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   CircularProgress,
   useTheme,
   LinearProgress
@@ -47,7 +54,6 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
 
 // Import competition management components
 import CompetitionForm from './CompetitionForm';
@@ -89,6 +95,13 @@ const CompetitionManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    type: 'success',
+    message: ''
+  });
   
   // Add new state for AI competition creator dialog
   const [aiCreatorOpen, setAiCreatorOpen] = useState(false);
@@ -238,7 +251,11 @@ const CompetitionManagement = () => {
   // Handle competition edit - updated to no longer check activation timing
   const handleEditCompetition = async () => {
     if (!canEditCompetition(selectedCompetition)) {
-      showNotification('This competition has ended and cannot be edited', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: 'This competition has ended and cannot be edited'
+      });
       handleActionMenuClose();
       return;
     }
@@ -265,7 +282,11 @@ const CompetitionManagement = () => {
       }
     } catch (err) {
       console.error('Error loading competition details:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to load competition details', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to load competition details'
+      });
     } finally {
       setLoading(false);
       handleActionMenuClose();
@@ -301,7 +322,11 @@ const CompetitionManagement = () => {
       
       if (response.data.success) {
         // Show success notification
-        showNotification(`Competition "${selectedCompetition.competitionName}" cloned successfully`);
+        setNotification({
+          open: true,
+          type: 'success',
+          message: `Competition "${selectedCompetition.competitionName}" cloned successfully`
+        });
         
         // Refresh the competitions list
         fetchCompetitions();
@@ -312,7 +337,11 @@ const CompetitionManagement = () => {
       handleActionMenuClose();
     } catch (err) {
       console.error('Error cloning competition:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to clone competition', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to clone competition'
+      });
     } finally {
       setLoading(false);
     }
@@ -342,7 +371,11 @@ const CompetitionManagement = () => {
         
         // Show success notification
         const statusText = newStatus ? 'live' : 'draft';
-        showNotification(`Competition set to ${statusText} mode successfully`);
+        setNotification({
+          open: true,
+          type: 'success',
+          message: `Competition set to ${statusText} mode successfully`
+        });
       } else {
         throw new Error(response.data.message || 'Failed to update competition status');
       }
@@ -350,7 +383,11 @@ const CompetitionManagement = () => {
       handleActionMenuClose();
     } catch (err) {
       console.error('Error toggling competition status:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to update competition status', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to update competition status'
+      });
     } finally {
       setLoading(false);
     }
@@ -384,10 +421,13 @@ const CompetitionManagement = () => {
         ));
         
         // Show success notification
-        showNotification(isCurrentlyArchived 
+        setNotification({
+          open: true,
+          type: 'success',
+          message: isCurrentlyArchived 
             ? `Competition "${selectedCompetition.competitionName}" unarchived successfully` 
             : `Competition "${selectedCompetition.competitionName}" archived successfully`
-        );
+        });
       } else {
         throw new Error(response.data.message || 'Failed to update archive status');
       }
@@ -395,7 +435,11 @@ const CompetitionManagement = () => {
       handleActionMenuClose();
     } catch (err) {
       console.error('Error updating archive status:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to update archive status', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to update archive status'
+      });
     } finally {
       setLoading(false);
     }
@@ -422,7 +466,11 @@ const CompetitionManagement = () => {
         );
         
         if (response.data.success) {
-          showNotification('Competition created successfully');
+          setNotification({
+            open: true,
+            type: 'success',
+            message: 'Competition created successfully'
+          });
         }
       } else {
         // Update existing competition
@@ -438,7 +486,11 @@ const CompetitionManagement = () => {
         );
         
         if (response.data.success) {
-          showNotification('Competition updated successfully');
+          setNotification({
+            open: true,
+            type: 'success',
+            message: 'Competition updated successfully'
+          });
         }
       }
       
@@ -448,7 +500,11 @@ const CompetitionManagement = () => {
       setFormDialogOpen(false);
     } catch (err) {
       console.error('Error saving competition:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to save competition', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to save competition'
+      });
     } finally {
       setLoading(false);
     }
@@ -472,7 +528,11 @@ const CompetitionManagement = () => {
         setDeleteDialogOpen(false);
         
         // Show success notification
-        showNotification(`Competition "${selectedCompetition.competitionName}" deleted successfully`);
+        setNotification({
+          open: true,
+          type: 'success',
+          message: `Competition "${selectedCompetition.competitionName}" deleted successfully`
+        });
         
         // Refresh the competitions list
         fetchCompetitions();
@@ -481,7 +541,11 @@ const CompetitionManagement = () => {
       }
     } catch (err) {
       console.error('Error deleting competition:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to delete competition', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to delete competition'
+      });
     } finally {
       setLoading(false);
     }
@@ -510,7 +574,11 @@ const CompetitionManagement = () => {
       );
       
       if (response.data.success) {
-        showNotification('AI-generated competition created successfully');
+        setNotification({
+          open: true,
+          type: 'success',
+          message: 'AI-generated competition created successfully'
+        });
         
         // Refresh the competitions list
         fetchCompetitions();
@@ -520,10 +588,22 @@ const CompetitionManagement = () => {
       }
     } catch (err) {
       console.error('Error creating AI competition:', err);
-      showNotification(err.response?.data?.message || err.message || 'Failed to create AI competition', 'error');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to create AI competition'
+      });
     } finally {
       setLoading(false);
     }
+  };
+  
+  // Close notification
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      open: false
+    });
   };
   
   // Format date
@@ -537,17 +617,6 @@ const CompetitionManagement = () => {
   
   return (
     <Box>
-      {/* Toast Container - Removed margin adjustment */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            marginRight: '15px',
-            zIndex: 9999
-          },
-        }}
-      />
-      
       {/* Page header - modify button layout */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
         <Typography variant="h5" fontWeight="bold">
@@ -996,6 +1065,23 @@ const CompetitionManagement = () => {
         onClose={() => setAiCreatorOpen(false)}
         onSubmit={handleAICompetitionSubmit}
       />
+      
+      {/* Notifications */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -29,7 +29,6 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
-import toast, { Toaster } from 'react-hot-toast';
 
 const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) => {
   const theme = useTheme();
@@ -262,19 +261,6 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
   };
 
   return (
-    <Box>
-      {/* Toast Container - Repositioned */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            marginTop: '20px',
-            marginRight: '15px',
-            zIndex: 9999
-          },
-        }}
-      />
-    
     <Dialog
       open={open}
       onClose={loading ? null : onClose}
@@ -561,7 +547,6 @@ const CompetitionForm = ({ open, onClose, onSubmit, competition, isCreating }) =
         </Button>
       </DialogActions>
     </Dialog>
-    </Box>
   );
 };
 

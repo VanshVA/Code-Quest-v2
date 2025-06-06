@@ -4,8 +4,10 @@ const adminDashboardController = require('../controllers/adminDashboardControlle
 const generalController = require('../controllers/generalController');
 
 // Public routes that don't require authentication
-router.get('/competitions', generalController.fetchCompetitions);
-router.get('/testimonials', generalController.fetchFeedbacks);
+router.get('/statistics', generalController.getStatistics);
+router.get('/competitions/all', generalController.getAllCompetitions);
+router.get('/feedback', generalController.getAllFeedback);
 router.post('/feedback', adminDashboardController.createFeedback);
+router.get('/results', generalController.getAllResults);
 
 module.exports = router;

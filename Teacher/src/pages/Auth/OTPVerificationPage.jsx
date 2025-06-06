@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -10,6 +11,7 @@ import {
   IconButton,
   Link,
   Paper,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -23,7 +25,6 @@ import {
   ErrorOutline,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import toast, { Toaster } from 'react-hot-toast'; // Import toast
 import authService from '../../services/authService';
 
 // Current date and time
@@ -52,6 +53,7 @@ const OTPVerificationPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [statusAlert, setStatusAlert] = useState({ show: false, type: '', message: '' });
   
   // Canvas animation for background
   useEffect(() => {
@@ -201,10 +203,10 @@ const OTPVerificationPage = () => {
         localStorage.setItem('resetToken', response.resetToken);
       }
       
-      // Show success notification
-      toast.success('Verification successful! You can now reset your password.', {
-        duration: 3000,
-        position: 'top-center',
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: 'Verification successful! You can now reset your password.',
       });
       
       setIsSubmitted(true);
@@ -215,10 +217,10 @@ const OTPVerificationPage = () => {
       }, 2000);
       
     } catch (error) {
-      // Show error notification
-      toast.error(error.message || 'Invalid verification code. Please try again.', {
-        duration: 4000,
-        position: 'top-center',
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Invalid verification code. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -238,20 +240,25 @@ const OTPVerificationPage = () => {
       // Call API to request new OTP
       await authService.requestPasswordResetOTP(email);
       
-      // Show success notification
-      toast.success('New verification code sent! Please check your email inbox.', {
-        duration: 3000,
-        position: 'top-center',
+      setStatusAlert({
+        show: true,
+        type: 'success',
+        message: 'New verification code sent! Please check your email inbox.',
       });
     } catch (error) {
-      // Show error notification
-      toast.error(error.message || 'Failed to send new verification code. Please try again.', {
-        duration: 4000,
-        position: 'top-center',
+      setStatusAlert({
+        show: true,
+        type: 'error',
+        message: error.message || 'Failed to send new verification code. Please try again.',
       });
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Close alert
+  const handleCloseAlert = () => {
+    setStatusAlert({ ...statusAlert, show: false });
   };
 
   return (
@@ -265,9 +272,6 @@ const OTPVerificationPage = () => {
         position: 'relative',
       }}
     >
-      {/* Toast Container */}
-      <Toaster position="top-center" />
-      
       {/* Canvas Background */}
       <Box sx={{ 
         position: 'fixed',
@@ -640,6 +644,23 @@ const OTPVerificationPage = () => {
           </Box>
         </Box>
       </Container>
+      
+      {/* Status Alert */}
+      <Snackbar
+        open={statusAlert.show}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={statusAlert.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {statusAlert.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

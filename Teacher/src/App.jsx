@@ -6,30 +6,33 @@ import { Box } from '@mui/material';
 // Import theme provider
 import { ThemeProvider } from './context/ThemeContext';
 import authService from './services/authService';
+import Logo from './assets/logo.png';
+
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
-  <Box 
-    sx={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh', 
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
       width: '100%'
     }}
   >
-    <img src="/assets/loader.svg" alt="Loading..." style={{ width: '60px', height: '60px' }} />
+    <img src={Logo} alt="Loading..." style={{ width: '60px', height: '60px' }} /> Loading...
   </Box>
 );
 
 // ScrollToTop component to scroll to top on route change
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-  
+
   return null;
 };
 
@@ -37,7 +40,7 @@ const ScrollToTop = () => {
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const isTeacherDashboardRoute = location.pathname.startsWith('/teacher/dashboard');
-  
+
   return (
     <Box
       className="App"
@@ -87,7 +90,7 @@ function App() {
             <Routes>
               {/* Root route - Redirect to login */}
               <Route path="/" element={<Navigate to="/login" replace />} />
-              
+
               {/* Teacher Authentication Routes */}
               <Route path="/login" element={
                 <TeacherAuthRoute>
@@ -96,14 +99,14 @@ function App() {
               } />
               <Route path="/forgot-password" element={<TeacherForgotPassword />} />
               <Route path="/reset-password/:token" element={<TeacherResetPassword />} />
-              
+
               {/* Teacher Dashboard Routes */}
               <Route path="/teacher/*" element={
                 <ProtectedTeacherRoute>
                   <TeacherDashboard />
                 </ProtectedTeacherRoute>
               } />
-              
+
               {/* Catch-all route */}
               <Route path="*" element={<Error404 />} />
             </Routes>

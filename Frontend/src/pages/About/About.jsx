@@ -40,11 +40,11 @@ import {
   Verified,
 } from '@mui/icons-material';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import Vansh from '../../assets/Vansh.jpg'
+import Ameen from '../../assets/Ameen.jpg'
+import Dhruv from '../../assets/Dhruv.jpg'
+import Anuj from '../../assets/Anuj.jpg'
 
-
-// Current date and user info from global state
-const CURRENT_DATE_TIME = "2025-05-29 21:36:35";
-const CURRENT_USER = "Anuj-prajapati-SDE";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -71,11 +71,11 @@ const AboutPage = () => {
   // Canvas animation for background
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
-    
+
     const resizeCanvas = () => {
       const width = window.innerWidth;
       const height = window.innerHeight * 2;
@@ -85,27 +85,27 @@ const AboutPage = () => {
       canvas.style.height = `${height}px`;
       ctx.scale(dpr, dpr);
     };
-    
+
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    
+
     // Premium gradient orbs class with improved rendering
     class GradientOrb {
       constructor() {
         this.reset();
       }
-      
+
       reset() {
         const width = canvas.width / dpr;
         const height = canvas.height / dpr;
-        
+
         this.x = Math.random() * width;
         this.y = Math.random() * height;
         this.size = Math.random() * (isMobile ? 100 : 180) + (isMobile ? 30 : 50);
         this.speedX = (Math.random() - 0.5) * 0.4;
         this.speedY = (Math.random() - 0.5) * 0.4;
         this.opacity = Math.random() * 0.12 + 0.04;
-        
+
         // Premium color combinations
         const colorSets = [
           { start: '#bc4037', end: '#f47061' }, // Primary red
@@ -113,44 +113,44 @@ const AboutPage = () => {
           { start: '#2C3E50', end: '#4A6572' }, // Dark blue
           { start: '#3a47d5', end: '#00d2ff' }, // Blue
         ];
-        
+
         this.colors = colorSets[Math.floor(Math.random() * colorSets.length)];
       }
-      
+
       update() {
         this.x += this.speedX;
         this.y += this.speedY;
-        
+
         const width = canvas.width / dpr;
         const height = canvas.height / dpr;
-        
+
         // Bounce effect at edges
         if (this.x < -this.size) this.x = width + this.size;
         if (this.x > width + this.size) this.x = -this.size;
         if (this.y < -this.size) this.y = height + this.size;
         if (this.y > height + this.size) this.y = -this.size;
       }
-      
+
       draw() {
         // Create gradient with proper opacity
         const gradient = ctx.createRadialGradient(
           this.x, this.y, 0,
           this.x, this.y, this.size
         );
-        
+
         // Convert hex to rgba for better control
         const startColor = this.hexToRgba(this.colors.start, this.opacity);
         const endColor = this.hexToRgba(this.colors.end, 0);
-        
+
         gradient.addColorStop(0, startColor);
         gradient.addColorStop(1, endColor);
-        
+
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
       }
-      
+
       hexToRgba(hex, alpha) {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -158,25 +158,25 @@ const AboutPage = () => {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
       }
     }
-    
+
     // Create optimal number of orbs based on screen size
     const orbCount = isMobile ? 6 : 10;
     const orbs = Array(orbCount).fill().map(() => new GradientOrb());
-    
+
     // Animation loop with performance optimization
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-      
+
       orbs.forEach((orb) => {
         orb.update();
         orb.draw();
       });
-      
+
       animationRef.current = requestAnimationFrame(animate);
     };
-    
+
     animate();
-    
+
     return () => {
       cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', resizeCanvas);
@@ -217,8 +217,8 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              sx={{ 
-                p: 3, 
+              sx={{
+                p: 3,
                 height: '100%',
                 borderRadius: '16px',
                 backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
@@ -239,8 +239,8 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              sx={{ 
-                p: 3, 
+              sx={{
+                p: 3,
                 height: '100%',
                 borderRadius: '16px',
                 backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
@@ -260,7 +260,7 @@ const AboutPage = () => {
       </Box>
     </MotionBox>
   );
-  
+
   // Mission & vision content
   const missionVision = (
     <MotionBox
@@ -274,8 +274,8 @@ const AboutPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            sx={{ 
-              p: 4, 
+            sx={{
+              p: 4,
               height: '100%',
               borderRadius: '16px',
               backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
@@ -285,8 +285,8 @@ const AboutPage = () => {
               overflow: 'hidden',
             }}
           >
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
@@ -295,10 +295,10 @@ const AboutPage = () => {
                 background: theme.palette.gradients.primary,
               }}
             />
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{
                 fontWeight: 800,
                 color: theme.palette.primary.main,
               }}
@@ -312,32 +312,32 @@ const AboutPage = () => {
               We aim to bridge the gap between theoretical knowledge and practical application, ensuring that every student can build the competencies needed to thrive in the technology-driven future.
             </Typography>
             <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              <Chip 
-                label="Educational Access" 
-                size="small" 
-                sx={{ 
+              <Chip
+                label="Educational Access"
+                size="small"
+                sx={{
                   bgcolor: isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)',
                   color: theme.palette.primary.main,
                   fontWeight: 600,
-                }} 
+                }}
               />
-              <Chip 
-                label="Skill Development" 
-                size="small" 
-                sx={{ 
+              <Chip
+                label="Skill Development"
+                size="small"
+                sx={{
                   bgcolor: isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)',
                   color: theme.palette.primary.main,
                   fontWeight: 600,
-                }} 
+                }}
               />
-              <Chip 
-                label="Community Building" 
-                size="small" 
-                sx={{ 
+              <Chip
+                label="Community Building"
+                size="small"
+                sx={{
                   bgcolor: isDark ? 'rgba(188, 64, 55, 0.1)' : 'rgba(188, 64, 55, 0.05)',
                   color: theme.palette.primary.main,
                   fontWeight: 600,
-                }} 
+                }}
               />
             </Box>
           </MotionPaper>
@@ -347,8 +347,8 @@ const AboutPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            sx={{ 
-              p: 4, 
+            sx={{
+              p: 4,
               height: '100%',
               borderRadius: '16px',
               backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
@@ -358,8 +358,8 @@ const AboutPage = () => {
               overflow: 'hidden',
             }}
           >
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
@@ -368,10 +368,10 @@ const AboutPage = () => {
                 background: 'linear-gradient(135deg, #3a47d5 0%, #00d2ff 100%)',
               }}
             />
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{
                 fontWeight: 800,
                 color: '#3a47d5',
               }}
@@ -385,32 +385,32 @@ const AboutPage = () => {
               We envision a future where every aspiring programmer has equal access to world-class education tools, regardless of geographic location or socioeconomic background, and where Code-Quest certification is universally respected by educational institutions and employers.
             </Typography>
             <Box sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              <Chip 
-                label="Global Impact" 
-                size="small" 
-                sx={{ 
+              <Chip
+                label="Global Impact"
+                size="small"
+                sx={{
                   bgcolor: isDark ? 'rgba(58, 71, 213, 0.1)' : 'rgba(58, 71, 213, 0.05)',
                   color: '#3a47d5',
                   fontWeight: 600,
-                }} 
+                }}
               />
-              <Chip 
-                label="Educational Innovation" 
-                size="small" 
-                sx={{ 
+              <Chip
+                label="Educational Innovation"
+                size="small"
+                sx={{
                   bgcolor: isDark ? 'rgba(58, 71, 213, 0.1)' : 'rgba(58, 71, 213, 0.05)',
                   color: '#3a47d5',
                   fontWeight: 600,
-                }} 
+                }}
               />
-              <Chip 
-                label="Industry Recognition" 
-                size="small" 
-                sx={{ 
+              <Chip
+                label="Industry Recognition"
+                size="small"
+                sx={{
                   bgcolor: isDark ? 'rgba(58, 71, 213, 0.1)' : 'rgba(58, 71, 213, 0.05)',
                   color: '#3a47d5',
                   fontWeight: 600,
-                }} 
+                }}
               />
             </Box>
           </MotionPaper>
@@ -420,8 +420,8 @@ const AboutPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            sx={{ 
-              p: 4, 
+            sx={{
+              p: 4,
               borderRadius: '16px',
               backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
               backdropFilter: 'blur(10px)',
@@ -429,10 +429,10 @@ const AboutPage = () => {
               textAlign: 'center',
             }}
           >
-            <Typography 
-              variant="h5" 
-              gutterBottom 
-              sx={{ 
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{
                 fontWeight: 700,
                 mb: 3,
               }}
@@ -458,20 +458,20 @@ const AboutPage = () => {
                   description: "We foster a supportive environment where learners can collaborate, compete, and grow together."
                 }
               ].map((value, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index} style={{ minWidth:"100%" }}>
+                <Grid item xs={12} sm={6} md={3} key={index} style={{ minWidth: "100%" }}>
                   <MotionBox
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 + (index * 0.1), duration: 0.5 }}
                   >
                     <Box
-                      sx={{ 
+                      sx={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                       }}
                     >
-                      <Box 
+                      <Box
                         sx={{
                           width: 60,
                           height: 60,
@@ -504,70 +504,49 @@ const AboutPage = () => {
       </Grid>
     </MotionBox>
   );
-  
+
   // Team members data
   const teamMembers = [
     {
       name: "Anuj Prajapati",
-      role: "Founder & CEO",
-      avatar: "/assets/images/team/anuj.jpg", // Placeholder image path
-      bio: "Former Google engineer with 15+ years of experience in educational technology. Founded Code-Quest with a vision to revolutionize coding education.",
+      role: "UI/UX & Frontend Developer",
+      avatar: Anuj, // Placeholder image path
+      bio: "Anuj spearheaded the frontend user experience, delivering a sleek, accessible, and fully responsive interface across all devices. From crafting design systems in Figma to building pixel-perfect components with Tailwind CSS and styled-components, he ensured a unified and polished UI throughout the platform.",
       social: {
-        linkedin: "https://linkedin.com/in/anuj-prajapati",
-        twitter: "https://twitter.com/anujprajapati",
-        github: "https://github.com/anuj-prajapati"
+        linkedin: "https://www.linkedin.com/in/anuj-prajapati-1775552a7?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+        github: "https://github.com/Anuj-prajapati-SDE"
       }
     },
     {
-      name: "Priya Sharma",
-      role: "CTO",
-      avatar: "/assets/images/team/priya.jpg", // Placeholder image path
-      bio: "PhD in Computer Science with expertise in compiler design and educational technology. Led the development of Code-Quest's core assessment engine.",
+      name: "Dhruv Kashyap",
+      role: "Business Logic & Problem-Solver",
+      avatar: Dhruv, // Placeholder image path
+      bio: "Dhruv played a key role in shaping the core business logic and driving technical decisions. He designed multi-round contest workflows, ensuring seamless transitions and future reusability. His database modeling maintained data integrity and optimized query efficiency. Dhruv developed scoring algorithms for leaderboards, penalties, and rule enforcement while addressing edge cases like late entries and network issues. He prioritized impactful features, such as camera monitoring and tab switch detection, and actively mentored teammates through code reviews and debugging",
       social: {
-        linkedin: "https://linkedin.com/in/priya-sharma",
-        github: "https://github.com/priya-sharma"
+        linkedin: "https://www.linkedin.com/in/dhruv-kashyap-a5a006250",
+        github: "https://github.com/dhruv-kashyap-sde"
       }
     },
     {
-      name: "Rajesh Kumar",
-      role: "Head of Education",
-      avatar: "/assets/images/team/rajesh.jpg", // Placeholder image path
-      bio: "Former professor at IIT Delhi with 20+ years of experience in computer science education. Designs our curriculum and assessment methodology.",
+      name: "Mohd Ameen",
+      role: "Team Leader & Project Manager",
+      avatar: Ameen, // Placeholder image path
+      bio: "Led operations for CodeQuest, managing domain, hosting, SSL, and deployment logistics. Created documentation, marketing materials, and ran campus campaigns to boost user adoption. Coordinated sprints, team meetings, and communication with mentors. Though not coding directly, I ensured smooth execution, user engagement, and timely delivery—acting as the link between technical, strategic, and outreach efforts.",
       social: {
-        linkedin: "https://linkedin.com/in/rajesh-kumar",
-        twitter: "https://twitter.com/rajeshkumar"
+        linkedin: "https://www.linkedin.com/in/mohd-ameen-sde",
+        github: "https://github.com/ameenmohd261"
       }
     },
     {
-      name: "Neha Gupta",
-      role: "Lead UX Designer",
-      avatar: "/assets/images/team/neha.jpg", // Placeholder image path
-      bio: "Award-winning designer focused on creating intuitive, accessible interfaces for educational platforms. Previously worked at Microsoft and Udacity.",
+      name: "Vansh Vyas",
+      role: "Founder , Backend Developer & Deployment ",
+      avatar: Vansh, // Placeholder image path
+      bio: "Vansh led the backend architecture and implementation, ensuring robust security and performance. He developed RESTful APIs in Express.js for user authentication, contest management, and result processing. His work on the automated judging engine enabled multi-language code evaluation with secure sandboxing. Additionally, he implemented JWT, email-OTP, and OAuth authentication while optimizing database indexing and caching to enhance leaderboard performance",
       social: {
-        linkedin: "https://linkedin.com/in/neha-gupta",
-        github: "https://github.com/neha-gupta"
+        linkedin: "https://www.linkedin.com/in/vansh-vyas-b7792b258?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+        github: "https://github.com/VanshSharmaSDE"
       }
     },
-    {
-      name: "Vikram Singh",
-      role: "VP of Operations",
-      avatar: "/assets/images/team/vikram.jpg", // Placeholder image path
-      bio: "Operations expert with experience scaling educational startups. Manages our partnerships with educational institutions worldwide.",
-      social: {
-        linkedin: "https://linkedin.com/in/vikram-singh",
-        twitter: "https://twitter.com/vikramsingh"
-      }
-    },
-    {
-      name: "Aisha Khan",
-      role: "Senior Software Architect",
-      avatar: "/assets/images/team/aisha.jpg", // Placeholder image path
-      bio: "Full-stack developer with expertise in distributed systems and real-time collaboration tools. Leads our platform infrastructure team.",
-      social: {
-        github: "https://github.com/aisha-khan",
-        linkedin: "https://linkedin.com/in/aisha-khan"
-      }
-    }
   ];
 
   // Our team content
@@ -580,7 +559,7 @@ const AboutPage = () => {
       <Typography variant="body1" paragraph sx={{ lineHeight: 1.8, mb: 4 }}>
         At Code-Quest, our diverse team brings together expertise from education, software development, and design. We're united by our passion for revolutionizing coding education and creating opportunities for learners worldwide.
       </Typography>
-      
+
       <Grid container spacing={4}   >
         {teamMembers.map((member, index) => (
           <Grid item xs={12} sm={6} md={4} key={index} style={{ minWidth: '100%' }}>
@@ -588,8 +567,8 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index, duration: 0.5 }}
-            
-              sx={{ 
+
+              sx={{
                 height: '100%',
                 borderRadius: '16px',
                 backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
@@ -603,9 +582,9 @@ const AboutPage = () => {
                 },
               }}
             >
-              <Box 
-                sx={{ 
-                  height: 6, 
+              <Box
+                sx={{
+                  height: 6,
                   background: theme.palette.gradients.primary,
                 }}
               />
@@ -614,28 +593,28 @@ const AboutPage = () => {
                   <Avatar
                     src={member.avatar}
                     alt={member.name}
-                    sx={{ 
-                      width: 80, 
-                      height: 80, 
+                    sx={{
+                      width: 80,
+                      height: 80,
                       mr: 2,
                       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                       border: `3px solid ${theme.palette.primary.main}`,
                     }}
                   />
                   <Box>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
+                    <Typography
+                      variant="h6"
+                      sx={{
                         fontWeight: 700,
                         lineHeight: 1.2,
                       }}
                     >
                       {member.name}
                     </Typography>
-                    <Typography 
-                      variant="body2" 
+                    <Typography
+                      variant="body2"
                       color="primary"
-                      sx={{ 
+                      sx={{
                         fontWeight: 600,
                       }}
                     >
@@ -643,8 +622,8 @@ const AboutPage = () => {
                     </Typography>
                   </Box>
                 </Box>
-                <Typography 
-                  variant="body2" 
+                <Typography
+                  variant="body2"
                   color="textSecondary"
                   sx={{ mb: 2 }}
                 >
@@ -653,7 +632,7 @@ const AboutPage = () => {
                 <Divider sx={{ mb: 2 }} />
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   {member.social.linkedin && (
-                    <IconButton 
+                    <IconButton
                       size="small"
                       href={member.social.linkedin}
                       target="_blank"
@@ -667,7 +646,7 @@ const AboutPage = () => {
                     </IconButton>
                   )}
                   {member.social.twitter && (
-                    <IconButton 
+                    <IconButton
                       size="small"
                       href={member.social.twitter}
                       target="_blank"
@@ -681,7 +660,7 @@ const AboutPage = () => {
                     </IconButton>
                   )}
                   {member.social.github && (
-                    <IconButton 
+                    <IconButton
                       size="small"
                       href={member.social.github}
                       target="_blank"
@@ -700,14 +679,14 @@ const AboutPage = () => {
           </Grid>
         ))}
       </Grid>
-      
+
       <MotionPaper
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.5 }}
-        sx={{ 
+        sx={{
           mt: 6,
-          p: 4, 
+          p: 4,
           borderRadius: '16px',
           backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
           backdropFilter: 'blur(10px)',
@@ -715,17 +694,17 @@ const AboutPage = () => {
           textAlign: 'center',
         }}
       >
-        <Typography 
-          variant="h5" 
-          gutterBottom 
-          sx={{ 
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{
             fontWeight: 700,
           }}
         >
           Join Our Team
         </Typography>
         <Typography variant="body1" paragraph>
-          We're always looking for talented individuals passionate about education and technology. 
+          We're always looking for talented individuals passionate about education and technology.
           Check our careers page for current openings and opportunities.
         </Typography>
         <Button
@@ -734,7 +713,7 @@ const AboutPage = () => {
           size="large"
           component={RouterLink}
           to="/careers"
-          sx={{ 
+          sx={{
             borderRadius: '50px',
             px: 4,
             py: 1.5,
@@ -748,71 +727,71 @@ const AboutPage = () => {
       </MotionPaper>
     </MotionBox>
   );
-  
+
   // Timeline milestones
   const milestones = [
-    { 
-      year: 2022, 
-      quarter: 'Q1', 
+    {
+      year: 2022,
+      quarter: 'Q1',
       title: 'Founding',
       description: 'Code-Quest is founded by Anuj Prajapati and a team of five developers in Bangalore, India.'
     },
-    { 
-      year: 2022, 
-      quarter: 'Q3', 
+    {
+      year: 2022,
+      quarter: 'Q3',
       title: 'Beta Launch',
       description: 'Initial beta version released to 10 educational institutions for testing and feedback.'
     },
-    { 
-      year: 2022, 
-      quarter: 'Q4', 
+    {
+      year: 2022,
+      quarter: 'Q4',
       title: 'Seed Funding',
       description: 'Secured $2.5 million in seed funding from education-focused venture capital firms.'
     },
-    { 
-      year: 2023, 
-      quarter: 'Q1', 
+    {
+      year: 2023,
+      quarter: 'Q1',
       title: 'Public Launch',
       description: 'Official platform launch with support for 15 programming languages and 1,000+ coding challenges.'
     },
-    { 
-      year: 2023, 
-      quarter: 'Q3', 
+    {
+      year: 2023,
+      quarter: 'Q3',
       title: 'University Partnerships',
       description: 'Established partnerships with 50+ universities across India, USA, and Europe.'
     },
-    { 
-      year: 2024, 
-      quarter: 'Q1', 
+    {
+      year: 2024,
+      quarter: 'Q1',
       title: 'Series A Funding',
       description: 'Raised $12 million in Series A funding to expand platform capabilities and global reach.'
     },
-    { 
-      year: 2024, 
-      quarter: 'Q2', 
+    {
+      year: 2024,
+      quarter: 'Q2',
       title: 'Enterprise Features',
       description: 'Launched enterprise version with advanced plagiarism detection and custom assessment creation.'
     },
-    { 
-      year: 2024, 
-      quarter: 'Q4', 
+    {
+      year: 2024,
+      quarter: 'Q4',
       title: 'Mobile App Launch',
       description: 'Released native mobile applications for iOS and Android platforms.'
     },
-    { 
-      year: 2025, 
-      quarter: 'Q1', 
+    {
+      year: 2025,
+      quarter: 'Q1',
       title: 'Global Expansion',
       description: 'Expanded to support 30+ programming languages and launched localized versions in 10 languages.'
     },
-    { 
-      year: 2025, 
-      quarter: 'Q2', 
+    {
+      year: 2025,
+      quarter: 'Q2',
       title: 'Industry Recognition',
       description: 'Named "Best EdTech Platform" at the Global Education Technology Awards.'
     }
   ];
-  
+
   // Timeline content
   const timeline = (
     <MotionBox
@@ -821,12 +800,12 @@ const AboutPage = () => {
       transition={{ duration: 0.5 }}
     >
       <Typography variant="body1" paragraph sx={{ lineHeight: 1.8, mb: 6, textAlign: 'center' }}>
-        Since our founding in 2022, Code-Quest has grown rapidly through continuous innovation and a commitment to educational excellence. 
+        Since our founding in 2022, Code-Quest has grown rapidly through continuous innovation and a commitment to educational excellence.
         Our journey has been marked by significant milestones as we've expanded our platform capabilities and global reach.
       </Typography>
-      
+
       {/* Timeline Container with centered vertical line */}
-      <Box sx={{ 
+      <Box sx={{
         position: 'relative',
         maxWidth: 1000,
         mx: 'auto',
@@ -858,14 +837,14 @@ const AboutPage = () => {
       }}>
         {milestones.map((milestone, index) => {
           const isEven = index % 2 === 0;
-          
+
           return (
             <MotionBox
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
-              sx={{ 
+              sx={{
                 position: 'relative',
                 mb: 10, // Increase vertical spacing between milestones
                 minHeight: { md: 120 }, // Ensure minimum height for proper alignment
@@ -873,10 +852,10 @@ const AboutPage = () => {
               }}
             >
               {/* Center marker (desktop only) */}
-              <Grid 
-                item 
+              <Grid
+                item
                 xs={12} md={1}
-                sx={{ 
+                sx={{
                   position: 'absolute',
                   left: '50%',
                   transform: 'translateX(-50%)',
@@ -886,7 +865,7 @@ const AboutPage = () => {
                   zIndex: 3,
                 }}
               >
-                <Box sx={{ 
+                <Box sx={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -907,12 +886,12 @@ const AboutPage = () => {
                   }}>
                     <CheckCircle />
                   </Box>
-                  <Typography 
-                    variant="subtitle2" 
-                    sx={{ 
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
                       fontWeight: 700,
                       mt: 1,
-                      textAlign: 'center', 
+                      textAlign: 'center',
                       bgcolor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.9)',
                       px: 2,
                       py: 0.75,
@@ -1103,7 +1082,7 @@ const AboutPage = () => {
           );
         })}
       </Box>
-      
+
       <MotionBox
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1115,7 +1094,7 @@ const AboutPage = () => {
         }}
       >
         <Card
-          sx={{ 
+          sx={{
             p: 3,
             borderRadius: '16px',
             backgroundColor: theme.palette.primary.main,
@@ -1139,9 +1118,9 @@ const AboutPage = () => {
   return (
     <>
       {/* <Navbar isAuthenticated={true} /> */}
-      
+
       {/* Canvas Background for Premium Gradient Animation */}
-      <Box sx={{ 
+      <Box sx={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -1150,7 +1129,7 @@ const AboutPage = () => {
         zIndex: -1,
         overflow: 'hidden',
       }}>
-        <canvas 
+        <canvas
           ref={canvasRef}
           style={{
             position: 'absolute',
@@ -1161,8 +1140,8 @@ const AboutPage = () => {
           }}
         />
         {/* Overlay for better text contrast */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             position: 'absolute',
             top: 0,
             left: 0,
@@ -1170,26 +1149,26 @@ const AboutPage = () => {
             height: '100%',
             backgroundColor: isDark ? 'rgba(30, 28, 28, 0.8)' : 'rgba(255, 255, 255, 0.8)',
             backdropFilter: 'blur(30px)',
-          }} 
+          }}
         />
-      </Box> 
-      
+      </Box>
+
       {/* Hero Section */}
-      <Box 
-        component="section" 
-        sx={{ 
+      <Box
+        component="section"
+        sx={{
           position: 'relative',
           pt: { xs: '100px', sm: '120px', md: '140px' },
           pb: { xs: '60px', sm: '80px', md: '100px' },
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="lg"> 
-          <Grid 
-            container 
+        <Container maxWidth="lg">
+          <Grid
+            container
             spacing={{ xs: 4, md: 8 }}
             alignItems="center"
-            justifyContent="center" 
+            justifyContent="center"
           >
             <Grid item xs={12} md={10} lg={8} sx={{ textAlign: 'center' }}>
               <MotionBox>
@@ -1200,12 +1179,12 @@ const AboutPage = () => {
                   transition={{ duration: 0.5 }}
                   sx={{ mb: 3, display: 'inline-block' }}
                 >
-                  <Chip 
-                    label="ABOUT CODE-QUEST" 
+                  <Chip
+                    label="ABOUT CODE-QUEST"
                     color="primary"
                     size="small"
                     icon={<AutoAwesome sx={{ color: 'white !important', fontSize: '0.85rem' }} />}
-                    sx={{ 
+                    sx={{
                       background: theme.palette.gradients.primary,
                       color: 'white',
                       fontWeight: 600,
@@ -1216,21 +1195,21 @@ const AboutPage = () => {
                       pr: 2,
                       borderRadius: '100px',
                       boxShadow: '0 8px 16px rgba(188, 64, 55, 0.2)',
-                      '& .MuiChip-icon': { 
+                      '& .MuiChip-icon': {
                         color: 'white',
                         mr: 0.5
                       }
                     }}
                   />
                 </MotionBox>
-                
+
                 {/* Main Headline */}
                 <MotionTypography
                   variant="h1"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.1 }}
-                  sx={{ 
+                  sx={{
                     fontSize: { xs: '2.5rem', sm: '3rem', md: '3.8rem' },
                     fontWeight: 800,
                     lineHeight: 1.1,
@@ -1239,8 +1218,8 @@ const AboutPage = () => {
                   }}
                 >
                   Our Mission to Elevate
-                  <Box 
-                    component="span" 
+                  <Box
+                    component="span"
                     sx={{
                       display: 'block',
                       background: theme.palette.gradients.primary,
@@ -1253,7 +1232,7 @@ const AboutPage = () => {
                     Coding Education
                   </Box>
                 </MotionTypography>
-                
+
                 {/* Subheadline */}
                 <MotionTypography
                   variant="h5"
@@ -1261,7 +1240,7 @@ const AboutPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                   color="textSecondary"
-                  sx={{ 
+                  sx={{
                     mb: 5,
                     fontWeight: 400,
                     lineHeight: 1.5,
@@ -1270,7 +1249,7 @@ const AboutPage = () => {
                     mx: 'auto',
                   }}
                 >
-                  Learn about our journey, our team, and the vision driving us to create 
+                  Learn about our journey, our team, and the vision driving us to create
                   the world's most comprehensive coding education platform.
                 </MotionTypography>
               </MotionBox>
@@ -1278,11 +1257,11 @@ const AboutPage = () => {
           </Grid>
         </Container>
       </Box>
-      
+
       {/* Main Content Section */}
-      <Box 
+      <Box
         component="section"
-        sx={{ 
+        sx={{
           pb: { xs: 10, md: 15 },
           position: 'relative',
         }}
@@ -1293,8 +1272,8 @@ const AboutPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            sx={{ 
-              p: 1, 
+            sx={{
+              p: 1,
               mb: { xs: 4, md: 6 },
               borderRadius: '50px',
               backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
@@ -1305,10 +1284,10 @@ const AboutPage = () => {
               justifyContent: 'center',
             }}
           >
-            <Tabs 
+            <Tabs
               value={tabValue}
               onChange={handleTabChange}
-              
+
               variant={isMobile ? "scrollable" : "fullWidth"}
               scrollButtons="auto"
               sx={{
@@ -1332,16 +1311,16 @@ const AboutPage = () => {
               }}
             >
               {aboutTabs.map((tab) => (
-                <Tab 
+                <Tab
                   key={tab.value}
-                  label={tab.label} 
+                  label={tab.label}
                   value={tab.value}
                   disableRipple
                 />
               ))}
             </Tabs>
           </MotionPaper>
-          
+
           {/* Tab panels */}
           <Box sx={{ py: 2 }}>
             {tabValue === 0 && ourStory}
@@ -1351,11 +1330,11 @@ const AboutPage = () => {
           </Box>
         </Container>
       </Box>
-      
+
       {/* Contact Section */}
-      <Box 
+      <Box
         component="section"
-        sx={{ 
+        sx={{
           py: { xs: 8, md: 12 },
           position: 'relative',
           bgcolor: isDark ? 'rgba(20, 20, 20, 0.5)' : 'rgba(245, 245, 245, 0.5)',
@@ -1368,8 +1347,8 @@ const AboutPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             viewport={{ once: true }}
-            sx={{ 
-              p: { xs: 4, md: 6 }, 
+            sx={{
+              p: { xs: 4, md: 6 },
               borderRadius: '24px',
               backgroundColor: isDark ? 'rgba(30, 28, 28, 0.6)' : 'rgba(255, 255, 255, 0.6)',
               backdropFilter: 'blur(16px)',
@@ -1378,10 +1357,10 @@ const AboutPage = () => {
               textAlign: 'center',
             }}
           >
-            <Typography 
-              variant="h3" 
+            <Typography
+              variant="h3"
               gutterBottom
-              sx={{ 
+              sx={{
                 fontWeight: 800,
                 mb: 3,
                 fontSize: { xs: '2rem', md: '2.5rem' },
@@ -1389,21 +1368,21 @@ const AboutPage = () => {
             >
               Get in Touch
             </Typography>
-            
-            <Typography 
+
+            <Typography
               variant="h6"
               color="textSecondary"
-              sx={{ 
+              sx={{
                 mb: 5,
                 maxWidth: '600px',
                 mx: 'auto',
                 fontWeight: 400,
               }}
             >
-              Have questions about Code-Quest or interested in partnership opportunities? 
+              Have questions about Code-Quest or interested in partnership opportunities?
               We'd love to hear from you.
             </Typography>
-            
+
             <Grid container spacing={4} justifyContent="center">
               <Grid item xs={12} sm={4}>
                 <Box sx={{ textAlign: 'center' }}>
@@ -1429,7 +1408,7 @@ const AboutPage = () => {
                   <Typography variant="body2" color="textSecondary" gutterBottom>
                     Our team is here to help
                   </Typography>
-                  <Typography 
+                  <Typography
                     variant="body1"
                     color={isDark ? 'white' : '#3B5966'}
                     sx={{ fontWeight: 600 }}
@@ -1438,7 +1417,7 @@ const AboutPage = () => {
                   </Typography>
                 </Box>
               </Grid>
-              
+
               <Grid item xs={12} sm={4}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Box
@@ -1463,15 +1442,15 @@ const AboutPage = () => {
                   <Typography variant="body2" color="textSecondary" gutterBottom>
                     Need technical assistance?
                   </Typography>
-                  <Typography 
+                  <Typography
                     variant="body1"
-                    sx={{ color: isDark ? 'white': "#3B5966", fontWeight: 600 }}
+                    sx={{ color: isDark ? 'white' : "#3B5966", fontWeight: 600 }}
                   >
                     support@code-quest.com
                   </Typography>
                 </Box>
               </Grid>
-              
+
               <Grid item xs={12} sm={4}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Box
@@ -1496,32 +1475,32 @@ const AboutPage = () => {
                   <Typography variant="body2" color="textSecondary" gutterBottom>
                     Explore collaboration options
                   </Typography>
-                  <Typography 
+                  <Typography
                     variant="body1"
-                    sx={{ color: isDark ? 'white': "#3B5966", fontWeight: 600 }}
+                    sx={{ color: isDark ? 'white' : "#3B5966", fontWeight: 600 }}
                   >
                     partners@code-quest.com
                   </Typography>
                 </Box>
               </Grid>
             </Grid>
-            
+
             <Box sx={{ mt: 6 }}>
               <Button
                 variant="contained"
                 size="large"
                 component={RouterLink}
                 to="/contact"
-                sx={{ 
+                sx={{
                   borderRadius: '50px',
                   px: 5,
                   py: 1.5,
                   background: theme.palette.gradients.primary,
                   fontWeight: 600,
-                  color: isDark ? 'white': "#3B5966",
+                  color: isDark ? 'white' : "#3B5966",
                   textTransform: 'none',
                   "&:hover": {
-                   
+
                     color: "white",
                     transform: "translateY(-3px)",
                     "&::after": {

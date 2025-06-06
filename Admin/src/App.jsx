@@ -6,30 +6,33 @@ import { Box } from '@mui/material';
 // Import theme provider
 import { ThemeProvider } from './context/ThemeContext';
 import authService from './services/authService';
+import Logo from './assets/logo.png';
+
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
-  <Box 
-    sx={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh', 
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
       width: '100%'
     }}
   >
-    <img src="/assets/loader.svg" alt="Loading..." style={{ width: '60px', height: '60px' }} />
+    <img src={Logo} alt="Loading..." style={{ width: '60px', height: '60px' }} /> Loading...
   </Box>
 );
 
 // ScrollToTop component to scroll to top on route change
 const ScrollToTop = () => {
   const { pathname } = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-  
+
   return null;
 };
 
@@ -37,7 +40,7 @@ const ScrollToTop = () => {
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const isDashboardRoute = location.pathname.startsWith('/admin/dashboard');
-  
+
   return (
     <Box
       className="App"
@@ -83,21 +86,21 @@ function App() {
             <Routes>
               {/* Make login page the home page */}
               <Route path="/" element={<Navigate to="/login" replace />} />
-              
+
               {/* Auth route (redirect to dashboard if already logged in) */}
               <Route path="/login" element={
                 <AuthRoute>
                   <AdminLogin />
                 </AuthRoute>
               } />
-              
+
               {/* Protected dashboard routes */}
               <Route path="/admin/*" element={
                 <ProtectedRoute>
                   <AdminDashboard />
                 </ProtectedRoute>
               } />
-              
+
               {/* Catch-all route */}
               <Route path="*" element={<AdminError404 />} />
             </Routes>

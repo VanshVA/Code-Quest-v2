@@ -37,7 +37,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
 
 // Current date and time
 const CURRENT_DATE_TIME = "2025-05-30 10:05:36";
@@ -46,7 +45,7 @@ const API_BASE_URL = "http://localhost:5000/api/admin/dashboard";
 
 const AdminHome = () => {
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
+     const isDark = theme.palette.mode === 'dark';
   const navigate = useNavigate();
 
   // Loading state
@@ -185,18 +184,6 @@ const AdminHome = () => {
 
   return (
     <Box>
-      {/* Toast Container - Repositioned */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            marginTop: '20px',
-            marginRight: '15px',
-            zIndex: 9999
-          },
-        }}
-      />
-      
       {/* Dashboard Header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h5" fontWeight="bold">

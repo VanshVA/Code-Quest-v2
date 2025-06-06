@@ -21,8 +21,9 @@ import {
   Alert,
   useTheme,
   RadioGroup,
-  FormControlLabel,
-  Radio,
+  FormControlLabel ,
+    Radio,
+    Snackbar
 } from '@mui/material';
 import {
   CheckCircle,
@@ -34,7 +35,6 @@ import {
   Timer,
   EventNote
 } from '@mui/icons-material';
-import toast, { Toaster } from 'react-hot-toast'; // Import toast
 import { format } from 'date-fns';
 import axios from 'axios';
 
@@ -47,6 +47,7 @@ const SubmissionDetails = ({ open, onClose, submission, competition }) => {
   const [error, setError] = useState(null);
   const [detailedSubmission, setDetailedSubmission] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
+  const [evaluationSuccess, setEvaluationSuccess] = useState(false);
   
   useEffect(() => {
     if (open && submission && submission._id) {
@@ -119,25 +120,23 @@ const SubmissionDetails = ({ open, onClose, submission, competition }) => {
             }
           }));
         } else {
-          // New evaluation was created, show success message with toast
-          toast.success('Submission evaluated successfully! The results have been updated.', {
-            duration: 3000,
-            position: 'top-center',
-          });
+          // New evaluation was created, show success message
+          setEvaluationSuccess(true);
           
           // Refresh submission details to show updated result
           fetchSubmissionDetails();
+          
+          // Reset success message after 3 seconds
+          setTimeout(() => {
+            setEvaluationSuccess(false);
+          }, 3000);
         }
       } else {
         throw new Error(response.data.message || 'Failed to evaluate submission');
       }
     } catch (err) {
       console.error('Error evaluating submission:', err);
-      // Show error with toast
-      toast.error(err.response?.data?.message || err.message || 'Failed to evaluate submission', {
-        duration: 4000,
-        position: 'top-center',
-      });
+      setError(err.response?.data?.message || err.message || 'Failed to evaluate submission');
     } finally {
       setEvaluating(false);
     }
@@ -261,9 +260,6 @@ const SubmissionDetails = ({ open, onClose, submission, competition }) => {
         }
       }}
     >
-      {/* Toast Container */}
-      <Toaster position="top-center" />
-      
       <DialogTitle>
         <Typography variant="h6">Submission Details</Typography>
       </DialogTitle>
@@ -465,6 +461,12 @@ const SubmissionDetails = ({ open, onClose, submission, competition }) => {
           <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
             No submission details available.
           </Typography>
+        )}
+        
+        {evaluationSuccess && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            Submission evaluated successfully! The results have been updated.
+          </Alert>
         )}
       </DialogContent>
       

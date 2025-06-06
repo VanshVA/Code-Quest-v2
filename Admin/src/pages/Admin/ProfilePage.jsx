@@ -40,7 +40,6 @@ import {
   EmojiEvents as EmojiEventsIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-import toast, { Toaster } from 'react-hot-toast';
 import moment from 'moment';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -105,6 +104,13 @@ const ProfilePage = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState({});
+
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    type: 'success',
+    message: ''
+  });
 
   // Load admin profile on component mount
   useEffect(() => {
@@ -200,13 +206,21 @@ const ProfilePage = () => {
         });
 
         setIsEditing(false);
-        toast.success(response.message || 'Profile updated successfully');
+        setNotification({
+          open: true,
+          type: 'success',
+          message: response.message || 'Profile updated successfully'
+        });
       } else {
         throw new Error(response.message || 'Failed to update profile');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
-      toast.error(err.response?.data?.message || err.message || 'Failed to update profile');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Failed to update profile'
+      });
     } finally {
       setLoading(false);
     }
@@ -269,7 +283,11 @@ const ProfilePage = () => {
 
       if (response.success) {
         handleClosePasswordDialog();
-        toast.success(response.message || 'Password updated successfully');
+        setNotification({
+          open: true,
+          type: 'success',
+          message: response.message || 'Password updated successfully'
+        });
       } else {
         throw new Error(response.message || 'Failed to update password');
       }
@@ -289,11 +307,23 @@ const ProfilePage = () => {
           newPassword: err.response.data.message || 'Invalid password'
         });
       } else {
-        toast.error(err.response?.data?.message || err.message || 'Failed to update password');
+        setNotification({
+          open: true,
+          type: 'error',
+          message: err.response?.data?.message || err.message || 'Failed to update password'
+        });
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Close notification
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      open: false
+    });
   };
 
   // Format date
@@ -303,17 +333,6 @@ const ProfilePage = () => {
 
   return (
     <Box>
-      {/* Toast Container - Removed margin adjustment */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            marginRight: '15px',
-            zIndex: 9999
-          },
-        }}
-      />
-      
       {/* Page title and header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h5" fontWeight="bold">
@@ -917,6 +936,23 @@ const ProfilePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notifications */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Alert,
   Box,
   Button,
   Container,
@@ -9,6 +10,7 @@ import {
   IconButton,
   InputAdornment,
   Paper,
+  Snackbar,
   Stack,
   TextField,
   Typography,
@@ -21,7 +23,6 @@ import {
   AdminPanelSettings,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import toast, { Toaster } from 'react-hot-toast';
 import authService from '../../services/authService';
 
 // Current date and time from global state
@@ -45,6 +46,7 @@ const AdminLoginPage = () => {
   
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loginStatus, setLoginStatus] = useState({ show: false, type: '', message: '' });
   const [isLoading, setIsLoading] = useState(false);
   
   // Form validation
@@ -99,10 +101,11 @@ const AdminLoginPage = () => {
         // Call admin login API
         const response = await authService.login(formData.email, formData.password);
         
-        // Handle successful login with toast - using default styling
-        toast.success('Login successful! Redirecting to admin dashboard...', {
-          duration: 3000,
-          position: 'top-center',
+        // Handle successful login
+        setLoginStatus({
+          show: true,
+          type: 'success',
+          message: 'Login successful! Redirecting to admin dashboard...',
         });
         
         // Redirect after login
@@ -110,21 +113,26 @@ const AdminLoginPage = () => {
           navigate('/admin/dashboard');
         }, 1500);
       } catch (error) {
-        // Show error with toast - using default styling
-        toast.error(error.message || 'Invalid admin credentials. Please try again.', {
-          duration: 4000,
-          position: 'top-center',
+        setLoginStatus({
+          show: true,
+          type: 'error',
+          message: error.message || 'Invalid admin credentials. Please try again.',
         });
       } finally {
         setIsLoading(false);
       }
     } else {
-      // Form validation error with toast - using default styling
-      toast.error('Please correct the errors in the form.', {
-        duration: 3000,
-        position: 'top-center',
+      setLoginStatus({
+        show: true,
+        type: 'error',
+        message: 'Please correct the errors in the form.',
       });
     }
+  };
+  
+  // Close status alert
+  const handleCloseAlert = () => {
+    setLoginStatus({ ...loginStatus, show: false });
   };
 
   return (
@@ -140,16 +148,6 @@ const AdminLoginPage = () => {
           : 'rgba(249, 250, 251, 0.94)',
       }}
     >
-      {/* Toast Container - Removed margin adjustment */}
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          style: {
-            zIndex: 9999
-          },
-        }}
-      />
-      
       {/* Current Time Display */}
       <MotionBox
         initial={{ opacity: 0, y: -20 }}
@@ -367,6 +365,23 @@ const AdminLoginPage = () => {
           </Typography>
         </Box>
       </Container>
+      
+      {/* Login Status Alert */}
+      <Snackbar
+        open={loginStatus.show}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseAlert} 
+          severity={loginStatus.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {loginStatus.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

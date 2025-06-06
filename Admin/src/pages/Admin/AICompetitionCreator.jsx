@@ -45,7 +45,6 @@ import {
   Close
 } from '@mui/icons-material';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
 
 // Define subject areas and difficulty levels
 const SUBJECT_AREAS = [
@@ -895,17 +894,6 @@ const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
         sx: { borderRadius: '16px' }
       }}
     >
-      {/* Toast Container - Removed margin adjustment */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            marginRight: '15px',
-            zIndex: 9999
-          },
-        }}
-      />
-      
       <DialogTitle sx={{ 
         pb: 1,
         display: 'flex',

@@ -23,6 +23,13 @@ import {
   InputLabel,
   Divider,
   Tooltip,
+  Alert,
+  Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   CircularProgress,
   useTheme,
   LinearProgress,
@@ -40,7 +47,6 @@ import {
   Assessment,
   Download
 } from '@mui/icons-material';
-import toast, { Toaster } from 'react-hot-toast';
 import { format } from 'date-fns';
 import axios from 'axios';
 import SubmissionDetails from './SubmissionDetails';
@@ -54,6 +60,7 @@ function ResultsManagement() {
   // State for competitions list
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Pagination state for competitions
   const [page, setPage] = useState(0);
@@ -89,6 +96,13 @@ function ResultsManagement() {
   // Action menu state
   const [actionMenuAnchorEl, setActionMenuAnchorEl] = useState(null);
   
+  // Notification state
+  const [notification, setNotification] = useState({
+    open: false,
+    type: 'success',
+    message: ''
+  });
+  
   // Fetch competitions on component mount and when filters change
   useEffect(() => {
     fetchCompetitions();
@@ -98,6 +112,7 @@ function ResultsManagement() {
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Build query parameters
       const params = new URLSearchParams({
@@ -132,12 +147,12 @@ function ResultsManagement() {
         setCompetitions(response.data.data.competitions);
         setTotalCompetitions(response.data.data.pagination.total);
       } else {
-        toast.error('Failed to load competitions. Please try again.');
+        setError('Failed to load competitions. Please try again.');
       }
       
     } catch (err) {
       console.error('Error fetching competitions:', err);
-      toast.error('Failed to load competitions. Please try again.');
+      setError('Failed to load competitions. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -280,6 +295,14 @@ function ResultsManagement() {
     setActionMenuAnchorEl(null);
   };
   
+  // Close notification
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      open: false
+    });
+  };
+  
   // Format date
   const formatDate = (dateString) => {
     try {
@@ -332,27 +355,24 @@ function ResultsManagement() {
       document.body.removeChild(link);
       
       // Show success notification
-      toast.success('Submissions exported successfully');
+      setNotification({
+        open: true,
+        type: 'success',
+        message: 'Submissions exported successfully'
+      });
       
     } catch (err) {
       console.error('Error exporting submissions:', err);
-      toast.error('Failed to export submissions');
+      setNotification({
+        open: true,
+        type: 'error',
+        message: 'Failed to export submissions'
+      });
     }
   };
 
   return (
     <Box>
-      {/* Toast Container - Removed margin adjustment */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          style: {
-            marginRight: '15px',
-            zIndex: 9999
-          },
-        }}
-      />
-      
       {/* Page header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h5" fontWeight="bold">
@@ -647,6 +667,10 @@ function ResultsManagement() {
                         {loading ? (
                           <Typography variant="body2" color="text.secondary">
                             Loading competitions...
+                          </Typography>
+                        ) : error ? (
+                          <Typography variant="body2" color="error">
+                            {error}
                           </Typography>
                         ) : (
                           <Typography variant="body2" color="text.secondary">
@@ -1059,6 +1083,23 @@ function ResultsManagement() {
           competition={selectedCompetition}
         />
       )}
+      
+      {/* Notifications */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification}
+          severity={notification.type}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

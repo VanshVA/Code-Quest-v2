@@ -17,19 +17,21 @@ import DocumentationPage from './pages/Documentation/DocumentationPage';
 import CompetitionPage from './pages/Competition/CompetitionPage';
 import ReferencesPage from './pages/References/ReferencesPage';
 import TestimonialsPage from './pages/Testimonial/TestimonialPage';
+import Logo from './assets/logo.png';
 
 // PageLoader component for suspense fallback
 const PageLoader = () => (
   <Box
     sx={{
       display: 'flex',
+      flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
       height: '100vh',
       width: '100%'
     }}
   >
-    <img src="/assets/loader.svg" alt="Loading..." style={{ width: '60px', height: '60px' }} />
+    <img src={Logo} alt="Loading..." style={{ width: '60px', height: '60px' }} /> Loading...
   </Box>
 );
 

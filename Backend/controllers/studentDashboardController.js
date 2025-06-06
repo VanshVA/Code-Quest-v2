@@ -97,7 +97,8 @@ const studentDashboardController = {
       if (school) student.school = school;
 
       // Record login time
-      student.loginTime.push(new Date());
+      student.loginTimeArray.push(new Date());
+      student.loginTime = new Date();
 
       await student.save();
 

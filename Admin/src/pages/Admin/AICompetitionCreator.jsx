@@ -86,7 +86,7 @@ const TARGET_AUDIENCES = [
 // Gemini AI API for question generation
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 // Fix for Vite environment variables
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyDTUU-VAViQ1ah3Qq_zv7LZOOvR_Dn4TxA"; // Replace with your API key or env variable
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyDN0wdAZF227lJEQGwEzKFYjgCXJtuy_-s"; // Replace with your API key or env variable
 
 const AICompetitionCreator = ({ open, onClose, onSubmit }) => {
   const theme = useTheme();

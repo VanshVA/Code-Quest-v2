@@ -372,7 +372,7 @@ function CompetitionResultsPage() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          padding: 4,
+          padding: 3,
           position: 'relative',
           overflow: 'hidden',
           cursor: 'pointer',
@@ -412,7 +412,7 @@ function CompetitionResultsPage() {
             top: 12,
             left: 12,
             zIndex: 1,
-            bgcolor: isDark ? alpha(theme.palette.background.paper, 0.7) : alpha(theme.palette.common.white, 0.8),
+            // bgcolor: isDark ? alpha(theme.palette.background.paper, 0.7) : alpha(theme.palette.common.white, 0.8),
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             '&:hover': {
               bgcolor: isDark ? alpha(theme.palette.background.paper, 0.9) : theme.palette.common.white,
@@ -886,7 +886,7 @@ function CompetitionResultsPage() {
       
       <Container maxWidth="lg" sx={{ py: 3 }}>
         {/* Sort by options */}
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           <Typography variant="body1" fontWeight={500} sx={{ mr: 2 }}>
             Sort by:
           </Typography>
@@ -929,7 +929,7 @@ function CompetitionResultsPage() {
               Oldest
             </Button>
           </div>
-        </Box>
+        </Box> */}
 
         {/* Competition results container */}
         <Grid container spacing={4}>
@@ -943,7 +943,7 @@ function CompetitionResultsPage() {
           ) : (
             <>
               {competitions.length === 0 ? (
-                <Grid item xs={12}>
+                <Grid item xs={12} width={"100%"}>
                   <Box
                     sx={{
                       display: 'flex',

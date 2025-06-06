@@ -42,9 +42,6 @@ const competitionSchema = new Schema({
     default: 60 // Default duration in minutes
   },
   questions: [questionSchema], // Array of questions directly in the competition
-  id: {
-    type: Number,
-  },
   isLive: {
     type: Boolean,
     default: false

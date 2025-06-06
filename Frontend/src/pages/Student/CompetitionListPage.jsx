@@ -365,7 +365,7 @@ const CompetitionPage = ({
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            padding: 4,
+            padding: 3,
             position: 'relative',
             overflow: 'hidden',
             cursor: 'pointer',
@@ -381,7 +381,6 @@ const CompetitionPage = ({
                 position: 'absolute',
                 top: 16,
                 right: 16,
-
                 zIndex: 1,
               }}
             >
@@ -409,7 +408,7 @@ const CompetitionPage = ({
               zIndex: 1,
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               color:isDark ? 'white' : 'black',
-              backgroundColor: isDark ? 'white' : 'black',
+              // backgroundColor: isDark ? 'white' : 'black',
               
             }}
           >
@@ -947,7 +946,7 @@ const CompetitionPage = ({
           </Box>
 
           {/* Sort by options */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          {/* <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
             <Typography variant="body1" fontWeight={500} sx={{ mr: 2 }}>
               Sort by:
             </Typography>
@@ -991,7 +990,7 @@ const CompetitionPage = ({
                 Oldest
               </Button>
             </div>
-          </Box>
+          </Box> */}
 
           {/* Competition cards container */}
           <Grid container spacing={4}>

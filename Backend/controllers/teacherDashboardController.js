@@ -101,7 +101,8 @@ const teacherDashboardController = {
             if (teacherImage) teacher.teacherImage = teacherImage;
 
             // Record login time
-            teacher.loginTime.push(new Date());
+            teacher.loginTimeArray.push(new Date());
+            teacher.loginTime = new Date();
 
             await teacher.save();
 
